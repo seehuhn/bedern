@@ -379,8 +379,8 @@ func TestCapBowlSerifsAreThoseOfH(t *testing.T) {
 	})
 }
 
-// The foot of the leg of R keeps at least pairClearance from every letter which follows it,
-// the capitals and the lowercase.
+// The foot of the leg of R keeps at least pairClearance from every letter which follows it
+// without a kern, the capitals and the lowercase.
 func TestCapRLegKeepsAwayFromWhatFollows(t *testing.T) {
 	t.Parallel()
 	forCaps(t, func(t *testing.T, np namedParams) {

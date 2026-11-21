@@ -340,7 +340,7 @@ const (
 
 // g keeps clear of the descender of a y which follows it and of the tail of a j
 // before it.  The tail of a following j reaches under the loop and touches it
-// (TestJTailKeepsAwayFromWhatPrecedes).
+// (TestJTailKeepsAwayFromWhatPrecedes); that pair needs a kern.
 func TestGNeighbours(t *testing.T) {
 	t.Parallel()
 	for _, np := range allParams() {

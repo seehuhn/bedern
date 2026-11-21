@@ -22,6 +22,7 @@ import (
 	bedern "seehuhn.de/go/bedern/internal/font"
 	"seehuhn.de/go/bedern/internal/font/design"
 	"seehuhn.de/go/bedern/internal/font/glyphs"
+	"seehuhn.de/go/bedern/internal/kern"
 )
 
 // privateDict returns the CFF Private dict, which holds the alignment zones
@@ -42,10 +43,21 @@ func privateDict(p design.Params) *type1.PrivateDict {
 	}
 }
 
-// Font assembles a Bedern font of the given style from the given glyphs.  The first
-// glyph must be .notdef.
+// Options are the choices of Font which are not parameters of the design.
+type Options struct {
+	// NoKern leaves out the feature kern.
+	NoKern bool
+}
+
+// Font assembles a Bedern font of the given style from the given glyphs, with
+// the kerning computed from the outlines.  The first glyph must be .notdef.
 // The time is used for the creation and modification dates.
 func Font(p design.Params, style design.Style, gs []glyphs.Glyph, now time.Time) (*sfnt.Font, error) {
+	return FontWith(p, style, gs, now, Options{})
+}
+
+// FontWith is Font with options.
+func FontWith(p design.Params, style design.Style, gs []glyphs.Glyph, now time.Time, opts Options) (*sfnt.Font, error) {
 	if err := p.Validate(); err != nil {
 		return nil, err
 	}
@@ -135,5 +147,8 @@ func Font(p design.Params, style design.Style, gs []glyphs.Glyph, now time.Time)
 	// Latin.
 	font.CodePageRange.Set(os2.CP1252)
 	font.UnicodeRange.Set(os2.URBasicLatin)
+	if !opts.NoKern {
+		font.Gpos = kernInfo(kern.Compute(p, gs))
+	}
 	return font, nil
 }

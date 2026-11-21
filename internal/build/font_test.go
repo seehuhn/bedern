@@ -208,7 +208,7 @@ func TestStyleNames(t *testing.T) {
 		Weight:     400,
 	}
 	now := time.Date(2026, 11, 20, 12, 0, 0, 0, time.UTC)
-	font, err := Font(p, style, glyphstest.Set(p), now)
+	font, err := FontWith(p, style, glyphstest.Set(p), now, Options{NoKern: true})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -260,7 +260,7 @@ func writeFont(t *testing.T, font *sfnt.Font) string {
 // testNow is the time of the fonts of the tests.
 var testNow = time.Date(2026, 11, 20, 12, 0, 0, 0, time.UTC)
 
-// regularFont builds the regular font once per test binary.  The
+// regularFont builds the regular font with kerning once per test binary.  The
 // font is shared and must not be changed.
 var regularFont = sync.OnceValues(func() (*sfnt.Font, error) {
 	p := design.Regular()

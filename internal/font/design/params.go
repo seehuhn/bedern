@@ -529,6 +529,9 @@ type Params struct {
 	// Sym holds the parameters of the question mark, the ampersand and the
 	// symbols of the basic set, see symbols.go.
 	Sym Symbols
+
+	// Kern holds the parameters of the pair kerning, see kern.go.
+	Kern Kern
 }
 
 // Regular returns the parameters of Bedern Regular.
@@ -779,6 +782,8 @@ func Regular() Params {
 		Figures: regularFigures(),
 		Punct:   regularPunct(),
 		Sym:     regularSymbols(),
+
+		Kern: regularKern(),
 	}
 }
 
