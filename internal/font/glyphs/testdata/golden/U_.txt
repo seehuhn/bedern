@@ -25,3 +25,5 @@ x-z-k-up U 720 1c2ea2c4deed
 x-z-k-down U 720 1c2ea2c4deed
 caps-up U 750 f04cdb8db9d3
 caps-down U 688 bffebd5576cd
+punct-up U 720 1c2ea2c4deed
+punct-down U 720 1c2ea2c4deed

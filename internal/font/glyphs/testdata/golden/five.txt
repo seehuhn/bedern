@@ -25,3 +25,5 @@ x-z-k-up five 490 e170516d7477
 x-z-k-down five 490 e170516d7477
 caps-up five 515 ff899c724ded
 caps-down five 470 6da0f8bcf3c2
+punct-up five 490 e170516d7477
+punct-down five 490 e170516d7477

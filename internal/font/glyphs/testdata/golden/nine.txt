@@ -25,3 +25,5 @@ x-z-k-up nine 490 abb6d0cc3e67
 x-z-k-down nine 490 abb6d0cc3e67
 caps-up nine 515 6223cb5630e3
 caps-down nine 470 b9fab30947b8
+punct-up nine 490 abb6d0cc3e67
+punct-down nine 490 abb6d0cc3e67

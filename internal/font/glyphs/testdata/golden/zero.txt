@@ -25,3 +25,5 @@ x-z-k-up zero 490 6098f9d47716
 x-z-k-down zero 490 6098f9d47716
 caps-up zero 515 56f6dbc89208
 caps-down zero 470 bf3d84b2fe35
+punct-up zero 490 6098f9d47716
+punct-down zero 490 6098f9d47716

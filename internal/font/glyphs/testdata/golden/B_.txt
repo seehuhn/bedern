@@ -25,3 +25,5 @@ x-z-k-up B 665 6f6a4b64e219
 x-z-k-down B 665 6f6a4b64e219
 caps-up B 724 45005f035f09
 caps-down B 657 31a92fb40def
+punct-up B 665 6f6a4b64e219
+punct-down B 665 6f6a4b64e219

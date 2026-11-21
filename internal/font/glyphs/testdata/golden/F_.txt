@@ -25,3 +25,5 @@ x-z-k-up F 626 03059e0ad63a
 x-z-k-down F 626 03059e0ad63a
 caps-up F 636 76f1acc734b9
 caps-down F 616 3021bc96cca1
+punct-up F 626 03059e0ad63a
+punct-down F 626 03059e0ad63a

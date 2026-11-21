@@ -25,3 +25,5 @@ x-z-k-up A 716 8aa2ca319d1e
 x-z-k-down A 716 8aa2ca319d1e
 caps-up A 742 bc9449b21065
 caps-down A 692 416c07322fc8
+punct-up A 716 8aa2ca319d1e
+punct-down A 716 8aa2ca319d1e

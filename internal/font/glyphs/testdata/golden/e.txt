@@ -25,3 +25,5 @@ x-z-k-up e 443 894a7c08a6a7
 x-z-k-down e 443 894a7c08a6a7
 caps-up e 443 894a7c08a6a7
 caps-down e 443 894a7c08a6a7
+punct-up e 443 894a7c08a6a7
+punct-down e 443 894a7c08a6a7

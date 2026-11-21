@@ -25,3 +25,5 @@ x-z-k-up eight 490 973c9aa36b2c
 x-z-k-down eight 490 973c9aa36b2c
 caps-up eight 515 c22c958555ec
 caps-down eight 470 30b292fca8de
+punct-up eight 490 973c9aa36b2c
+punct-down eight 490 973c9aa36b2c

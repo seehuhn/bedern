@@ -25,3 +25,5 @@ x-z-k-up Q 746 4bcc88307ed4
 x-z-k-down Q 746 4bcc88307ed4
 caps-up Q 780 7907292d0a27
 caps-down Q 710 e1156194ffb3
+punct-up Q 746 4bcc88307ed4
+punct-down Q 746 4bcc88307ed4

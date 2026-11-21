@@ -25,3 +25,5 @@ x-z-k-up w 709 5eb69ebd1c8e
 x-z-k-down w 709 5eb69ebd1c8e
 caps-up w 709 5eb69ebd1c8e
 caps-down w 709 5eb69ebd1c8e
+punct-up w 709 5eb69ebd1c8e
+punct-down w 709 5eb69ebd1c8e

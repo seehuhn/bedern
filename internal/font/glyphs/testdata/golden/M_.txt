@@ -25,3 +25,5 @@ x-z-k-up M 874 674aaaf6880f
 x-z-k-down M 874 674aaaf6880f
 caps-up M 902 2bdb0c0909c2
 caps-down M 847 b050419521d6
+punct-up M 874 674aaaf6880f
+punct-down M 874 674aaaf6880f

@@ -25,3 +25,5 @@ x-z-k-up b 541 dc270ee37d19
 x-z-k-down b 541 dc270ee37d19
 caps-up b 541 dc270ee37d19
 caps-down b 541 dc270ee37d19
+punct-up b 541 dc270ee37d19
+punct-down b 541 dc270ee37d19

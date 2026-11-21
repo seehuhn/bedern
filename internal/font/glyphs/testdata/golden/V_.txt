@@ -25,3 +25,5 @@ x-z-k-up V 719 700bc8a64e9f
 x-z-k-down V 719 700bc8a64e9f
 caps-up V 744 03c5c53a5a26
 caps-down V 694 d7a837875949
+punct-up V 719 700bc8a64e9f
+punct-down V 719 700bc8a64e9f

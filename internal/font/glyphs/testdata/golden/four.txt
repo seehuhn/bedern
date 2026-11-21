@@ -25,3 +25,5 @@ x-z-k-up four 490 3087f8104e4e
 x-z-k-down four 490 3087f8104e4e
 caps-up four 515 a59da6dff18e
 caps-down four 470 d8eb31b9daf2
+punct-up four 490 3087f8104e4e
+punct-down four 490 3087f8104e4e

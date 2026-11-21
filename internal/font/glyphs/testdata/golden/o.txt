@@ -25,3 +25,5 @@ x-z-k-up o 486 16476a858c61
 x-z-k-down o 486 16476a858c61
 caps-up o 486 16476a858c61
 caps-down o 486 16476a858c61
+punct-up o 486 16476a858c61
+punct-down o 486 16476a858c61

@@ -21,13 +21,13 @@ type Set struct {
 // The first sets move all lowercase proportions together (xheight430-serif90),
 // all capitals (caps-down), and the weight and the counters
 // (stem95-counter150).  Then follows one set each for the groups e-a-s, f-t-j,
-// g, v-w-y and x-z-k, before the second set of a group and the sets which move
-// one parameter alone.
+// g, v-w-y, x-z-k and the punctuation, before the second set of a group and
+// the sets which move one parameter alone.
 var routineOrder = []string{
 	"xheight430-serif90", "caps-down", "stem95-counter150",
-	"e-a-s-up", "f-t-j-down", "g-up", "v-w-y-down", "x-z-k-up",
+	"e-a-s-up", "f-t-j-down", "g-up", "v-w-y-down", "x-z-k-up", "punct-up",
 	"caps-up", "xheight480-serif40", "stem70-counter230",
-	"e-a-s-down", "f-t-j-up", "g-down", "v-w-y-up", "x-z-k-down",
+	"e-a-s-down", "f-t-j-up", "g-down", "v-w-y-up", "x-z-k-down", "punct-down",
 	"curve100", "thin26",
 	"stem70", "stem95", "xheight430", "xheight480", "counter150", "counter230", "serif40", "serif90",
 }
@@ -66,7 +66,7 @@ func Sets(routine bool, n int) []Set {
 // the bowl and of the loop, the size, reach and height of the ear and its ball,
 // and the place of the link).  Two sets which move the parameters of v, w and y
 // (the widths of the ink, the serifs, the vertices, the apex of w and the tail
-// of y), two for x, z and k and two for the capitals.
+// of y), two for x, z and k, two for the capitals and two for the punctuation.
 // In the sets which scale the x-height the bowl and the ear of g move with it.
 // Every set passes Params.Validate and glyphs.Check.  A change of the serif
 // length scales BracketReach, SerifJutInner and QSideRight in the same
@@ -240,6 +240,7 @@ func Perturbed() []Set {
 		c.UThin, c.UCounter, c.UCurve = 48, 355, 245
 		capDiagUp(p)
 		figuresUp(p)
+		symbolsUp(p)
 	})
 	add("caps-down", func(p *design.Params) {
 		c := &p.Caps
@@ -269,6 +270,36 @@ func Perturbed() []Set {
 		c.UThin, c.UCounter, c.UCurve = 36, 325, 200
 		capDiagDown(p)
 		figuresDown(p)
+		symbolsDown(p)
+	})
+	// The punctuation and the signs of ASCII mathematics: larger and heavier, with a
+	// deeper comma, rounder parentheses, longer arms of the brackets, a leaning
+	// slash, a bigger asterisk and wider and heavier maths signs; and the opposite.
+	add("punct-up", func(p *design.Params) {
+		q := &p.Punct
+		q.DotLow, q.ColonOver, q.ExclamTopWidth, q.ExclamBottomWidth, q.ExclamGap = 12, 8, 96, 40, 90
+		q.CommaDepth, q.CommaRun, q.CommaEndAngle, q.CommaOuterAt, q.CommaInnerAt = 180, 62, 52, 9, 84
+		q.QuoteTop, q.QuotePitch, q.StraightHeight, q.StraightTopWidth, q.StraightBottomWidth = 706, 200, 280, 66, 36
+		q.HyphenLength, q.HyphenThick, q.DashThick, q.UnderThick = 280, 72, 54, 54
+		q.BracketOver, q.BracketUnder, q.ParenSagitta, q.ParenThick, q.ParenEnd, q.ParenAngle = 70, 30, 190, 84, 54, 52
+		q.BracketStem, q.BracketArm, q.BracketReach = 74, 44, 124
+		q.SlashAngle, q.SlashThick, q.BarThick = 22, 58, 62
+		q.AsteriskSize, q.AsteriskInner, q.AsteriskOuter = 440, 58, 74
+		q.MathWidth, q.MathThick, q.EqualsGap, q.MathAngle, q.MathAngleWidth, q.MathVertexFlat = 600, 60, 150, 27, 560, 44
+		q.NotdefThick = 44
+	})
+	add("punct-down", func(p *design.Params) {
+		q := &p.Punct
+		q.DotLow, q.ColonOver, q.ExclamTopWidth, q.ExclamBottomWidth, q.ExclamGap = 6, 0, 76, 30, 70
+		q.CommaDepth, q.CommaRun, q.CommaEndAngle, q.CommaOuterAt, q.CommaInnerAt = 156, 50, 46, 6, 76
+		q.QuoteTop, q.QuotePitch, q.StraightHeight, q.StraightTopWidth, q.StraightBottomWidth = 690, 180, 240, 50, 26
+		q.HyphenLength, q.HyphenThick, q.DashThick, q.UnderThick = 240, 56, 40, 40
+		q.BracketOver, q.BracketUnder, q.ParenSagitta, q.ParenThick, q.ParenEnd, q.ParenAngle = 44, 12, 160, 68, 40, 44
+		q.BracketStem, q.BracketArm, q.BracketReach = 60, 34, 100
+		q.SlashAngle, q.SlashThick, q.BarThick = 18, 46, 50
+		q.AsteriskSize, q.AsteriskInner, q.AsteriskOuter = 370, 46, 60
+		q.MathWidth, q.MathThick, q.EqualsGap, q.MathAngle, q.MathAngleWidth, q.MathVertexFlat = 520, 48, 120, 23, 470, 30
+		q.NotdefThick = 32
 	})
 	return sets
 }

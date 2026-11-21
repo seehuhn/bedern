@@ -25,3 +25,5 @@ x-z-k-up q 524 33d8100b6fe7
 x-z-k-down q 524 33d8100b6fe7
 caps-up q 524 33d8100b6fe7
 caps-down q 524 33d8100b6fe7
+punct-up q 524 33d8100b6fe7
+punct-down q 524 33d8100b6fe7

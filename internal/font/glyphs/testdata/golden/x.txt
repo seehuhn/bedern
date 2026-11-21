@@ -25,3 +25,5 @@ x-z-k-up x 515 f94529c05a6e
 x-z-k-down x 480 e7fdf9092152
 caps-up x 497 8fa960f0036f
 caps-down x 497 8fa960f0036f
+punct-up x 497 8fa960f0036f
+punct-down x 497 8fa960f0036f

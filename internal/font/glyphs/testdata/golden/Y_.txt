@@ -25,3 +25,5 @@ x-z-k-up Y 719 4019f99cac12
 x-z-k-down Y 719 4019f99cac12
 caps-up Y 744 19393070f3d0
 caps-down Y 694 200d7390808b
+punct-up Y 719 4019f99cac12
+punct-down Y 719 4019f99cac12

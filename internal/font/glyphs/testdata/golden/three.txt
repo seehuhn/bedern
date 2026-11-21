@@ -25,3 +25,5 @@ x-z-k-up three 490 7c6b7262a5c0
 x-z-k-down three 490 7c6b7262a5c0
 caps-up three 515 c70e7b5d6cd8
 caps-down three 470 0b034bf76472
+punct-up three 490 7c6b7262a5c0
+punct-down three 490 7c6b7262a5c0

@@ -25,3 +25,5 @@ x-z-k-up N 720 de2f5b356bce
 x-z-k-down N 720 de2f5b356bce
 caps-up N 747 39325db8c693
 caps-down N 697 51e971455be0
+punct-up N 720 de2f5b356bce
+punct-down N 720 de2f5b356bce

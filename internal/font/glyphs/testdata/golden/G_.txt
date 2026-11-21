@@ -25,3 +25,5 @@ x-z-k-up G 741 0f5c44b42d50
 x-z-k-down G 741 0f5c44b42d50
 caps-up G 779 450838c9bf23
 caps-down G 707 88d7e4560d0a
+punct-up G 741 0f5c44b42d50
+punct-down G 741 0f5c44b42d50

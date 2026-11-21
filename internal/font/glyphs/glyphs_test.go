@@ -349,6 +349,10 @@ func TestSetOrder(t *testing.T) {
 	want = append(want, strings.Split("ABCDEFGHIJKLMNOPQRSTUVWXYZ", "")...)
 	// The ten figures follow the capitals.
 	want = append(want, "zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine")
+	// The basic punctuation and the signs of ASCII mathematics.
+	want = append(want, strings.Fields("period comma colon semicolon exclam quotesingle quoteleft quoteright quotedbl quotedblleft quotedblright hyphen endash emdash parenleft parenright bracketleft bracketright slash backslash bar underscore asterisk plus minus equal less greater")...)
+	// The question mark, the ampersand and the symbols of the basic set follow.
+	want = append(want, symbolGlyphs...)
 	if len(gs) != len(want) {
 		t.Fatalf("%d glyphs, want %d", len(gs), len(want))
 	}

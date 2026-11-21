@@ -25,3 +25,5 @@ x-z-k-up P 643 e7ccd38e815d
 x-z-k-down P 643 e7ccd38e815d
 caps-up P 671 a31acdd2cc97
 caps-down P 611 c5fc3a75a0b1
+punct-up P 643 e7ccd38e815d
+punct-down P 643 e7ccd38e815d

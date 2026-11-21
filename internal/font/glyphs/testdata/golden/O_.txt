@@ -25,3 +25,5 @@ x-z-k-up O 746 cd234bf8bb29
 x-z-k-down O 746 cd234bf8bb29
 caps-up O 780 8fb0c76f5140
 caps-down O 710 b452d68b8158
+punct-up O 746 cd234bf8bb29
+punct-down O 746 cd234bf8bb29

@@ -12,8 +12,8 @@ import (
 
 // The glyph .notdef, which is shown for a missing character.  It is a frame
 // from the baseline to the height of the figures with a diagonal cross inside
-// it, on the advance of the figures with Notdef.Side on each side.  The frame
-// and the two diagonals, which run from corner to corner, are Notdef.Thick
+// it, on the advance of the figures with NotdefSide on each side.  The frame
+// and the two diagonals, which run from corner to corner, are NotdefThick
 // thick: the glyph is one outer contour, the rectangle, with the four triangles
 // between the frame and the diagonals as counters.
 
@@ -36,8 +36,8 @@ func notdefTriangle(a, b, c notdefLine) []outline.Point {
 
 // notdef draws .notdef.
 func notdef(p design.Params) (outline.Path, float64) {
-	q := p.Notdef
-	w, h, f, t := p.Figures.Advance-2*q.Side, p.Figures.Height, q.Thick, q.Thick
+	q := p.Punct
+	w, h, f, t := p.Figures.Advance-2*q.NotdefSide, p.Figures.Height, q.NotdefThick, q.NotdefThick
 
 	var path outline.Path
 	rect(&path, 0, 0, w, h, true)
@@ -63,47 +63,5 @@ func notdef(p design.Params) (outline.Path, float64) {
 	} {
 		addPolygon(&path, tri...)
 	}
-	return placeInk(path, q.Side, q.Side)
-}
-
-// placeInk moves the path sideways so that its leftmost ink lies left from the
-// left edge of the advance, and returns it with the advance, which leaves right
-// between the rightmost ink and the right edge.  The shift and the advance are
-// whole numbers, and no side space is less than it is asked to be.
-func placeInk(path outline.Path, left, right float64) (outline.Path, float64) {
-	x0, _, x1, _ := path.BBox()
-	dx := math.Ceil(left - x0 - 1e-6)
-	var out outline.Path
-	for _, ct := range path {
-		c := outline.Contour{Start: outline.Point{X: ct.Start.X + dx, Y: ct.Start.Y}}
-		for _, s := range ct.Segs {
-			c.Segs = append(c.Segs, outline.Segment{
-				IsCurve: s.IsCurve,
-				P1:      outline.Point{X: s.P1.X + dx, Y: s.P1.Y},
-				P2:      outline.Point{X: s.P2.X + dx, Y: s.P2.Y},
-				P3:      outline.Point{X: s.P3.X + dx, Y: s.P3.Y},
-			})
-		}
-		out = append(out, c)
-	}
-	return out, math.Ceil(x1 + dx + right - 1e-6)
-}
-
-// addPolygon adds the closed polygon through the points as a contour of the path.
-// The points run counter-clockwise for an outer contour and clockwise for a
-// counter.
-func addPolygon(path *outline.Path, pts ...outline.Point) {
-	path.MoveTo(pts[0].X, pts[0].Y)
-	for _, q := range pts[1:] {
-		path.LineTo(q.X, q.Y)
-	}
-	path.LineTo(pts[0].X, pts[0].Y)
-}
-
-// meetLines returns the point where the line through a with the direction
-// da meets the line through b with the direction db.
-func meetLines(a, da, b, db outline.Point) outline.Point {
-	den := da.X*db.Y - da.Y*db.X
-	t := ((b.X-a.X)*db.Y - (b.Y-a.Y)*db.X) / den
-	return outline.Point{X: a.X + t*da.X, Y: a.Y + t*da.Y}
+	return placeInk(path, design.PunctSides{Left: q.NotdefSide, Right: q.NotdefSide})
 }

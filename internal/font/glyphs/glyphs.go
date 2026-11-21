@@ -200,6 +200,9 @@ func (k sideKind) space(p design.Params, left bool) float64 {
 	if v, ok := capSideSpace(k, p, left); ok {
 		return v
 	}
+	if v, ok := punctSideSpace(k, p, left); ok {
+		return v
+	}
 	return 0
 }
 
@@ -298,6 +301,52 @@ var table = []entry{
 	{"seven", '7', sideFigure, sideFigure, figSeven},
 	{"eight", '8', sideFigure, sideFigure, figEight},
 	{"nine", '9', sideFigure, sideFigure, figNine},
+	// The basic punctuation and the signs of ASCII mathematics (punct.go).
+	{"period", '.', sidePeriod, sidePeriod, period},
+	{"comma", ',', sideComma, sideComma, comma},
+	{"colon", ':', sideColon, sideColon, colon},
+	{"semicolon", ';', sideSemicolon, sideSemicolon, semicolon},
+	{"exclam", '!', sideExclam, sideExclam, exclam},
+	{"quotesingle", '\'', sideStraight, sideStraight, quotesingle},
+	{"quoteleft", '\u2018', sideQuote, sideQuote, quoteleft},
+	{"quoteright", '\u2019', sideQuote, sideQuote, quoteright},
+	{"quotedbl", '"', sideStraightDouble, sideStraightDouble, quotedbl},
+	{"quotedblleft", '\u201C', sideQuoteDouble, sideQuoteDouble, quotedblleft},
+	{"quotedblright", '\u201D', sideQuoteDouble, sideQuoteDouble, quotedblright},
+	{"hyphen", '-', sideHyphen, sideHyphen, hyphen},
+	{"endash", '\u2013', sideDash, sideDash, endash},
+	{"emdash", '\u2014', sideEmDash, sideEmDash, emdash},
+	{"parenleft", '(', sideParen, sideParen, parenleft},
+	{"parenright", ')', sideParenRight, sideParenRight, parenright},
+	{"bracketleft", '[', sideBracket, sideBracket, bracketleft},
+	{"bracketright", ']', sideBracketRight, sideBracketRight, bracketright},
+	{"slash", '/', sideSlash, sideSlash, slash},
+	{"backslash", '\\', sideBackslash, sideBackslash, backslash},
+	{"bar", '|', sideBar, sideBar, verticalbar},
+	{"underscore", '_', sideUnderscore, sideUnderscore, underscore},
+	{"asterisk", '*', sideAsterisk, sideAsterisk, asterisk},
+	{"plus", '+', sideMath, sideMath, plus},
+	{"minus", '\u2212', sideMath, sideMath, minus},
+	{"equal", '=', sideMath, sideMath, equal},
+	{"less", '<', sideMath, sideMath, less},
+	{"greater", '>', sideMath, sideMath, greater},
+	// The question mark, the ampersand and the symbols of the basic set, see
+	// internal/design/symbols.go.
+	{"question", '?', sideOpen, sideOpen, question},
+	{"braceleft", '{', sideOpen, sideOpen, braceleft},
+	{"braceright", '}', sideOpen, sideOpen, braceright},
+	{"asciitilde", '~', sideOpen, sideOpen, asciitilde},
+	{"asciicircum", '^', sideOpen, sideOpen, asciicircum},
+	{"grave", '`', sideOpen, sideOpen, grave},
+	{"degree", '°', sideOpen, sideOpen, degree},
+	{"percent", '%', sideOpen, sideOpen, percent},
+	{"numbersign", '#', sideOpen, sideOpen, numbersign},
+	{"dollar", '$', sideOpen, sideOpen, dollar},
+	{"sterling", '£', sideOpen, sideOpen, sterling},
+	{"Euro", '€', sideOpen, sideOpen, euro},
+	{"section", '§', sideOpen, sideOpen, section},
+	{"at", '@', sideOpen, sideOpen, at},
+	{"ampersand", '&', sideOpen, sideOpen, ampersand},
 }
 
 // lookup returns the entry of the glyph with the given name.

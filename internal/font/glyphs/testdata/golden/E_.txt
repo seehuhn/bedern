@@ -25,3 +25,5 @@ x-z-k-up E 646 26ebb6fc6fa4
 x-z-k-down E 646 26ebb6fc6fa4
 caps-up E 681 a2b4714ae1a3
 caps-down E 606 e1ac9eae168f
+punct-up E 646 26ebb6fc6fa4
+punct-down E 646 26ebb6fc6fa4

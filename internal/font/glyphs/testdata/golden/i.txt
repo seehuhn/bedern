@@ -25,3 +25,5 @@ x-z-k-up i 270 e871ea0f4f8e
 x-z-k-down i 270 e871ea0f4f8e
 caps-up i 270 e871ea0f4f8e
 caps-down i 270 e871ea0f4f8e
+punct-up i 270 e871ea0f4f8e
+punct-down i 270 e871ea0f4f8e

@@ -25,3 +25,5 @@ x-z-k-up d 546 04ad85c04dbf
 x-z-k-down d 546 04ad85c04dbf
 caps-up d 546 04ad85c04dbf
 caps-down d 546 04ad85c04dbf
+punct-up d 546 04ad85c04dbf
+punct-down d 546 04ad85c04dbf

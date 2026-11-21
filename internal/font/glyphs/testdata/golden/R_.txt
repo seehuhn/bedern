@@ -25,3 +25,5 @@ x-z-k-up R 700 73588174181d
 x-z-k-down R 700 73588174181d
 caps-up R 738 3654ba7f8d37
 caps-down R 635 85f9e6acdb55
+punct-up R 700 73588174181d
+punct-down R 700 73588174181d

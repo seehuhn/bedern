@@ -25,3 +25,5 @@ x-z-k-up S 541 2e51dcb709e0
 x-z-k-down S 541 2e51dcb709e0
 caps-up S 566 07a5bf826c12
 caps-down S 516 738f05b04137
+punct-up S 541 2e51dcb709e0
+punct-down S 541 2e51dcb709e0

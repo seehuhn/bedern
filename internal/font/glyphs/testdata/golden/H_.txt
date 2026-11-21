@@ -25,3 +25,5 @@ x-z-k-up H 720 4273d32b9741
 x-z-k-down H 720 4273d32b9741
 caps-up H 753 76f88b49fc91
 caps-down H 683 174728ba0a47
+punct-up H 720 4273d32b9741
+punct-down H 720 4273d32b9741

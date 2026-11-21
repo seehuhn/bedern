@@ -25,3 +25,5 @@ x-z-k-up a 487 664bbf0f39a7
 x-z-k-down a 487 664bbf0f39a7
 caps-up a 487 664bbf0f39a7
 caps-down a 487 664bbf0f39a7
+punct-up a 487 664bbf0f39a7
+punct-down a 487 664bbf0f39a7

@@ -25,3 +25,5 @@ x-z-k-up l 270 f3935ec3a439
 x-z-k-down l 270 f3935ec3a439
 caps-up l 270 f3935ec3a439
 caps-down l 270 f3935ec3a439
+punct-up l 270 f3935ec3a439
+punct-down l 270 f3935ec3a439

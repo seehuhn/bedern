@@ -25,3 +25,5 @@ x-z-k-up t 358 4027489e605f
 x-z-k-down t 358 4027489e605f
 caps-up t 358 4027489e605f
 caps-down t 358 4027489e605f
+punct-up t 358 4027489e605f
+punct-down t 358 4027489e605f

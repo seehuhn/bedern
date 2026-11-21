@@ -25,3 +25,5 @@ x-z-k-up X 711 70981c5f157b
 x-z-k-down X 711 70981c5f157b
 caps-up X 735 3396f4363a6e
 caps-down X 685 12160e615ee3
+punct-up X 711 70981c5f157b
+punct-down X 711 70981c5f157b

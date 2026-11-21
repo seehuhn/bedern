@@ -25,3 +25,5 @@ x-z-k-up six 490 772146ad781b
 x-z-k-down six 490 772146ad781b
 caps-up six 515 293f2cc607ac
 caps-down six 470 522e10e9d10c
+punct-up six 490 772146ad781b
+punct-down six 490 772146ad781b

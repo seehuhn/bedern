@@ -25,3 +25,5 @@ x-z-k-up two 490 fb209c1f4ca9
 x-z-k-down two 490 fb209c1f4ca9
 caps-up two 515 1fc190e23868
 caps-down two 470 0e218505b4e4
+punct-up two 490 fb209c1f4ca9
+punct-down two 490 fb209c1f4ca9

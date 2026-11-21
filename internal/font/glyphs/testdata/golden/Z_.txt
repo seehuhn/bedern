@@ -25,3 +25,5 @@ x-z-k-up Z 578 043f724b926d
 x-z-k-down Z 578 043f724b926d
 caps-up Z 599 30f4a74b9707
 caps-down Z 559 4602b1679c04
+punct-up Z 578 043f724b926d
+punct-down Z 578 043f724b926d

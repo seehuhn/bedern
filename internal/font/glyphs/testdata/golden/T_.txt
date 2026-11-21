@@ -25,3 +25,5 @@ x-z-k-up T 690 1224a4a5538d
 x-z-k-down T 690 1224a4a5538d
 caps-up T 726 c6804ee27d14
 caps-down T 626 2c78eaa5eea9
+punct-up T 690 1224a4a5538d
+punct-down T 690 1224a4a5538d

@@ -25,3 +25,5 @@ x-z-k-up space 323 e3b0c44298fc
 x-z-k-down space 323 e3b0c44298fc
 caps-up space 323 e3b0c44298fc
 caps-down space 323 e3b0c44298fc
+punct-up space 323 e3b0c44298fc
+punct-down space 323 e3b0c44298fc

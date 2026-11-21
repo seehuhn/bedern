@@ -25,3 +25,5 @@ x-z-k-up g 489 0fc6b8d09fb7
 x-z-k-down g 489 0fc6b8d09fb7
 caps-up g 489 0fc6b8d09fb7
 caps-down g 489 0fc6b8d09fb7
+punct-up g 489 0fc6b8d09fb7
+punct-down g 489 0fc6b8d09fb7

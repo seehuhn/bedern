@@ -523,8 +523,12 @@ type Params struct {
 
 	// Figures holds the parameters of the figures 0 to 9, see figures.go.
 	Figures Figures
-	// Notdef holds the parameters of .notdef, see notdef.go.
-	Notdef Notdef
+	// Punct holds the parameters of the basic punctuation and the signs of ASCII
+	// mathematics, see punct.go.
+	Punct Punct
+	// Sym holds the parameters of the question mark, the ampersand and the
+	// symbols of the basic set, see symbols.go.
+	Sym Symbols
 }
 
 // Regular returns the parameters of Bedern Regular.
@@ -773,7 +777,8 @@ func Regular() Params {
 		CapDiag: regularCapDiag(),
 
 		Figures: regularFigures(),
-		Notdef:  regularNotdef(),
+		Punct:   regularPunct(),
+		Sym:     regularSymbols(),
 	}
 }
 

@@ -25,3 +25,5 @@ x-z-k-up D 742 0495a53b0761
 x-z-k-down D 742 0495a53b0761
 caps-up D 778 7a0a3b312034
 caps-down D 708 c72cf320fd46
+punct-up D 742 0495a53b0761
+punct-down D 742 0495a53b0761

@@ -25,3 +25,5 @@ x-z-k-up v 505 e091069b7cfd
 x-z-k-down v 505 e091069b7cfd
 caps-up v 505 e091069b7cfd
 caps-down v 505 e091069b7cfd
+punct-up v 505 e091069b7cfd
+punct-down v 505 e091069b7cfd

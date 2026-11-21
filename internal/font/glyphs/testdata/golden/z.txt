@@ -25,3 +25,5 @@ x-z-k-up z 423 38ddd41e0213
 x-z-k-down z 385 f231a358faab
 caps-up z 429 ab04cdc3a6c3
 caps-down z 429 ab04cdc3a6c3
+punct-up z 429 ab04cdc3a6c3
+punct-down z 429 ab04cdc3a6c3

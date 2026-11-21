@@ -25,3 +25,5 @@ x-z-k-up W 985 7bcb7dfb5a40
 x-z-k-down W 985 7bcb7dfb5a40
 caps-up W 1019 ad4a49da4b57
 caps-down W 954 abfbc379d259
+punct-up W 985 7bcb7dfb5a40
+punct-down W 985 7bcb7dfb5a40

@@ -25,3 +25,5 @@ x-z-k-up K 744 ec9069d7ddf2
 x-z-k-down K 744 ec9069d7ddf2
 caps-up K 767 823300f3eff3
 caps-down K 722 6cebc1c6a308
+punct-up K 744 ec9069d7ddf2
+punct-down K 744 ec9069d7ddf2

@@ -25,3 +25,5 @@ x-z-k-up I 337 78000c2906e8
 x-z-k-down I 337 78000c2906e8
 caps-up I 347 f9ff1d75fdaa
 caps-down I 327 bb3237559330
+punct-up I 337 78000c2906e8
+punct-down I 337 78000c2906e8

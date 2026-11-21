@@ -25,3 +25,5 @@ x-z-k-up L 587 0429c8cac510
 x-z-k-down L 587 0429c8cac510
 caps-up L 617 df2494ac034f
 caps-down L 552 215456e4fdec
+punct-up L 587 0429c8cac510
+punct-down L 587 0429c8cac510

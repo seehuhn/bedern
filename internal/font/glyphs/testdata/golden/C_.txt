@@ -25,3 +25,5 @@ x-z-k-up C 660 ecd7b98470b5
 x-z-k-down C 660 ecd7b98470b5
 caps-up C 696 818bcc61219b
 caps-down C 637 c810986e2d26
+punct-up C 660 ecd7b98470b5
+punct-down C 660 ecd7b98470b5

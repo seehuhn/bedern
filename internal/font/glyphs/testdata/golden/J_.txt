@@ -25,3 +25,5 @@ x-z-k-up J 473 095f1fe77ccd
 x-z-k-down J 473 095f1fe77ccd
 caps-up J 513 346abd66211a
 caps-down J 448 fdb7a9161b31
+punct-up J 473 095f1fe77ccd
+punct-down J 473 095f1fe77ccd

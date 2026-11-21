@@ -32,6 +32,9 @@ var sideKindNames = [...]string{
 }
 
 func (k sideKind) String() string {
+	if name, ok := punctKindNames[k]; ok {
+		return name
+	}
 	return sideKindNames[k]
 }
 

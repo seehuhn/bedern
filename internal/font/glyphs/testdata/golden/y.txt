@@ -25,3 +25,5 @@ x-z-k-up y 505 b57258c93807
 x-z-k-down y 505 b57258c93807
 caps-up y 505 b57258c93807
 caps-down y 505 b57258c93807
+punct-up y 505 b57258c93807
+punct-down y 505 b57258c93807

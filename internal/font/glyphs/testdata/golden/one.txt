@@ -25,3 +25,5 @@ x-z-k-up one 490 0ec7edb798e4
 x-z-k-down one 490 0ec7edb798e4
 caps-up one 515 3351e3ba7b81
 caps-down one 470 4b39b2a6f6c6
+punct-up one 490 0ec7edb798e4
+punct-down one 490 0ec7edb798e4
