@@ -9,7 +9,8 @@ import (
 )
 
 // .notdef is a frame with a diagonal cross: one outer contour and four triangular
-// counters, from the baseline to the height Notdef.Height, on the advance Notdef.Advance.
+// counters, from the baseline to the height of the figures, on the advance of the
+// figures.
 func TestNotdef(t *testing.T) {
 	t.Parallel()
 	for _, np := range allParams() {
@@ -27,8 +28,8 @@ func TestNotdef(t *testing.T) {
 			}
 		}
 		x0, y0, x1, y1 := path.BBox()
-		if y0 != 0 || y1 != p.Notdef.Height || adv != p.Notdef.Advance {
-			t.Errorf("%s: .notdef is %vx%v from %v with advance %v, want the height %v and the advance %v", np.name, x1-x0, y1-y0, y0, adv, p.Notdef.Height, p.Notdef.Advance)
+		if y0 != 0 || y1 != p.Figures.Height || adv != p.Figures.Advance {
+			t.Errorf("%s: .notdef is %vx%v from %v with advance %v, want the height %v and the advance %v of the figures", np.name, x1-x0, y1-y0, y0, adv, p.Figures.Height, p.Figures.Advance)
 		}
 		if l, r := x0, adv-x1; math.Abs(l-r) > 1 {
 			t.Errorf("%s: .notdef has side spaces %v and %v", np.name, l, r)

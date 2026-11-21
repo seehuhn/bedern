@@ -239,7 +239,7 @@ func Perturbed() []Set {
 		c.RLegTop, c.RLegFoot, c.RLeg, c.RLegSerifLeft, c.RLegSerifRight = 90, 335, 100, 66, 66
 		c.UThin, c.UCounter, c.UCurve = 48, 355, 245
 		capDiagUp(p)
-		p.Notdef.Height, p.Notdef.Advance = 700, 515
+		figuresUp(p)
 	})
 	add("caps-down", func(p *design.Params) {
 		c := &p.Caps
@@ -268,7 +268,7 @@ func Perturbed() []Set {
 		c.RLegTop, c.RLegFoot, c.RLeg, c.RLegSerifLeft, c.RLegSerifRight = 70, 280, 82, 54, 54
 		c.UThin, c.UCounter, c.UCurve = 36, 325, 200
 		capDiagDown(p)
-		p.Notdef.Height, p.Notdef.Advance = 640, 470
+		figuresDown(p)
 	})
 	return sets
 }

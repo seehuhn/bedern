@@ -521,6 +521,8 @@ type Params struct {
 	// capdiag.go.
 	CapDiag CapDiag
 
+	// Figures holds the parameters of the figures 0 to 9, see figures.go.
+	Figures Figures
 	// Notdef holds the parameters of .notdef, see notdef.go.
 	Notdef Notdef
 }
@@ -770,7 +772,8 @@ func Regular() Params {
 
 		CapDiag: regularCapDiag(),
 
-		Notdef: regularNotdef(),
+		Figures: regularFigures(),
+		Notdef:  regularNotdef(),
 	}
 }
 

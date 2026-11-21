@@ -347,6 +347,8 @@ func TestSetOrder(t *testing.T) {
 	want := []string{".notdef", "space", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"}
 	// The 26 capitals follow the lowercase, in alphabetical order.
 	want = append(want, strings.Split("ABCDEFGHIJKLMNOPQRSTUVWXYZ", "")...)
+	// The ten figures follow the capitals.
+	want = append(want, "zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine")
 	if len(gs) != len(want) {
 		t.Fatalf("%d glyphs, want %d", len(gs), len(want))
 	}

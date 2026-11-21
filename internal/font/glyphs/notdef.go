@@ -11,8 +11,8 @@ import (
 )
 
 // The glyph .notdef, which is shown for a missing character.  It is a frame
-// from the baseline to the height Notdef.Height with a diagonal cross inside
-// it, on the advance Notdef.Advance with Notdef.Side on each side.  The frame
+// from the baseline to the height of the figures with a diagonal cross inside
+// it, on the advance of the figures with Notdef.Side on each side.  The frame
 // and the two diagonals, which run from corner to corner, are Notdef.Thick
 // thick: the glyph is one outer contour, the rectangle, with the four triangles
 // between the frame and the diagonals as counters.
@@ -37,7 +37,7 @@ func notdefTriangle(a, b, c notdefLine) []outline.Point {
 // notdef draws .notdef.
 func notdef(p design.Params) (outline.Path, float64) {
 	q := p.Notdef
-	w, h, f, t := q.Advance-2*q.Side, q.Height, q.Thick, q.Thick
+	w, h, f, t := p.Figures.Advance-2*q.Side, p.Figures.Height, q.Thick, q.Thick
 
 	var path outline.Path
 	rect(&path, 0, 0, w, h, true)

@@ -7,16 +7,14 @@ package design
 // in internal/glyphs/notdef.go.
 
 // Notdef holds the parameters of .notdef: the frame and the diagonals are Thick
-// thick, and the side space on both sides of the ink is Side.  The glyph is
-// Height high and has the advance Advance.
+// thick, and the side space on both sides of the ink is Side.  The glyph has the
+// advance and the height of the figures.
 type Notdef struct {
-	Thick   float64
-	Side    float64
-	Height  float64
-	Advance float64
+	Thick float64
+	Side  float64
 }
 
 // regularNotdef returns the parameters of .notdef of Bedern Regular.
 func regularNotdef() Notdef {
-	return Notdef{Thick: 38, Side: 40, Height: 666, Advance: 490}
+	return Notdef{Thick: 38, Side: 40}
 }

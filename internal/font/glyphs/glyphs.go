@@ -82,6 +82,11 @@ const (
 	sideCapK
 	sideCapM
 	sideCapN
+
+	// The side kind of the figures, which have the common advance
+	// Figures.Advance and stand centred in it (design.FigureLeft): the ink keeps
+	// inside the advance and takes no part in the fit of the letters.
+	sideFigure
 )
 
 // An entry describes how one glyph is made: the code which draws it and the
@@ -281,6 +286,18 @@ var table = []entry{
 	{"X", 'X', sideCapX, sideCapX, capX},
 	{"Y", 'Y', sideCapY, sideCapY, capY},
 	{"Z", 'Z', sideCapZ, sideCapZ, capZ},
+
+	// The figures.
+	{"zero", '0', sideFigure, sideFigure, figZero},
+	{"one", '1', sideFigure, sideFigure, figOne},
+	{"two", '2', sideFigure, sideFigure, figTwo},
+	{"three", '3', sideFigure, sideFigure, figThree},
+	{"four", '4', sideFigure, sideFigure, figFour},
+	{"five", '5', sideFigure, sideFigure, figFive},
+	{"six", '6', sideFigure, sideFigure, figSix},
+	{"seven", '7', sideFigure, sideFigure, figSeven},
+	{"eight", '8', sideFigure, sideFigure, figEight},
+	{"nine", '9', sideFigure, sideFigure, figNine},
 }
 
 // lookup returns the entry of the glyph with the given name.

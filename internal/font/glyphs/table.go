@@ -27,6 +27,8 @@ var sideKindNames = [...]string{
 	sideCapBowlB: "capBowlB", sideCapBowlD: "capBowlD", sideCapR: "capR",
 	sideCapA: "capA", sideCapV: "capV", sideCapW: "capW", sideCapX: "capX", sideCapY: "capY",
 	sideCapZ: "capZ", sideCapK: "capK", sideCapM: "capM", sideCapN: "capN",
+
+	sideFigure: "figure",
 }
 
 func (k sideKind) String() string {

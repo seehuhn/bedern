@@ -175,6 +175,150 @@ func (b ballPart) blend(blend float64) (ballPart, error) {
 	return b, nil
 }
 
+// A windSpiral is the outer edge by which the figures lead a round stroke into
+// the ball, in place of the curl and the blend of the part: a spiral which leaves
+// P0 in the direction Phi0 (radians), turns clockwise, and whose curvature rises
+// from K0 to K1, the curvature of the ball, with the power M of the length run,
+//
+//	k(s) = K0 + (K1 - K0) (s/L)^M,
+//
+// and ends on the circle of the ball with its direction and its curvature.
+type windSpiral struct {
+	P0     outline.Point
+	Phi0   float64
+	K0, K1 float64
+	L, M   float64
+}
+
+// newWindSpiral returns the spiral from p0, leaving in the direction phi0 with
+// the curvature k0 (positive, turning clockwise), which ends on the circle about
+// centre of the radius r with its direction and its curvature: the length L and
+// the power M are the solution of the two equations which put the centre of
+// curvature at the end of the spiral at centre, found by Newton's method.  It
+// reports an error if there is none with M at least 1.
+func newWindSpiral(p0 outline.Point, phi0, k0 float64, centre outline.Point, r float64) (windSpiral, error) {
+	w := windSpiral{P0: p0, Phi0: phi0, K0: k0, K1: 1 / r}
+	miss := func(L, m float64) (float64, float64) {
+		v := w
+		v.L, v.M = L, m
+		c := v.centreAt(L)
+		return c.X - centre.X, c.Y - centre.Y
+	}
+	L, m := 1.5*math.Hypot(centre.X-p0.X, centre.Y-p0.Y), 2.0
+	for i := 0; i < 200; i++ {
+		fx, fy := miss(L, m)
+		if math.Hypot(fx, fy) < 1e-7 {
+			w.L, w.M = L, m
+			if !(m >= 0.5) {
+				return w, fmt.Errorf("the spiral into the ball needs the power %.2f", m)
+			}
+			return w, nil
+		}
+		const h = 1e-5
+		ax, ay := miss(L+h, m)
+		bx, by := miss(L, m+h)
+		j11, j21, j12, j22 := (ax-fx)/h, (ay-fy)/h, (bx-fx)/h, (by-fy)/h
+		det := j11*j22 - j12*j21
+		if det == 0 || math.IsNaN(det) {
+			break
+		}
+		dL, dm := (fx*j22-fy*j12)/det, (j11*fy-j21*fx)/det
+		for math.Abs(dL) > 0.2*L || math.Abs(dm) > 0.5 {
+			dL, dm = dL/2, dm/2
+		}
+		L, m = L-dL, math.Max(m-dm, 0.1)
+	}
+	return w, fmt.Errorf("no spiral from %v runs into the ball about %v", p0, centre)
+}
+
+// heading returns the direction of the spiral after the length s.
+func (w windSpiral) heading(s float64) float64 {
+	return w.Phi0 - w.K0*s - (w.K1-w.K0)*w.L/(w.M+1)*math.Pow(s/w.L, w.M+1)
+}
+
+// curvature returns the curvature of the spiral after the length s (positive).
+func (w windSpiral) curvature(s float64) float64 {
+	return w.K0 + (w.K1-w.K0)*math.Pow(s/w.L, w.M)
+}
+
+// point returns the point of the spiral after the length s, by Simpson's rule.
+func (w windSpiral) point(s float64) outline.Point {
+	const n = 400
+	h := s / n
+	q := w.P0
+	for i := 0; i <= n; i++ {
+		c := 2.0
+		if i == 0 || i == n {
+			c = 1
+		} else if i%2 == 1 {
+			c = 4
+		}
+		phi := w.heading(float64(i) * h)
+		q.X += c * h / 3 * math.Cos(phi)
+		q.Y += c * h / 3 * math.Sin(phi)
+	}
+	return q
+}
+
+// centreAt returns the centre of curvature of the spiral after the length s.
+func (w windSpiral) centreAt(s float64) outline.Point {
+	q, phi, k := w.point(s), w.heading(s), w.curvature(s)
+	return outline.Point{X: q.X + math.Sin(phi)/k, Y: q.Y - math.Cos(phi)/k}
+}
+
+// lengthAt returns the length after which the spiral has the direction phi,
+// which must lie between its directions at its ends.
+func (w windSpiral) lengthAt(phi float64) float64 {
+	lo, hi := 0.0, w.L
+	for i := 0; i < 60; i++ {
+		mid := (lo + hi) / 2
+		if w.heading(mid) > phi {
+			lo = mid
+		} else {
+			hi = mid
+		}
+	}
+	return (lo + hi) / 2
+}
+
+// cubics returns the spiral as cubic curves walked from its end on the ball back
+// to P0, as a contour which runs round the ball counter-clockwise and then out
+// along the spiral takes it.  The nodes are the ends and the extremes, where the
+// direction is a multiple of a quarter turn, except an extreme which lies within
+// windMinPiece of P0; each curve has the points, the directions and the
+// curvatures of the spiral at its ends (g2Cubic).
+func (w windSpiral) cubics() (chain, error) {
+	cuts := []float64{0}
+	end := w.heading(w.L)
+	for q := math.Floor(w.Phi0/(math.Pi/2)) * math.Pi / 2; q > end; q -= math.Pi / 2 {
+		if q >= w.Phi0 {
+			continue
+		}
+		if s := w.lengthAt(q); s > windMinPiece && w.L-s > 1 {
+			cuts = append(cuts, s)
+		}
+	}
+	cuts = append(cuts, w.L)
+	var ch chain
+	for i := len(cuts) - 1; i > 0; i-- {
+		a, b := cuts[i], cuts[i-1]
+		pa, pb := w.point(a), w.point(b)
+		// Walked from a back to b the spiral turns counter-clockwise.
+		ta := dirOf(w.heading(a) + math.Pi)
+		tb := dirOf(w.heading(b) + math.Pi)
+		c, err := g2Cubic(pa, ta, w.curvature(a), pb, tb, w.curvature(b))
+		if err != nil {
+			return nil, err
+		}
+		ch = append(ch, curveSeg(c))
+	}
+	return ch, nil
+}
+
+// windMinPiece is the shortest arc of the spiral from P0 which is drawn as a
+// curve of its own: an extreme nearer to P0 than this is left between the nodes.
+const windMinPiece = 20.0
+
 // curvatureRises reports whether the absolute curvature of the curve grows from
 // its start to its end and stays between its values there, both within 2 per cent
 // of the difference of the two.
@@ -390,6 +534,17 @@ func g2End(p0, t0 outline.Point, a float64, p3, t3 outline.Point, k3 float64) (c
 		outline.Point{X: p0.X + a*t0.X, Y: p0.Y + a*t0.Y},
 		outline.Point{X: p3.X - b*t3.X, Y: p3.Y - b*t3.Y},
 		p3}, nil
+}
+
+// g2Start is g2End walked the other way: the curve from p0, leaving in the
+// direction t0 with the curvature k0, to p3, arriving in the direction t3 with
+// the handle b.
+func g2Start(p0, t0 outline.Point, k0 float64, p3, t3 outline.Point, b float64) (cubic, error) {
+	c, err := g2End(p3, outline.Point{X: -t3.X, Y: -t3.Y}, b, p0, outline.Point{X: -t0.X, Y: -t0.Y}, -k0)
+	if err != nil {
+		return c, err
+	}
+	return cubic{c.P3, c.P2, c.P1, c.P0}, nil
 }
 
 // arcHandle returns the length of the handles of a circular arc from p0, leaving
