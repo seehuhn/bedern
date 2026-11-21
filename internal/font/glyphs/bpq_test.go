@@ -628,34 +628,31 @@ func TestQStemTopIsLevelWithTheHeadSerifs(t *testing.T) {
 // of the stem.
 func TestQSpur(t *testing.T) {
 	t.Parallel()
-	for _, np := range allParams() {
-		t.Run(np.name, func(t *testing.T) {
-			t.Parallel()
-			p := np.params
-			path, _ := bpqGlyph(t, "q", p)
-			stemLeft := design.QStemLeft(p)
-			stemRight := stemLeft + p.Stem
-			tip := lastOf(path.CrossingsY(stemRight - 0.5))
-			if h := tip - p.XHeight; h < 4 || h > 16 {
-				t.Errorf("the spur stands %.1f above the x-height, want 4 to 16", h)
-			}
-			if tip > p.XHeight+p.OvershootLower+0.01 {
-				t.Errorf("the spur at %.1f is above the top of the bowl at %.1f", tip, p.XHeight+p.OvershootLower)
-			}
-			// The cut: the top at a quarter and at three quarters of the stem.
-			y1 := lastOf(path.CrossingsY(stemRight - 0.25*p.Stem))
-			y2 := lastOf(path.CrossingsY(stemRight - 0.75*p.Stem))
-			angle := math.Atan2(y1-y2, 0.5*p.Stem) * 180 / math.Pi
-			if corner := 90 - angle; corner < 45 || corner > 90 {
-				t.Errorf("the top right is a corner of %.1f degrees, want 45 to 90", corner)
-			}
-			if y1 >= tip || y2 >= y1 {
-				t.Errorf("the top does not fall to the left: %.1f, %.1f, %.1f", tip, y1, y2)
-			}
-			// Nothing above the foot is to the right of the edge of the stem.
-			if hi := lastOf(path.CrossingsY(stemRight + 1)); hi > -p.Descender+p.BracketHeight+1 {
-				t.Errorf("ink at %.1f to the right of the stem", hi)
-			}
-		})
-	}
+	forCaps(t, func(t *testing.T, np namedParams) {
+		p := np.params
+		path, _ := bpqGlyph(t, "q", p)
+		stemLeft := design.QStemLeft(p)
+		stemRight := stemLeft + p.Stem
+		tip := lastOf(path.CrossingsY(stemRight - 0.5))
+		if h := tip - p.XHeight; h < 4 || h > 16 {
+			t.Errorf("the spur stands %.1f above the x-height, want 4 to 16", h)
+		}
+		if tip > p.XHeight+p.OvershootLower+0.01 {
+			t.Errorf("the spur at %.1f is above the top of the bowl at %.1f", tip, p.XHeight+p.OvershootLower)
+		}
+		// The cut: the top at a quarter and at three quarters of the stem.
+		y1 := lastOf(path.CrossingsY(stemRight - 0.25*p.Stem))
+		y2 := lastOf(path.CrossingsY(stemRight - 0.75*p.Stem))
+		angle := math.Atan2(y1-y2, 0.5*p.Stem) * 180 / math.Pi
+		if corner := 90 - angle; corner < 45 || corner > 90 {
+			t.Errorf("the top right is a corner of %.1f degrees, want 45 to 90", corner)
+		}
+		if y1 >= tip || y2 >= y1 {
+			t.Errorf("the top does not fall to the left: %.1f, %.1f, %.1f", tip, y1, y2)
+		}
+		// Nothing above the foot is to the right of the edge of the stem.
+		if hi := lastOf(path.CrossingsY(stemRight + 1)); hi > -p.Descender+p.BracketHeight+1 {
+			t.Errorf("ink at %.1f to the right of the stem", hi)
+		}
+	})
 }

@@ -50,6 +50,38 @@ const (
 	sideDiagTail          // the left side of y: the tip of the serif at the x-height, DiagSideLeft, as for the diagonal letters, with the end of the tail allowed up to the edge of the advance
 	sideZ                 // a side of z: the corner of the diagonal at the baseline on the left, the end of the lower bar on the right, ZSideLeft or ZSideRight
 	sideK                 // the right side of k: the tip of the foot serif of the leg, KSideRight
+
+	// The side kinds of the capitals.
+	sideCapStem  // the edge of a capital stem with serifs: Caps.SideStemLeft or Caps.SideStemRight to the stem
+	sideCapRound // the extreme of O: Caps.SideRoundLeft or Caps.SideRoundRight
+	sideCapArmE  // the right side of E: the end of the bottom arm, Caps.SideArmE
+	sideCapArmF  // the right side of F: the end of the top arm, Caps.SideArmF
+	sideCapArmL  // the right side of L: the end of the arm, Caps.SideArmL
+	sideCapT     // a side of T: the end of an arm, Caps.SideT
+
+	// The side kinds of C, G, S and J.
+	sideCapC // the right side of C: the tip of the tail, CGSJQ.CSideRight
+	sideCapG // the right side of G: the tip of the right serif of the stem, CGSJQ.GSideRight
+	sideCapS // a side of S: the leftmost and rightmost ink, CGSJQ.SSideLeft and SSideRight
+	sideCapJ // the left side of J: the ball, CGSJQ.JSideLeft
+	// The side kinds of B, D, P, R and U.
+	sideCapBowlStem // the left side of B, D, P and R: the edge of the stem with serifs, Caps.BowlSideLeft
+	sideCapBowl     // the right side of P: the right extreme of the bowl, Caps.BowlSideRight
+	sideCapBowlB    // the right side of B: the right extreme of the lower bowl, Caps.BSideRight
+	sideCapBowlD    // the right side of D: the right extreme of the bowl, Caps.DSideRight
+	sideCapR        // the right side of R: the tip of the right foot serif of the leg, Caps.RSideRight
+	// The side kinds of the diagonal capitals A, V, W, X, Y, Z, K, M and N: the
+	// outermost tip of the serifs (the end of the bar of Z), at the distance which
+	// design.CapDiag gives for the letter, see capSideSpace.
+	sideCapA
+	sideCapV
+	sideCapW
+	sideCapX
+	sideCapY
+	sideCapZ
+	sideCapK
+	sideCapM
+	sideCapN
 )
 
 // An entry describes how one glyph is made: the code which draws it and the
@@ -118,6 +150,50 @@ func (k sideKind) space(p design.Params, left bool) float64 {
 		return p.DiagSideLeft
 	case k == sideDiag:
 		return p.DiagSideRight
+
+	// The capitals.
+	case k == sideCapStem && left:
+		return p.Caps.SideStemLeft
+	case k == sideCapStem:
+		return p.Caps.SideStemRight
+	case k == sideCapRound && left:
+		return p.Caps.SideRoundLeft
+	case k == sideCapRound:
+		return p.Caps.SideRoundRight
+	case k == sideCapArmE:
+		return p.Caps.SideArmE
+	case k == sideCapArmF:
+		return p.Caps.SideArmF
+	case k == sideCapArmL:
+		return p.Caps.SideArmL
+	case k == sideCapT:
+		return p.Caps.SideT
+
+	// The capitals C, G, S and J.
+	case k == sideCapC:
+		return p.Caps.CGSJQ.CSideRight
+	case k == sideCapG:
+		return p.Caps.CGSJQ.GSideRight
+	case k == sideCapS && left:
+		return p.Caps.CGSJQ.SSideLeft
+	case k == sideCapS:
+		return p.Caps.CGSJQ.SSideRight
+	case k == sideCapJ:
+		return p.Caps.CGSJQ.JSideLeft
+	// B, D, P, R and U.
+	case k == sideCapBowlStem:
+		return p.Caps.BowlSideLeft
+	case k == sideCapBowl:
+		return p.Caps.BowlSideRight
+	case k == sideCapBowlB:
+		return p.Caps.BSideRight
+	case k == sideCapBowlD:
+		return p.Caps.DSideRight
+	case k == sideCapR:
+		return p.Caps.RSideRight
+	}
+	if v, ok := capSideSpace(k, p, left); ok {
+		return v
 	}
 	return 0
 }
@@ -134,6 +210,10 @@ func (e entry) inkMargins(p design.Params) (left, right float64) {
 			m -= p.SerifJut
 		case sideTailA:
 			// the tail is the rightmost ink: nothing to take off
+		case sideCapStem:
+			m -= p.Caps.SerifJut
+		case sideCapBowlStem:
+			m -= p.Caps.SerifJut
 		}
 		if k == sideOverhang {
 			return m // negative: the ink may stand beyond the edge by this much
@@ -173,6 +253,34 @@ var table = []entry{
 	{"x", 'x', sideDiag, sideDiag, x},
 	{"y", 'y', sideDiagTail, sideDiag, y},
 	{"z", 'z', sideZ, sideZ, z},
+
+	// The capitals, in alphabetical order.
+	{"A", 'A', sideCapA, sideCapA, capA},
+	{"B", 'B', sideCapBowlStem, sideCapBowlB, capB},
+	{"C", 'C', sideCapRound, sideCapC, capC},
+	{"D", 'D', sideCapBowlStem, sideCapBowlD, capD},
+	{"E", 'E', sideCapStem, sideCapArmE, capE},
+	{"F", 'F', sideCapStem, sideCapArmF, capF},
+	{"G", 'G', sideCapRound, sideCapG, capG},
+	{"H", 'H', sideCapStem, sideCapStem, capH},
+	{"I", 'I', sideCapStem, sideCapStem, capI},
+	{"J", 'J', sideCapJ, sideCapStem, capJ},
+	{"K", 'K', sideCapK, sideCapK, capK},
+	{"L", 'L', sideCapStem, sideCapArmL, capL},
+	{"M", 'M', sideCapM, sideCapM, capM},
+	{"N", 'N', sideCapN, sideCapN, capN},
+	{"O", 'O', sideCapRound, sideCapRound, capO},
+	{"P", 'P', sideCapBowlStem, sideCapBowl, capP},
+	{"Q", 'Q', sideCapRound, sideCapRound, capQ},
+	{"R", 'R', sideCapBowlStem, sideCapR, capR},
+	{"S", 'S', sideCapS, sideCapS, capS},
+	{"T", 'T', sideCapT, sideCapT, capT},
+	{"U", 'U', sideCapStem, sideCapStem, capU},
+	{"V", 'V', sideCapV, sideCapV, capV},
+	{"W", 'W', sideCapW, sideCapW, capW},
+	{"X", 'X', sideCapX, sideCapX, capX},
+	{"Y", 'Y', sideCapY, sideCapY, capY},
+	{"Z", 'Z', sideCapZ, sideCapZ, capZ},
 }
 
 // lookup returns the entry of the glyph with the given name.

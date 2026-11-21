@@ -11,9 +11,13 @@ import (
 	"seehuhn.de/go/bedern/internal/outline"
 )
 
-// The helpers which measure the outer edge of a contour: its nodes and the
-// curvature on both sides of a node.  They sample the curves of the contour
-// exactly, and not its flattening.
+// The helpers which measure a run of the outer edge of a contour: the sum of
+// its turns in the wrong direction (to the right, along a counter-clockwise
+// contour) and the curvature on both sides of a node.  They sample the curves
+// of the contour exactly, and not its flattening.
+
+// edgeSamples is the number of samples per segment of an edge.
+const edgeSamples = 64
 
 // contourNodes returns the points between the segments of the contour: node i
 // is where segment i starts, and node len(Segs) is node 0 again.
@@ -56,6 +60,44 @@ func segCubic(ct outline.Contour, i int) cubic {
 	return cubic{a, s.P1, s.P2, s.P3}
 }
 
+// headings returns the direction of the contour, in radians, at the samples of
+// the run from node a to node b (walking along the contour, round the end if
+// need be).
+func headings(ct outline.Contour, a, b int) []float64 {
+	var h []float64
+	n := len(ct.Segs)
+	for i := a; i%n != b%n || i == a; i++ {
+		c := segCubic(ct, i)
+		for k := 0; k <= edgeSamples; k++ {
+			tg := c.tangent(float64(k) / edgeSamples)
+			h = append(h, math.Atan2(tg.Y, tg.X))
+		}
+		if i-a > n {
+			break
+		}
+	}
+	return h
+}
+
+// wrongWayTurn returns the sum, in radians and as a positive number, of the
+// turns to the right which the contour makes on its way from the node nearest
+// to from to the node nearest to to.  An edge of a counter-clockwise outline
+// which is convex turns to the left only, and the sum is then zero.
+func wrongWayTurn(t *testing.T, ct outline.Contour, from, to outline.Point) float64 {
+	t.Helper()
+	h := headings(ct, nodeNear(t, ct, from), nodeNear(t, ct, to))
+	if len(h) < 2*edgeSamples {
+		t.Fatalf("only %d samples between (%.1f, %.1f) and (%.1f, %.1f)", len(h), from.X, from.Y, to.X, to.Y)
+	}
+	var wrong float64
+	for k := 1; k < len(h); k++ {
+		if d := turn(h[k-1], h[k]); d < 0 {
+			wrong -= d
+		}
+	}
+	return wrong
+}
+
 // curvaturesAround returns the curvature of the contour at the node q and at the
 // arc length dist before and after it: the one-sided curvatures at the node
 // itself (before, after) and the curvatures dist away (before2, after2).
@@ -85,6 +127,17 @@ func curvaturesAround(t *testing.T, ct outline.Contour, q outline.Point, dist fl
 	}
 	return before, after, walk(prev, 1, -1), walk(next, 0, 1)
 }
+
+// The outer edge of the terminal of a, c and r is one convex curve, from the
+// highest point of the stroke to the far side of the ball (a and c) or from the
+// far side of the ball to the notch on the stem (r).  The contour turns to the
+// left only; the sum of its turns to the right is below edgeTolerance for the
+// regular parameters and below edgeToleranceAll in the other parameter sets of
+// the tests.
+const (
+	edgeTolerance    = 0.005
+	edgeToleranceAll = 0.03
+)
 
 // The crest of the arm of r.  The outer edge of the arm is one curve through its
 // highest point, which is the node at XHeight + ArchOvershoot where the curve of

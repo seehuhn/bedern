@@ -6,6 +6,7 @@ package glyphs
 import (
 	"fmt"
 	"math"
+	"strings"
 	"testing"
 
 	"seehuhn.de/go/bedern/internal/font/design"
@@ -344,6 +345,8 @@ func TestSetOrder(t *testing.T) {
 	t.Parallel()
 	gs := Set(design.Regular())
 	want := []string{".notdef", "space", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"}
+	// The 26 capitals follow the lowercase, in alphabetical order.
+	want = append(want, strings.Split("ABCDEFGHIJKLMNOPQRSTUVWXYZ", "")...)
 	if len(gs) != len(want) {
 		t.Fatalf("%d glyphs, want %d", len(gs), len(want))
 	}

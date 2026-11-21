@@ -23,3 +23,5 @@ v-w-y-up u 540 66b699a571a2
 v-w-y-down u 540 66b699a571a2
 x-z-k-up u 540 66b699a571a2
 x-z-k-down u 540 66b699a571a2
+caps-up u 540 66b699a571a2
+caps-down u 540 66b699a571a2

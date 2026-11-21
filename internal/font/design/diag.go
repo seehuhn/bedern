@@ -192,3 +192,9 @@ func diagBracketFor(height, reach, thick float64) DiagBracket {
 func LowerDiagBracket(p Params) DiagBracket {
 	return diagBracketFor(p.BracketHeight, p.BracketReach, p.SerifThick)
 }
+
+// CapDiagBracket returns the bracket of the serifs on the diagonals of the capitals,
+// from the stem bracket of the capitals.
+func CapDiagBracket(p Params) DiagBracket {
+	return diagBracketFor(p.Caps.BracketHeight, p.Caps.BracketReach, p.Caps.SerifThick)
+}

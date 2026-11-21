@@ -23,3 +23,5 @@ v-w-y-up r 390 c043dde0816e
 v-w-y-down r 390 c043dde0816e
 x-z-k-up r 390 c043dde0816e
 x-z-k-down r 390 c043dde0816e
+caps-up r 390 c043dde0816e
+caps-down r 390 c043dde0816e

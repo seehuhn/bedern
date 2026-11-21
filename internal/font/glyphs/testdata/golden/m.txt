@@ -23,3 +23,5 @@ v-w-y-up m 810 587b0be27524
 v-w-y-down m 810 587b0be27524
 x-z-k-up m 810 587b0be27524
 x-z-k-down m 810 587b0be27524
+caps-up m 810 587b0be27524
+caps-down m 810 587b0be27524

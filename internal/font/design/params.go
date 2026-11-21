@@ -77,7 +77,7 @@ type Params struct {
 	Ascender       float64
 	Descender      float64 // depth below the baseline, positive
 	OvershootLower float64 // overshoot of round lowercase letters
-	OvershootUpper float64 // overshoot of round letters above the cap height
+	OvershootUpper float64 // overshoot of round capitals
 
 	// Line metrics of the font file.
 	TypoAscender  float64
@@ -228,7 +228,7 @@ type Params struct {
 	// SLowerWidth and SUpperWidth are the widths of the ink of the lower and the
 	// upper half, from the left to the right extreme of each, and SUpperShift how
 	// far the centre of the upper half lies to the left of that of the lower.
-	// The terminals are serif beaks: each arc ends
+	// The terminals are serif beaks of the family of those of S: each arc ends
 	// in a corner on a vertical cut SBeakDrop from the top (bottom) of the
 	// letter, where it is SBeakArc thick at right angles to its edge, and a serif
 	// hangs from the corner to the end of the terminal, SUpperDrop below the top
@@ -514,6 +514,13 @@ type Params struct {
 	NarrowSideCut  float64
 	SpaceAdvance   float64
 
+	// Caps holds the parameters of the capitals, see caps.go.
+	Caps Caps
+
+	// CapDiag holds the parameters of the capitals built from diagonal strokes, see
+	// capdiag.go.
+	CapDiag CapDiag
+
 	// Notdef holds the parameters of .notdef, see notdef.go.
 	Notdef Notdef
 }
@@ -758,6 +765,10 @@ func Regular() Params {
 		OBowlWidth:     433,
 		NarrowSideCut:  0,
 		SpaceAdvance:   323,
+
+		Caps: regularCaps(),
+
+		CapDiag: regularCapDiag(),
 
 		Notdef: regularNotdef(),
 	}

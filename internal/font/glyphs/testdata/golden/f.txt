@@ -23,3 +23,5 @@ v-w-y-up f 345 b869d782756e
 v-w-y-down f 345 b869d782756e
 x-z-k-up f 345 b869d782756e
 x-z-k-down f 345 b869d782756e
+caps-up f 345 b869d782756e
+caps-down f 345 b869d782756e

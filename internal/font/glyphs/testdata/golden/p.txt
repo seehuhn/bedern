@@ -23,3 +23,5 @@ v-w-y-up p 541 978aa83ecb7f
 v-w-y-down p 541 978aa83ecb7f
 x-z-k-up p 541 978aa83ecb7f
 x-z-k-down p 541 978aa83ecb7f
+caps-up p 541 978aa83ecb7f
+caps-down p 541 978aa83ecb7f

@@ -23,3 +23,5 @@ v-w-y-up h 540 9d09a7bb0f4a
 v-w-y-down h 540 9d09a7bb0f4a
 x-z-k-up h 540 9d09a7bb0f4a
 x-z-k-down h 540 9d09a7bb0f4a
+caps-up h 540 9d09a7bb0f4a
+caps-down h 540 9d09a7bb0f4a

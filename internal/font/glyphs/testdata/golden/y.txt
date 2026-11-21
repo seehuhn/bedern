@@ -23,3 +23,5 @@ v-w-y-up y 525 a77b95a42939
 v-w-y-down y 485 32b9cd0729a4
 x-z-k-up y 505 b57258c93807
 x-z-k-down y 505 b57258c93807
+caps-up y 505 b57258c93807
+caps-down y 505 b57258c93807

@@ -23,3 +23,5 @@ v-w-y-up v 525 eac08ce9f7f1
 v-w-y-down v 485 65222e3e783f
 x-z-k-up v 505 e091069b7cfd
 x-z-k-down v 505 e091069b7cfd
+caps-up v 505 e091069b7cfd
+caps-down v 505 e091069b7cfd

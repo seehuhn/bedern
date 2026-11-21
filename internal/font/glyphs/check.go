@@ -350,12 +350,88 @@ func clearanceFloor(p design.Params) float64 {
 	return design.ClearanceFloor(p)
 }
 
+// A sharpCrotch is an inner corner of a glyph which the design makes narrower
+// than the slit angle: a white wedge which ends in a point under solid ink,
+// such as the wedges between the stems and the diagonals of M.  Near its tip
+// the two edges are closer than the floor and far apart along the outline.  Tip
+// is the corner and Dirs are the unit vectors along its two edges, away from
+// the tip.
+type sharpCrotch struct {
+	Name string
+	Tip  outline.Point
+	Dirs [2]outline.Point
+}
+
+// sharpCrotches lists, for each glyph which has them, the sharp crotches of the
+// design in the parameter set.  Only a glyph listed here is exempt, and only near
+// these corners: see crotchSkip.
+var sharpCrotches = map[string]func(p design.Params) []sharpCrotch{
+	"M": capMCrotches,
+}
+
+// crotchTolerance is the distance from the line of an edge within which a piece of
+// the outline counts as lying on it.
+const crotchTolerance = 1.0
+
+// crotchRadius returns the distance from the tip of the crotch k within which its
+// edges are exempt from the clearance check: (floor + crotchTolerance) / sin(a) for
+// the opening angle a.  Every point of one edge farther from the tip than this is
+// at least the floor from the other edge, with crotchTolerance to spare.
+func crotchRadius(k sharpCrotch, floor float64) float64 {
+	u, v := k.Dirs[0], k.Dirs[1]
+	return (floor + crotchTolerance) / math.Abs(u.X*v.Y-u.Y*v.X)
+}
+
+// crotchSkip returns the function which tells MinDistanceExcept to leave out a pair
+// of pieces of the outline: both lie on the edges of one listed crotch (within
+// crotchTolerance of the line of an edge, on the far side of the tip) and each
+// starts or ends within crotchRadius of its tip.  A piece which reaches beyond the
+// radius is followed by pieces wholly beyond it, which are measured.  Nothing else
+// is left out.
+func crotchSkip(ks []sharpCrotch, floor float64) func(a0, a1, b0, b1 outline.Point) bool {
+	if len(ks) == 0 {
+		return nil
+	}
+	onEdge := func(k sharpCrotch, q outline.Point) bool {
+		dx, dy := q.X-k.Tip.X, q.Y-k.Tip.Y
+		for _, u := range k.Dirs {
+			if dx*u.X+dy*u.Y > -crotchTolerance && math.Abs(dx*u.Y-dy*u.X) <= crotchTolerance {
+				return true
+			}
+		}
+		return false
+	}
+	near := func(k sharpCrotch, r float64, q0, q1 outline.Point) bool {
+		if !onEdge(k, q0) || !onEdge(k, q1) {
+			return false
+		}
+		d0 := math.Hypot(q0.X-k.Tip.X, q0.Y-k.Tip.Y)
+		d1 := math.Hypot(q1.X-k.Tip.X, q1.Y-k.Tip.Y)
+		return math.Min(d0, d1) <= r
+	}
+	return func(a0, a1, b0, b1 outline.Point) bool {
+		for _, k := range ks {
+			r := crotchRadius(k, floor)
+			if near(k, r, a0, a1) && near(k, r, b0, b1) {
+				return true
+			}
+		}
+		return false
+	}
+}
+
 // checkClearance requires the distance between two contours, such as a counter
 // and the outer contour, and between two parts of one contour which are not
-// neighbours, such as the two sides of a stroke, to be at least the floor.
+// neighbours, such as the two sides of a stroke, to be at least the floor.  The
+// edges of the sharp crotches which the design lists (sharpCrotches) are measured
+// only beyond crotchRadius from their tips.
 func checkClearance(c structureCase) []string {
 	floor := clearanceFloor(c.params)
-	d, a, b := c.path.MinDistance(clearanceRatio)
+	var skip func(a0, a1, b0, b1 outline.Point) bool
+	if f, ok := sharpCrotches[c.glyph]; ok {
+		skip = crotchSkip(f(c.params), floor)
+	}
+	d, a, b := c.path.MinDistanceExcept(clearanceRatio, skip)
 	if d < floor {
 		return []string{fmt.Sprintf("two parts of the outline are only %.2f apart, at (%.1f, %.1f) and (%.1f, %.1f), want at least %v", d, a.X, a.Y, b.X, b.Y, floor)}
 	}

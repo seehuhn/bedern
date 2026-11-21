@@ -22,23 +22,36 @@ type beakPart struct {
 	lift         float64 // the height of the tip above the round alone
 }
 
-// beakParts returns the two beaks of s for the regular set.
+// beakParts returns the beaks of C and G and the two of s and S for the regular
+// set.
 func beakParts(p design.Params) []beakPart {
 	var out []beakPart
+	spec := capUpperBeakSpec(p)
+	b := capBeak(p, capRound(p), spec)
+	flat := spec
+	flat.Lift = 0
+	f0 := capBeak(p, capRound(p), flat)
+	out = append(out, beakPart{"C and G", b.Hollow, b.Outer, b.Corner, b.TipOut, b.Corner.Y - f0.Corner.Y})
 	turn := func(q outline.Point) outline.Point { return outline.Point{X: -q.X, Y: -q.Y} }
 	turnC := func(c cubic) cubic { return cubic{turn(c.P0), turn(c.P1), turn(c.P2), turn(c.P3)} }
-	f := newSFrame(p)
-	for i, e := range []sEdges{f.UpperE, f.LowerE} {
-		out = append(out, beakPart{"s " + sBeakNames[i],
-			turnC(e.Outer[3]).reversed(), turnC(e.Outer[2]).reversed(), turn(e.Corner), turn(e.TipOuter), p.SBeakLift})
+	for _, f := range []struct {
+		name string
+		fr   sFrame
+		lift float64
+	}{{"s", newSFrame(p), p.SBeakLift}, {"S", newCapSFrame(p), p.Caps.CGSJQ.BeakLift}} {
+		for i, e := range []sEdges{f.fr.UpperE, f.fr.LowerE} {
+			out = append(out, beakPart{f.name + " " + sBeakNames[i],
+				turnC(e.Outer[3]).reversed(), turnC(e.Outer[2]).reversed(), turn(e.Corner), turn(e.TipOuter), f.lift})
+		}
 	}
 	return out
 }
 
-// The tip of the serif of every beak of s stands 8 to 24 units above the place
-// where the round of the arc, followed on without the hollow, meets the cut, and
-// the outer edge keeps the round of the curve up to the hollow.  The angle
-// between the outer edge and the cut at the tip is 118 to 136 degrees.
+// The tip of the serif of every beak of C, G, s and S stands 8 to 24 units
+// above the place where the round of the arc, followed on without the hollow,
+// meets the cut, and the outer edge keeps the round of the curve up to the
+// hollow.  The angle between the outer edge and the cut at the tip is 115 to 128
+// degrees on C and G and 118 to 136 on s and S.
 func TestBeakTipAndAngle(t *testing.T) {
 	t.Parallel()
 	p := design.Regular()
@@ -49,6 +62,9 @@ func TestBeakTipAndAngle(t *testing.T) {
 		d := outline.Point{X: b.hollow.P1.X - b.hollow.P0.X, Y: b.hollow.P1.Y - b.hollow.P0.Y}
 		a := math.Acos(-d.Y/math.Hypot(d.X, d.Y)) * 180 / math.Pi
 		lo, hi := 118.0, 136.0
+		if b.name == "C and G" {
+			lo, hi = 115, 128
+		}
 		t.Logf("%s: tip at height %.1f above the round, angle %.1f", b.name, b.lift, a)
 		if a < lo || a > hi {
 			t.Errorf("the corner of the %s beak is %.1f degrees, want %.0f to %.0f", b.name, a, lo, hi)

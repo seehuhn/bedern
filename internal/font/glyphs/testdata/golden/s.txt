@@ -23,3 +23,5 @@ v-w-y-up s 365 e26be7b5dcb6
 v-w-y-down s 365 e26be7b5dcb6
 x-z-k-up s 365 e26be7b5dcb6
 x-z-k-down s 365 e26be7b5dcb6
+caps-up s 365 e26be7b5dcb6
+caps-down s 365 e26be7b5dcb6

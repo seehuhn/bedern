@@ -23,3 +23,5 @@ v-w-y-up n 540 b6ced58e0a80
 v-w-y-down n 540 b6ced58e0a80
 x-z-k-up n 540 b6ced58e0a80
 x-z-k-down n 540 b6ced58e0a80
+caps-up n 540 b6ced58e0a80
+caps-down n 540 b6ced58e0a80

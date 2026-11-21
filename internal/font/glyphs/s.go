@@ -65,14 +65,19 @@ import (
 // extremes lie a little below the middle of each half (SideY 0.45); the inner
 // extremes lie lower (InnerSideY 0.56).
 //
-// The beaks.  Each terminal is a serif beak (capbeak.go): the arc stays thin past the bottom (top)
-// extreme and ends in a true corner on the vertical cut, SBeakDrop from the bottom (top), where it
-// is SBeakArc thick; the outer edge comes into the corner as the fairest curve which goes on from
-// the bowl with its direction and curvature.  The serif hangs from the corner: the cut runs on to
-// the end of the terminal, the flat end and the straight inner face leave it at design.ZBeakTilt,
-// the face is SSerifThick from the cut halfway along the cut, and the inner edge of the arc leaves
-// the counter at its bottom (top) extreme and turns into the face as a bracket, which leaves the
-// face as under a bar Hair thick.  The s has no ball terminal.
+// The beaks.  Each terminal is the serif beak of S (capbeak.go, capss.go) at the
+// size of the lowercase: the arc stays thin past the bottom (top) extreme and
+// ends in a true corner on the vertical cut, SBeakDrop from the bottom (top),
+// where it is SBeakArc thick; the outer edge comes into the corner as the
+// fairest curve which goes on from the bowl with its direction and curvature.
+// The serif hangs from the corner: the cut runs on to the end of the terminal,
+// the flat end and the straight inner face leave it at design.ZBeakTilt, the
+// face is SSerifThick from the cut halfway along the cut, and the inner edge of
+// the arc leaves the counter at its bottom (top) extreme and turns into the face
+// as a bracket, which leaves the face as that of an arm under a bar Hair thick.
+// The sizes are those of S scaled by the ratio of the x-height to the cap
+// height, with the serif and the arc thickened.  The s is a small S and has no
+// ball terminal.
 //
 // The contour.  From C - (S/2) n it runs along the inner edge of the lower half
 // to the face of its serif, down the face, across the flat end to the cut, along
@@ -211,8 +216,8 @@ func (sh sShapeSpec) edges(p design.Params, h sHalf, arc float64) sEdges {
 // curvature of the quarter before it, to the corner on the cut, and the inner
 // edge leaves the counter at its bottom extreme with its direction and
 // curvature and runs into the face of the serif.  The beak is drawn in the
-// frame in which it hangs at the top on the right, which is that of the half
-// turned through half a turn.
+// frame of the beaks of C, which is that of the half turned through half a
+// turn.
 func sBeak(e *sEdges, h sHalf, s capBeakSpec, thick, bar float64) error {
 	turn := func(q outline.Point) outline.Point { return outline.Point{X: -q.X, Y: -q.Y} }
 	turnC := func(c cubic) cubic { return cubic{turn(c.P0), turn(c.P1), turn(c.P2), turn(c.P3)} }

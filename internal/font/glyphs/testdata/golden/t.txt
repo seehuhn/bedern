@@ -23,3 +23,5 @@ v-w-y-up t 358 4027489e605f
 v-w-y-down t 358 4027489e605f
 x-z-k-up t 358 4027489e605f
 x-z-k-down t 358 4027489e605f
+caps-up t 358 4027489e605f
+caps-down t 358 4027489e605f

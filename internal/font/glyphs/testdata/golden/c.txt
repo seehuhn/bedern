@@ -23,3 +23,5 @@ v-w-y-up c 436 f00db1b79787
 v-w-y-down c 436 f00db1b79787
 x-z-k-up c 436 f00db1b79787
 x-z-k-down c 436 f00db1b79787
+caps-up c 436 f00db1b79787
+caps-down c 436 f00db1b79787

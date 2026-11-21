@@ -23,3 +23,5 @@ v-w-y-up j 296 9a1ecddecc72
 v-w-y-down j 296 9a1ecddecc72
 x-z-k-up j 296 9a1ecddecc72
 x-z-k-down j 296 9a1ecddecc72
+caps-up j 296 9a1ecddecc72
+caps-down j 296 9a1ecddecc72

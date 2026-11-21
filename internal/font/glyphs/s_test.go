@@ -6,7 +6,6 @@ package glyphs
 import (
 	"fmt"
 	"math"
-	"sort"
 	"testing"
 
 	"seehuhn.de/go/bedern/internal/font/design"
@@ -218,98 +217,7 @@ func TestSSpine(t *testing.T) {
 	near(t, "cosine of the angle between the thickness and the spine", dot, 0)
 }
 
-// mapPath returns the path with every point mapped by f.
-func mapPath(path outline.Path, f func(outline.Point) outline.Point) outline.Path {
-	out := make(outline.Path, len(path))
-	for i, ct := range path {
-		c := outline.Contour{Start: f(ct.Start)}
-		for _, sg := range ct.Segs {
-			c.Segs = append(c.Segs, outline.Segment{IsCurve: sg.IsCurve, P1: f(sg.P1), P2: f(sg.P2), P3: f(sg.P3)})
-		}
-		out[i] = c
-	}
-	return out
-}
-
-// A hangingSerif holds the measurements of a serif which hangs down from a bar
-// or an arc on the right, with its vertical cut at the right: the height of its
-// end, its width halfway along the straight part of its inner face, the length
-// of that straight part from the end, and the height of the bracket above it,
-// up to where the ink is twice as wide as the serif.
-type hangingSerif struct {
-	End, Thick, Face, Bracket float64
-}
-
-// measureHangingSerif measures the serif whose cut is at x, in the path turned so
-// that the serif hangs at the top on the right.  The straight part of the face
-// ends where the serif is more than 2 units wider than the line of the face
-// (design.ZBeakTilt from the vertical) through its width 20 units above the end.
-func measureHangingSerif(t *testing.T, path outline.Path, x float64) hangingSerif {
-	t.Helper()
-	v := vruns(path, x-3)
-	if len(v) == 0 {
-		t.Fatalf("no ink inside the cut at %.1f", x)
-	}
-	var m hangingSerif
-	m.End = v[len(v)-1][0]
-	width := func(y float64) float64 {
-		r := runs(path, y)
-		for i := len(r) - 1; i >= 0; i-- {
-			if math.Abs(r[i][1]-x) < 1 {
-				return r[i][1] - r[i][0]
-			}
-		}
-		return math.NaN()
-	}
-	w20 := width(m.End + 20)
-	tilt := math.Tan(design.ZBeakTilt)
-	s := 21.0
-	for ; s < 400; s++ {
-		if !(width(m.End+s) <= w20+(s-20)*tilt+2) {
-			break
-		}
-	}
-	m.Face = s
-	m.Thick = width(m.End + s/2)
-	for ; s < 600; s++ {
-		if !(width(m.End+s) < 2*m.Thick) {
-			break
-		}
-	}
-	m.Bracket = s - m.Face
-	return m
-}
-
-// runs returns the crossings of the horizontal scan at y in pairs, the runs of
-// ink from left to right.
-func runs(path outline.Path, y float64) [][2]float64 {
-	xs := path.CrossingsX(y)
-	sort.Float64s(xs)
-	var r [][2]float64
-	for i := 0; i+1 < len(xs); i += 2 {
-		r = append(r, [2]float64{xs[i], xs[i+1]})
-	}
-	return r
-}
-
-// vruns returns the runs of ink of the vertical scan at x, from the bottom up.
-func vruns(path outline.Path, x float64) [][2]float64 {
-	ys := path.CrossingsY(x)
-	sort.Float64s(ys)
-	var r [][2]float64
-	for i := 0; i+1 < len(ys); i += 2 {
-		r = append(r, [2]float64{ys[i], ys[i+1]})
-	}
-	return r
-}
-
-// sOutline returns the unrounded outline of s in the set.
-func sOutline(np namedParams) outline.Path {
-	path, _ := cachedOutline(np, "s")
-	return path
-}
-
-// An sBeakView holds the measurements of one beak of s in the frame in which
+// An sBeak holds the measurements of one beak of s or S in the frame in which
 // it hangs at the top on the right (the lower beak turned through half a
 // turn): the path in that frame, the abscissa of the cut, the top of the
 // letter, the top extreme of the arc and the serif.
@@ -319,8 +227,8 @@ type sBeakView struct {
 	Serif       hangingSerif
 }
 
-// sBeakViews returns the upper and the lower beak of s drawn by the frame f,
-// whose outline is path.
+// sBeakViews returns the upper and the lower beak of a letter drawn by the
+// frame f (s or S) whose outline is path.
 func sBeakViews(t *testing.T, path outline.Path, f sFrame) [2]sBeakView {
 	t.Helper()
 	turn := func(q outline.Point) outline.Point { return outline.Point{X: -q.X, Y: -q.Y} }
@@ -341,6 +249,41 @@ func sBeakViews(t *testing.T, path outline.Path, f sFrame) [2]sBeakView {
 
 var sBeakNames = [2]string{"upper", "lower"}
 
+// The beaks of s are those of S at the size of the lowercase.  With k the ratio
+// of the x-height to the cap height, the serif of each beak of s is 1.0 to 1.8
+// times k times as wide as that of S halfway along its face, its end lies 0.85
+// to 1.2 times k times as far from the top (bottom) of the letter, and it is
+// bracketed: the ink widens to twice the serif not at once and within four times
+// the height, scaled, in which the bracket of S does so.
+func TestSBeaksAreThoseOfS(t *testing.T) {
+	t.Parallel()
+	for _, np := range allParams() {
+		t.Run(np.name, func(t *testing.T) {
+			t.Parallel()
+			p := np.params
+			k := p.XHeight / p.CapHeight
+			lc := sBeakViews(t, capOutline(np, "s"), newSFrame(p))
+			uc := sBeakViews(t, capOutline(np, "S"), newCapSFrame(p))
+			for i := range lc {
+				a, b := lc[i].Serif, uc[i].Serif
+				if r := a.Thick / (k * b.Thick); r < 1.0 || r > 1.8 {
+					t.Errorf("the %s serif of s is %.1f wide, %.2f times that of S (%.1f) scaled, want 1.0 to 1.8", sBeakNames[i], a.Thick, r, b.Thick)
+				}
+				da, db := lc[i].Top-a.End, uc[i].Top-b.End
+				if r := da / (k * db); r < 0.85 || r > 1.2 {
+					t.Errorf("the %s serif of s ends %.1f from the edge of the letter, %.2f times that of S (%.1f) scaled, want 0.85 to 1.2", sBeakNames[i], da, r, db)
+				}
+				if a.Bracket < 3 || a.Bracket > 4*k*b.Bracket {
+					t.Errorf("the bracket of the %s serif of s is %.1f high, that of S %.1f: want 3 to %.1f", sBeakNames[i], a.Bracket, b.Bracket, 4*k*b.Bracket)
+				}
+				if np.name == "regular" {
+					t.Logf("%s: thick %.1f drop %.1f face %.1f bracket %.1f (S %.1f %.1f %.1f %.1f, k %.3f)", sBeakNames[i], a.Thick, da, a.Face, a.Bracket, b.Thick, db, b.Face, b.Bracket, k)
+				}
+			}
+		})
+	}
+}
+
 // The arcs of s stay thin from the top (bottom) extreme to the beak: at every
 // point of the outer edge from the extreme to the bracket, which starts where
 // the serif widens to twice its width, the arc is at right angles at least as
@@ -353,7 +296,7 @@ func TestSBeakArcsAreThin(t *testing.T) {
 			t.Parallel()
 			p := np.params
 			arcs := [2]float64{p.SUpperArcThick, p.SArcThick}
-			for i, v := range sBeakViews(t, sOutline(np), newSFrame(p)) {
+			for i, v := range sBeakViews(t, capOutline(np, "s"), newSFrame(p)) {
 				// The bracket starts where the arc is twice the serif wide: the
 				// left end of the run which reaches the cut at the height of the
 				// end of the bracket.
@@ -392,7 +335,7 @@ func TestSApertures(t *testing.T) {
 		t.Run(np.name, func(t *testing.T) {
 			t.Parallel()
 			p := np.params
-			for i, v := range sBeakViews(t, sOutline(np), newSFrame(p)) {
+			for i, v := range sBeakViews(t, capOutline(np, "s"), newSFrame(p)) {
 				x := v.Cut - v.Serif.Thick/2
 				gap := math.Inf(1)
 				for _, r := range vruns(v.Path, x) {

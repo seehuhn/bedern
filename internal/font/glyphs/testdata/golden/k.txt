@@ -23,3 +23,5 @@ v-w-y-up k 508 8eb3a4d9bc44
 v-w-y-down k 508 8eb3a4d9bc44
 x-z-k-up k 534 db7a6b026f85
 x-z-k-down k 511 84726e1f851b
+caps-up k 508 8eb3a4d9bc44
+caps-down k 508 8eb3a4d9bc44

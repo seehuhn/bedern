@@ -23,3 +23,5 @@ v-w-y-up w 735 b8fd350e54f5
 v-w-y-down w 685 3c39c9eddf5f
 x-z-k-up w 709 5eb69ebd1c8e
 x-z-k-down w 709 5eb69ebd1c8e
+caps-up w 709 5eb69ebd1c8e
+caps-down w 709 5eb69ebd1c8e

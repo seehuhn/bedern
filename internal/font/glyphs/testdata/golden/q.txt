@@ -23,3 +23,5 @@ v-w-y-up q 524 33d8100b6fe7
 v-w-y-down q 524 33d8100b6fe7
 x-z-k-up q 524 33d8100b6fe7
 x-z-k-down q 524 33d8100b6fe7
+caps-up q 524 33d8100b6fe7
+caps-down q 524 33d8100b6fe7

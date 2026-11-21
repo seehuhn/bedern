@@ -18,14 +18,15 @@ type Set struct {
 }
 
 // routineOrder lists the perturbed sets in the order in which Sets takes them.
-// The first sets move all lowercase proportions together (xheight430-serif90)
-// and the weight and the counters (stem95-counter150).  Then follows one set
-// each for the groups e-a-s, f-t-j, g, v-w-y and x-z-k, before the second set of
-// a group and the sets which move one parameter alone.
+// The first sets move all lowercase proportions together (xheight430-serif90),
+// all capitals (caps-down), and the weight and the counters
+// (stem95-counter150).  Then follows one set each for the groups e-a-s, f-t-j,
+// g, v-w-y and x-z-k, before the second set of a group and the sets which move
+// one parameter alone.
 var routineOrder = []string{
-	"xheight430-serif90", "stem95-counter150",
+	"xheight430-serif90", "caps-down", "stem95-counter150",
 	"e-a-s-up", "f-t-j-down", "g-up", "v-w-y-down", "x-z-k-up",
-	"xheight480-serif40", "stem70-counter230",
+	"caps-up", "xheight480-serif40", "stem70-counter230",
 	"e-a-s-down", "f-t-j-up", "g-down", "v-w-y-up", "x-z-k-down",
 	"curve100", "thin26",
 	"stem70", "stem95", "xheight430", "xheight480", "counter150", "counter230", "serif40", "serif90",
@@ -65,7 +66,7 @@ func Sets(routine bool, n int) []Set {
 // the bowl and of the loop, the size, reach and height of the ear and its ball,
 // and the place of the link).  Two sets which move the parameters of v, w and y
 // (the widths of the ink, the serifs, the vertices, the apex of w and the tail
-// of y), and two for x, z and k.
+// of y), two for x, z and k and two for the capitals.
 // In the sets which scale the x-height the bowl and the ear of g move with it.
 // Every set passes Params.Validate and glyphs.Check.  A change of the serif
 // length scales BracketReach, SerifJutInner and QSideRight in the same
@@ -205,6 +206,69 @@ func Perturbed() []Set {
 		p.XInk, p.XCross, p.XThinOffset, p.XLeanDiff, p.XThick = 455, 224, -2, 0.02, 70
 		p.ZInk, p.ZInkTop, p.ZDiag, p.ZUpperBeakHeight, p.ZUpperBeakThick, p.ZLowerBeakHeight, p.ZLowerBeakThick = 352, 330, 74, 120, 32, 118, 34
 		p.KReach, p.KJunction, p.KLeg, p.KArmAngle, p.KLegAngle = 322, 258, 72, 44, 33
+	})
+	// The capitals: a taller cap height with a larger overshoot, heavier stems,
+	// round strokes and bars, longer and heavier serifs with a taller bracket,
+	// deeper arm serifs and a higher bar of H, and the opposite: a lower cap
+	// height and everything lighter and shorter.  The middle arms of E and F and
+	// the bar of H keep their place against the middle of the cap height.
+	add("caps-up", func(p *design.Params) {
+		c := &p.Caps
+		d := 717 - p.CapHeight
+		p.CapHeight, p.OvershootUpper = 717, 19
+		c.Stem, c.Round, c.RoundThin, c.Bar, c.TBar = 106, 128, 44, 46, 52
+		c.SerifJut, c.SerifThick, c.BracketHeight, c.BracketReach = 104, 38, 72, 58
+		c.TopDrop, c.BottomRise, c.MiddleReach, c.TDrop, c.ArmSerifThick = 150, 165, 105, 155, 46
+		c.HBarHeight, c.EMiddleHeight, c.FMiddleHeight = c.HBarHeight+d/2+6, c.EMiddleHeight+d/2, c.FMiddleHeight+d/2
+		c.HCounter, c.OWidth, c.ETopArm, c.EBottomArm, c.LArm, c.TArm = 300, 680, 410, 430, 365, 285
+		// C, G, S, J and Q.
+		g := &c.CGSJQ
+		g.BeakX, g.BeakDrop, g.BeakArc, g.BeakEnd = 620, 142, 50, 440
+		g.CBeakEnd = 462
+		g.CTailHeight, g.CTailReach, g.CTailCut, g.CTailArc = 158, 10, 38, 56
+		g.GStemTop, g.GSerifLeft, g.GSerifRight, g.GJoin = 320, 104, 74, 215
+		g.SLowerWidth, g.SUpperWidth, g.SUpperShift, g.SSpineThick, g.SSpineAngle = 455, 420, 12, 110, 22
+		g.SArcThick, g.SUpperArcThick, g.SSideThick, g.SUpperDrop, g.SLowerDrop = 46, 49, 96, 240, 270
+		g.JReach, g.JOuterDrop, g.JInnerDrop, g.JHeadRight, g.JBall = 255, 205, 180, 68, 108
+		g.QTailStart, g.QTailJoin, g.QTailEnd, g.QTailDepth, g.QTailTip = 370, 480, 630, 175, 24
+		// B, D, P, R and U.
+		c.BowlRound, c.BowlFlat, c.DFlat = 118, 0.50, 0.38
+		c.BWaist, c.BUpper, c.BLower = c.BWaist+d/2+6, 395, 425
+		c.PBar, c.PWidth, c.RBar, c.RWidth, c.DWidth = c.PBar+d/2, 390, c.RBar+d/2, 382, 490
+		c.RBowlRound, c.BLowerRound, c.BUpperRound = c.BowlRound, c.BowlRound, c.BowlRound
+		c.RLegTop, c.RLegFoot, c.RLeg, c.RLegSerifLeft, c.RLegSerifRight = 90, 335, 100, 66, 66
+		c.UThin, c.UCounter, c.UCurve = 48, 355, 245
+		capDiagUp(p)
+		p.Notdef.Height, p.Notdef.Advance = 700, 515
+	})
+	add("caps-down", func(p *design.Params) {
+		c := &p.Caps
+		d := 650 - p.CapHeight
+		p.CapHeight, p.OvershootUpper = 650, 12
+		c.Stem, c.Round, c.RoundThin, c.Bar, c.TBar = 86, 98, 30, 32, 36
+		c.SerifJut, c.SerifThick, c.BracketHeight, c.BracketReach = 78, 28, 54, 40
+		c.TopDrop, c.BottomRise, c.MiddleReach, c.TDrop, c.ArmSerifThick = 105, 120, 80, 110, 34
+		c.HBarHeight, c.EMiddleHeight, c.FMiddleHeight = c.HBarHeight+d/2-4, c.EMiddleHeight+d/2, c.FMiddleHeight+d/2
+		c.HCounter, c.OWidth, c.ETopArm, c.EBottomArm, c.LArm, c.TArm = 270, 610, 365, 375, 320, 245
+		// C, G, S, J and Q.
+		g := &c.CGSJQ
+		g.BeakX, g.BeakDrop, g.BeakArc, g.BeakEnd = 566, 128, 38, 395
+		g.CBeakEnd = 410
+		g.CTailHeight, g.CTailReach, g.CTailCut, g.CTailArc = 152, 5, 28, 42
+		g.GStemTop, g.GSerifLeft, g.GSerifRight, g.GJoin = 275, 78, 56, 180
+		g.SLowerWidth, g.SUpperWidth, g.SUpperShift, g.SSpineThick, g.SSpineAngle = 405, 380, 10, 88, 18
+		g.SArcThick, g.SUpperArcThick, g.SSideThick, g.SUpperDrop, g.SLowerDrop = 34, 37, 76, 210, 240
+		g.JReach, g.JOuterDrop, g.JInnerDrop, g.JHeadRight, g.JBall = 210, 210, 180, 52, 100
+		g.QTailStart, g.QTailJoin, g.QTailEnd, g.QTailDepth, g.QTailTip = 330, 430, 560, 140, 18
+		// B, D, P, R and U.
+		c.BowlRound, c.BowlFlat, c.DFlat = 92, 0.40, 0.28
+		c.BWaist, c.BUpper, c.BLower = c.BWaist+d/2-4, 355, 378
+		c.PBar, c.PWidth, c.RBar, c.RWidth, c.DWidth = c.PBar+d/2, 350, c.RBar+d/2, 342, 440
+		c.RBowlRound, c.BLowerRound, c.BUpperRound = c.BowlRound, c.BowlRound, c.BowlRound
+		c.RLegTop, c.RLegFoot, c.RLeg, c.RLegSerifLeft, c.RLegSerifRight = 70, 280, 82, 54, 54
+		c.UThin, c.UCounter, c.UCurve = 36, 325, 200
+		capDiagDown(p)
+		p.Notdef.Height, p.Notdef.Advance = 640, 470
 	})
 	return sets
 }
