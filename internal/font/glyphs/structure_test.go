@@ -1,0 +1,177 @@
+// Copyright 2026 Jochen Voss <voss@seehuhn.de>
+// SPDX-License-Identifier: OFL-1.1
+
+package glyphs
+
+import (
+	"slices"
+	"strings"
+	"testing"
+
+	"seehuhn.de/go/bedern/internal/font/design"
+	"seehuhn.de/go/bedern/internal/font/design/designtest"
+	"seehuhn.de/go/bedern/internal/outline"
+)
+
+// The structural checks do not depend on the shape of a letter.  Every glyph
+// of the table is checked, unrounded and rounded, for every variant and every
+// parameter set.
+
+type namedParams struct {
+	name   string
+	params design.Params
+	glyphs []string // the glyphs to check and to build, all if empty
+}
+
+// routineSets is the number of perturbed parameter sets on which the routine
+// tier (go test -short) runs the structure test and the tests of the letters,
+// see designtest.Sets: negative for all of them.  The full tier runs them on
+// all sets, and TestGolden does so in both tiers.
+const routineSets = -1
+
+// allParams returns the parameter sets on which the property tests run: the
+// variants and, in the routine tier, the first routineSets perturbed sets.
+func allParams() []namedParams {
+	return paramSets(designtest.Sets(testing.Short(), routineSets))
+}
+
+// goldenParams returns every parameter set, whichever the tier.
+func goldenParams() []namedParams {
+	return paramSets(designtest.Perturbed())
+}
+
+func paramSets(perturbed []designtest.Set) []namedParams {
+	var all []namedParams
+	for _, v := range design.Variants() {
+		all = append(all, namedParams{name: v.Name, params: v.Params})
+	}
+	for _, s := range perturbed {
+		all = append(all, namedParams{name: s.Name, params: s.Params})
+	}
+	return all
+}
+
+func TestStructure(t *testing.T) {
+	t.Parallel()
+	for _, np := range allParams() {
+		t.Run(np.name, func(t *testing.T) {
+			t.Parallel()
+			for _, e := range table {
+				if len(np.glyphs) > 0 && !slices.Contains(np.glyphs, e.name) {
+					continue
+				}
+				t.Run(e.name, func(t *testing.T) {
+					t.Parallel()
+					testStructureGlyph(t, np, e.name)
+				})
+			}
+		})
+	}
+}
+
+// testStructureGlyph runs the structural checks on one glyph in one parameter
+// set, unrounded and rounded.
+func testStructureGlyph(t *testing.T, np namedParams, glyph string) {
+	path, adv := cachedOutline(np, glyph)
+	rounded := cachedRounded(np, glyph)
+	for _, msg := range checkStages(np.params, glyph, path, adv, rounded.Path) {
+		t.Errorf("glyph %s, parameter set %s, %s", glyph, np.name, msg)
+	}
+}
+
+// The checks must fail on shapes which break them.
+func TestStructureChecksCatchBreakage(t *testing.T) {
+	t.Parallel()
+	rect := func(x0, y0, x1, y1 float64, ccw bool) outline.Contour {
+		var p outline.Path
+		rect(&p, x0, y0, x1, y1, ccw)
+		return p[0]
+	}
+	var bulge outline.Path // a curve which runs above both its end points
+	bulge.MoveTo(0, 0)
+	bulge.CurveTo(0, 50, 100, 50, 100, 0)
+	bulge.LineTo(50, -30)
+	var twice outline.Path
+	twice.MoveTo(0, 0)
+	twice.LineTo(100, 0)
+	twice.LineTo(100, 0)
+	twice.LineTo(100, 100)
+	twice.LineTo(0, 100)
+
+	// Each case is a shape which breaks one check.  The glyph is "none", which is
+	// not in the table, unless the case names another.
+	cases := []struct {
+		name    string
+		check   string
+		path    outline.Path
+		glyph   string
+		advance float64
+		want    string // a part of the message, if not empty
+	}{
+		{name: "zero-length segment", check: "contours", path: twice},
+		{name: "inner contour counter-clockwise", check: "orientation",
+			path: outline.Path{rect(0, 0, 100, 100, true), rect(20, 20, 80, 80, true)}},
+		{name: "overlapping contours", check: "intersections",
+			path: outline.Path{rect(0, 0, 100, 100, true), rect(50, 50, 150, 150, true)}},
+		{name: "winding number two", check: "scans",
+			path: outline.Path{rect(0, 0, 100, 100, true), rect(20, 20, 80, 80, true)}},
+		{name: "curve beyond its end points", check: "extremes", path: bulge},
+		{name: "counter too close to the outer contour", check: "clearance",
+			path: outline.Path{rect(0, 0, 200, 200, true), rect(8, 8, 192, 192, false)}},
+		{name: "stroke too thin", check: "clearance",
+			path: outline.Path{rect(0, 0, 200, 12, true)}},
+		{name: "glyph without a rule", check: "bbox",
+			path: outline.Path{rect(50, 0, 150, 100, true)}, want: "no bounding-box rule for glyph none"},
+		{name: "n which touches the edge of its advance", check: "bbox", glyph: "n", advance: 540,
+			path: outline.Path{rect(0, 0, 540, 100, true)}},
+		{name: "o which is too wide for its advance", check: "bbox", glyph: "o", advance: 486,
+			path: outline.Path{rect(10, 0, 480, 100, true)}},
+		{name: "f whose hook overhangs the advance by more than MaxOverhang", check: "bbox", glyph: "f", advance: 300,
+			path: outline.Path{rect(24, 0, 361, 100, true)}},
+		{name: "f whose bar starts too near the edge", check: "bbox", glyph: "f", advance: 300,
+			path: outline.Path{rect(20, 0, 300, 100, true)}},
+		{name: "j whose tail overhangs the advance by more than MaxOverhang", check: "bbox", glyph: "j", advance: 281,
+			path: outline.Path{rect(-61, 0, 191, 100, true)}},
+		{name: "t whose bar starts too near the edge", check: "bbox", glyph: "t", advance: 330,
+			path: outline.Path{rect(8, 0, 320, 100, true)}},
+	}
+	for _, c := range cases {
+		glyph, advance := c.glyph, c.advance
+		if glyph == "" {
+			glyph, advance = "none", 200
+		}
+		for _, ch := range structureChecks {
+			if ch.name != c.check {
+				continue
+			}
+			problems := ch.run(structureCase{params: design.Regular(), glyph: glyph, path: c.path, advance: advance})
+			if len(problems) == 0 {
+				t.Errorf("%s: check %s does not fail", c.name, c.check)
+			} else if c.want != "" && !strings.Contains(problems[0], c.want) {
+				t.Errorf("%s: check %s says %q, want %q", c.name, c.check, problems[0], c.want)
+			}
+		}
+	}
+	if len(checkIntegers(structureCase{path: outline.Path{rect(0.5, 0, 10, 10, true)}})) == 0 {
+		t.Error("a fractional coordinate is not found")
+	}
+	// The overhang kinds allow what they say: the hook of f may reach 60 beyond
+	// the advance and the tail of j 60 to the left of it, the bar of f and t come
+	// to within the ink margin of the left edge.
+	for _, c := range []struct {
+		glyph   string
+		advance float64
+		path    outline.Path
+	}{
+		{"f", 300, outline.Path{rect(24, 0, 360, 100, true)}},
+		{"j", 281, outline.Path{rect(-60, 0, 191, 100, true)}},
+		{"t", 350, outline.Path{rect(21, 0, 340, 100, true)}},
+		{"v", 505, outline.Path{rect(17, -12, 497, 448, true)}},
+		{"w", 709, outline.Path{rect(17, -12, 701, 448, true)}},
+		{"y", 505, outline.Path{rect(17, -200, 497, 448, true)}},
+	} {
+		if problems := checkBBox(structureCase{params: design.Regular(), glyph: c.glyph, path: c.path, advance: c.advance}); len(problems) > 0 {
+			t.Errorf("glyph %s: the bounding-box check rejects ink which the side kinds allow: %s", c.glyph, problems[0])
+		}
+	}
+}

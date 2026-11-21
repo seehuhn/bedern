@@ -1,0 +1,210 @@
+// Copyright 2026 Jochen Voss <voss@seehuhn.de>
+// SPDX-License-Identifier: OFL-1.1
+
+// Package designtest supplies the perturbed parameter sets: the regular
+// parameters with some values replaced.
+package designtest
+
+import (
+	"math"
+
+	"seehuhn.de/go/bedern/internal/font/design"
+)
+
+// A Set is a named, valid parameter set.
+type Set struct {
+	Name   string
+	Params design.Params
+}
+
+// routineOrder lists the perturbed sets in the order in which Sets takes them.
+// The first sets move all lowercase proportions together (xheight430-serif90)
+// and the weight and the counters (stem95-counter150).  Then follows one set
+// each for the groups e-a-s, f-t-j, g, v-w-y and x-z-k, before the second set of
+// a group and the sets which move one parameter alone.
+var routineOrder = []string{
+	"xheight430-serif90", "stem95-counter150",
+	"e-a-s-up", "f-t-j-down", "g-up", "v-w-y-down", "x-z-k-up",
+	"xheight480-serif40", "stem70-counter230",
+	"e-a-s-down", "f-t-j-up", "g-down", "v-w-y-up", "x-z-k-down",
+	"curve100", "thin26",
+	"stem70", "stem95", "xheight430", "xheight480", "counter150", "counter230", "serif40", "serif90",
+}
+
+// Sets returns the perturbed sets: all of them, or if routine is set the first
+// n of them in the order of routineOrder.  A negative n means all.
+func Sets(routine bool, n int) []Set {
+	all := Perturbed()
+	if !routine || n < 0 {
+		return all
+	}
+	var out []Set
+	for _, name := range routineOrder {
+		if len(out) == n {
+			break
+		}
+		for _, s := range all {
+			if s.Name == name {
+				out = append(out, s)
+			}
+		}
+	}
+	return out
+}
+
+// Perturbed returns the parameter sets which differ from the regular
+// parameters.  Every set is the regular parameters with some values replaced.
+// The sets are: stem 70 and 95, x-height 430 and 480, counter 150 and 230,
+// serif length 40 and 90, four combinations of these, and the sets which move
+// the following.  The thickest round stroke (100) and the thin parts (26 and a
+// hairline of 30).  One parameter each of e, a and s, up in one set and down in
+// the other (the height of the bar of e, the reach of the arc of a and the drop
+// of the upper terminal of s).  The same for f, t and j (the reach, hang and
+// joins of the hooks and the tail, the reach of the bars and the height of the
+// tip of t).  Two sets which move the parameters of g (the sizes and weights of
+// the bowl and of the loop, the size, reach and height of the ear and its ball,
+// and the place of the link).  Two sets which move the parameters of v, w and y
+// (the widths of the ink, the serifs, the vertices, the apex of w and the tail
+// of y), and two for x, z and k.
+// In the sets which scale the x-height the bowl and the ear of g move with it.
+// Every set passes Params.Validate and glyphs.Check.  A change of the serif
+// length scales BracketReach, SerifJutInner and QSideRight in the same
+// proportion.  A change of the x-height moves the notch and the join of the arm
+// of r with it, and the upper notch and join of the bowls of p and q.  A change
+// of the stem changes AscenderStem with it.
+func Perturbed() []Set {
+	var sets []Set
+	add := func(name string, f ...func(p *design.Params)) {
+		p := design.Regular()
+		for _, g := range f {
+			g(&p)
+		}
+		sets = append(sets, Set{name, p})
+	}
+	stem := func(v float64) func(*design.Params) { return func(p *design.Params) { p.Stem, p.AscenderStem = v, v } }
+	// A change of the x-height moves the join and the notch of the arm of r by the
+	// same amount, and the upper join and notch of the bowls of p and q.
+	xh := func(v float64) func(*design.Params) {
+		return func(p *design.Params) {
+			d := v - p.XHeight
+			p.XHeight, p.RNotch, p.RJoin = v, p.RNotch+d, p.RJoin+d
+			// The top of t keeps its height: TRise changes by -d.
+			p.TRise -= d
+			p.QStemTop += d
+			// The upper notch and join of the bowls of p and q move with the
+			// x-height.
+			p.PBowl.NotchUpper, p.PBowl.JoinUpper = p.PBowl.NotchUpper+d, p.PBowl.JoinUpper+d
+			p.QBowl.NotchUpper, p.QBowl.JoinUpper = p.QBowl.NotchUpper+d, p.QBowl.JoinUpper+d
+			// The bowl of a moves with the x-height.
+			p.ABowl.Top, p.ABowl.NotchUpper, p.ABowl.JoinUpper = p.ABowl.Top+d, p.ABowl.NotchUpper+d, p.ABowl.JoinUpper+d
+			// The apex of w moves with the x-height.
+			p.WApexHeight += d
+			// The crossing of x moves by half the change and the junction of the
+			// arm and the leg of k by 0.6 of the change.
+			p.XCross += d / 2
+			p.KJunction += 0.6 * d
+		}
+	}
+	counter := func(v float64) func(*design.Params) { return func(p *design.Params) { p.NCounter = v } }
+	serif := func(v float64) func(*design.Params) {
+		return func(p *design.Params) {
+			r := v / p.SerifJut
+			p.SerifJut = v
+			p.BracketReach = math.Round(p.BracketReach * r)
+			p.SerifJutInner = math.Round(p.SerifJutInner * r)
+			// QSideRight scales in the same proportion.
+			p.QSideRight = math.Round(p.QSideRight * r)
+			// The serifs of the diagonal letters scale by half the change.
+			h := 1 + (r-1)/2
+			p.DiagOverThick, p.DiagOverThin = math.Round(p.DiagOverThick*h), math.Round(p.DiagOverThin*h)
+			// The serifs of x scale by half that change again.
+			hx := 1 + (h-1)/2
+			p.XOverThick, p.XOverThin = math.Round(p.XOverThick*hx), math.Round(p.XOverThin*hx)
+			// KOverLeg does not change.
+			p.KOverArm = math.Round(p.KOverArm * h)
+		}
+	}
+	add("stem70", stem(70))
+	add("stem95", stem(95))
+	add("xheight430", xh(430))
+	add("xheight480", xh(480))
+	add("counter150", counter(150))
+	add("counter230", counter(230))
+	add("serif40", serif(40))
+	add("serif90", serif(90))
+	add("stem70-counter230", stem(70), counter(230))
+	add("stem95-counter150", stem(95), counter(150))
+	add("xheight430-serif90", xh(430), serif(90))
+	add("xheight480-serif40", xh(480), serif(40))
+	// The round stroke thicker by 6 and the thin parts thinner by 6.
+	add("curve100", func(p *design.Params) { p.CurveLower = 100 })
+	add("thin26", func(p *design.Params) {
+		p.ThinLower, p.Hair, p.GLinkThick = 26, 30, 36
+	})
+	// e, a and s: the bar of e, the reach of the arc of a, and the beaks of s
+	// with a longer and heavier serif hanging from a lower corner; and the
+	// opposite.
+	add("e-a-s-up", func(p *design.Params) {
+		p.EBarHeight, p.AArcReach = 290, 26
+		p.SUpperDrop, p.SBeakDrop, p.SSerifThick = 176, 98, 44
+	})
+	add("e-a-s-down", func(p *design.Params) {
+		p.EBarHeight, p.AArcReach = 240, 14
+		p.SUpperDrop, p.SBeakDrop, p.SSerifThick = 136, 86, 36
+	})
+	// f, t and j: the reach of the hooks and the tail, the
+	// heights at which the edges leave the stems, the extent of the bars and the
+	// height of the tip of t.
+	add("f-t-j-up", func(p *design.Params) {
+		p.FReach, p.FOuterDrop, p.FInnerDrop, p.FBarRight = 188, 130, 112, 120
+		p.TReach, p.TTipHeight, p.TBarRight = 190, 125, 150
+		p.JStemLeft, p.JReach, p.JOuterDrop, p.JInnerDrop = 135, 180, 95, 110
+	})
+	add("f-t-j-down", func(p *design.Params) {
+		p.FReach, p.FOuterDrop, p.FInnerDrop, p.FBarRight = 172, 110, 90, 100
+		p.TReach, p.TTipHeight, p.TBarRight = 154, 95, 128
+		p.JStemLeft, p.JReach, p.JOuterDrop, p.JInnerDrop = 120, 160, 70, 85
+	})
+	// g: a larger, heavier bowl with a longer, higher ear and a larger ball, a
+	// deeper and heavier loop and a link further to the right; and the
+	// opposite.
+	add("g-up", func(p *design.Params) {
+		p.GBowlWidth, p.GBowlHeight, p.GBowlThick, p.GBowlInset = 335, 322, 86, 38
+		p.GLoopWidth, p.GLoopDepth, p.GLoopFloor, p.GLoopTopThick = 450, 210, 64, 58
+		p.GLoopLeftThick, p.GLoopRightThick, p.GLinkThick, p.GLinkLeft, p.GLinkDrop = 70, 72, 46, 50, 36
+		p.GEarBall, p.GEarReach, p.GEarRise, p.GEarDrop, p.GEarThick = 70, 74, 24, 40, 34
+	})
+	add("g-down", func(p *design.Params) {
+		p.GBowlWidth, p.GBowlHeight, p.GBowlThick, p.GBowlInset = 310, 300, 72, 26
+		p.GLoopWidth, p.GLoopDepth, p.GLoopFloor, p.GLoopTopThick = 425, 194, 56, 50
+		p.GLoopLeftThick, p.GLoopRightThick, p.GLinkThick, p.GLinkLeft, p.GLinkDrop = 58, 62, 38, 42, 44
+		p.GEarBall, p.GEarReach, p.GEarRise, p.GEarDrop, p.GEarThick = 58, 70, 14, 46, 26
+	})
+	// v, w and y: wider letters with longer serifs, a wider flat of the vertices
+	// which dips deeper, a wider apex of w and a lighter thick diagonal of w, and a
+	// deeper and longer tail of y; and the opposite.  The sets which scale the
+	// x-height move the apex of w with it.
+	add("v-w-y-up", func(p *design.Params) {
+		p.VInk, p.WInk, p.DiagOverThick, p.DiagOverThin = 500, 710, 58, 72
+		p.DiagVertexFlat, p.DiagOvershoot, p.WApexFlat, p.WStemCut = 32, 16, 70, 8
+		p.YDepth, p.YReach, p.YOuterDrop, p.YInnerDrop = 207, 151, 110, 150
+	})
+	add("v-w-y-down", func(p *design.Params) {
+		p.VInk, p.WInk, p.DiagOverThick, p.DiagOverThin = 460, 660, 46, 56
+		p.DiagVertexFlat, p.DiagOvershoot, p.WApexFlat, p.WStemCut = 16, 8, 46, 2
+		p.YDepth, p.YReach, p.YOuterDrop, p.YInnerDrop = 197, 129, 90, 130
+	})
+	// x, z and k: wider letters with a thicker thin stroke offset, a higher crossing
+	// and longer, heavier beaks and a leg set further out, and the opposite.
+	add("x-z-k-up", func(p *design.Params) {
+		p.XInk, p.XCross, p.XThinOffset, p.XLeanDiff, p.XThick = 490, 240, -8, 0.035, 78
+		p.ZInk, p.ZInkTop, p.ZDiag, p.ZUpperBeakHeight, p.ZUpperBeakThick, p.ZLowerBeakHeight, p.ZLowerBeakThick = 390, 372, 84, 160, 44, 150, 46
+		p.KReach, p.KJunction, p.KLeg, p.KArmAngle, p.KLegAngle = 345, 280, 80, 49, 37
+	})
+	add("x-z-k-down", func(p *design.Params) {
+		p.XInk, p.XCross, p.XThinOffset, p.XLeanDiff, p.XThick = 455, 224, -2, 0.02, 70
+		p.ZInk, p.ZInkTop, p.ZDiag, p.ZUpperBeakHeight, p.ZUpperBeakThick, p.ZLowerBeakHeight, p.ZLowerBeakThick = 352, 330, 74, 120, 32, 118, 34
+		p.KReach, p.KJunction, p.KLeg, p.KArmAngle, p.KLegAngle = 322, 258, 72, 44, 33
+	})
+	return sets
+}
