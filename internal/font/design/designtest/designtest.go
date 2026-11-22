@@ -96,8 +96,9 @@ func Perturbed() []Set {
 			// x-height.
 			p.PBowl.NotchUpper, p.PBowl.JoinUpper = p.PBowl.NotchUpper+d, p.PBowl.JoinUpper+d
 			p.QBowl.NotchUpper, p.QBowl.JoinUpper = p.QBowl.NotchUpper+d, p.QBowl.JoinUpper+d
-			// The bowl of a moves with the x-height.
-			p.ABowl.Top, p.ABowl.NotchUpper, p.ABowl.JoinUpper = p.ABowl.Top+d, p.ABowl.NotchUpper+d, p.ABowl.JoinUpper+d
+			// The bar of e, and with it the top of the bowl of a, moves with the
+			// x-height.
+			p.EBarHeight += d
 			// The apex of w moves with the x-height.
 			p.WApexHeight += d
 			// The crossing of x moves by half the change and the junction of the
@@ -146,11 +147,11 @@ func Perturbed() []Set {
 	// with a longer and heavier serif hanging from a lower corner; and the
 	// opposite.
 	add("e-a-s-up", func(p *design.Params) {
-		p.EBarHeight, p.AArcReach = 290, 26
+		p.EBarHeight, p.AArcReach = 275, 26
 		p.SUpperDrop, p.SBeakDrop, p.SSerifThick = 176, 98, 44
 	})
 	add("e-a-s-down", func(p *design.Params) {
-		p.EBarHeight, p.AArcReach = 240, 14
+		p.EBarHeight, p.AArcReach = 235, 14
 		p.SUpperDrop, p.SBeakDrop, p.SSerifThick = 136, 86, 36
 	})
 	// f, t and j: the reach of the hooks and the tail, the

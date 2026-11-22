@@ -47,20 +47,19 @@ import (
 // the bowl and its centre aBallDrop below the crest, which lies at the top of
 // the o.
 //
-// The bowl is an oval ABowl.Width wide, with its top at ABowl.Top.  Its free
-// side has the thin parts and the overshoot of the o, the squareness
-// aSuperness, and the thickest part ABowl.Thick at ABowl.ThickPos of the
-// height.  The extremes at top and bottom lie ABowl.Run from the stem.  Both
-// edges of the upper stroke fall from the extreme at the top to the stem in one
-// convex curve (aBowlUpper, the parabolic connection of d), the counter by 17
-// to the upper join and the outer edge by 15 to the upper notch, which lies 34
-// above the join.  The lower stroke is one curve on each edge from the extreme
-// at the bottom up into the stem (aBowlOuter, aBowlCounter): it bends one way
-// only and goes on from the free side at the extreme with its curvature.  The
-// two halves of each edge meet at the free extreme with the same curvature,
-// aFreeMeet of the way from that of the upper half to that of the lower, and
-// the counter leaves the extreme at the top into the connection with the
-// curvature of the free side there.
+// The bowl is an oval ABowl.Width wide.  Its free side has the thin part at the
+// bottom and the overshoot of the o, and the thickest part ABowl.Thick at
+// ABowl.ThickPos of the height.  Its top is at the stem: both edges of the
+// upper stroke leave the stem horizontally, the outer edge at the upper edge of
+// the bar of e and the counter at its underside (eBar), so that the stroke is
+// EBarThick thick there, and each is one quarter of a super-ellipse with the
+// squareness aUpperSuperness from the stem down to the free extreme.  The lower
+// stroke is one curve on each edge from the extreme at the bottom, aLowerRun
+// of the width from the stem, up into the stem (aBowlOuter, aBowlCounter): it bends one way
+// only and goes on from the free side at the extreme with its curvature; the
+// free side below the free extreme has the squareness aSuperness.  The two
+// halves of each edge meet at the free extreme with the same curvature,
+// aFreeMeet of the way from that of the upper half to that of the lower.
 //
 // The left side space is that of the bowl: ASideLeft is measured to the free
 // extreme of the bowl, and the ball stands AArcReach further in.  The right
@@ -78,7 +77,8 @@ import (
 
 // aBowlUpper is the shape of the connection of the bowl of a with its stem.  The
 // lower half takes its curves for the free side and for the directions at the
-// stem, and replaces the connection by one curve on each edge.
+// stem from the bowl drawn with it, and replaces the connection by one curve on
+// each edge.
 var aBowlUpper = bowlShape{
 	OuterStemHandle:    1.0,
 	OuterExtremeHandle: 1.0,
@@ -87,23 +87,27 @@ var aBowlUpper = bowlShape{
 	Parabolic:          true,
 }
 
-// aBowlOuter returns the outer edge of the bowl of a, see bowlOuter: the upper
-// half with the connection aBowlUpper, and the lower half with one curve from
+// aBowlOuter returns the outer edge of the bowl of a, from the upper notch to
+// the lower notch: the upper half, one quarter of the outer super-ellipse of
+// aUpperHalf from its extreme at the top, the notch, to the free extreme, and
+// the lower half (see bowlOuter) with one curve from
 // the extreme at the bottom, which it leaves with the curvature of the free side
 // there, to the lower notch, which it reaches at the angle at which the stroke
 // meets the stem (leaveAngle): the fairest such curve (fairStart).  The two
 // quarters of the free side meet with the curvature aFreeMeet (g2OrKeep).
 func aBowlOuter(b bowlSpec) chain {
-	up, low := bowlOuter(aBowlUpper, b), bowlOuter(aBowlUpper, aLowerHalf(b))
+	upShape, _ := aUpperHalf(b).outerShapes()
+	top := upShape.cubic(1, true) // from the stem to the free extreme
+	low := bowlOuter(aBowlUpper, aLowerHalf(b))
 	free := low[2].cubic
-	join := low[3].cubic
-	c, err := fairStart(join.P0, outline.Point{X: 1}, free.curvature(1), join.P3, join.tangent(1))
+	bottom := low[3].cubic
+	c, err := fairStart(bottom.P0, outline.Point{X: 1}, free.curvature(1), bottom.P3, bottom.tangent(1))
 	if err != nil {
 		panic(fmt.Sprintf("glyphs: glyph a: the bottom of the bowl does not reach the lower notch: %v; glyphs.Check reports such parameters", err))
 	}
-	k := up[1].curvature(1) + aFreeMeet*(low[2].curvature(0)-up[1].curvature(1))
-	upper, lower := g2OrKeep(up[1].cubic, up[1].curvature(0), k), g2OrKeep(low[2].cubic, k, low[2].curvature(1))
-	return chain{up[0], curveSeg(upper), curveSeg(lower), curveSeg(c)}
+	k := top.curvature(1) + aFreeMeet*(low[2].curvature(0)-top.curvature(1))
+	upper, lower := g2OrKeep(top, top.curvature(0), k), g2OrKeep(low[2].cubic, k, low[2].curvature(1))
+	return chain{curveSeg(upper), curveSeg(lower), curveSeg(c)}
 }
 
 // g2OrKeep returns the curve c redrawn with the curvatures k0 at its start and
@@ -117,24 +121,26 @@ func g2OrKeep(c cubic, k0, k3 float64) cubic {
 }
 
 // aBowlCounter returns the counter of the bowl of a, see bowlCounter: the upper
-// half with the connection aBowlUpper, and below one curve from the lower join,
+// half one quarter of the inner super-ellipse of aUpperHalf from the free
+// extreme to its extreme at the top, the upper join, and below one curve from
+// the lower join,
 // which it leaves aJoinTurn more steeply than the outer edge meets the stem, to
 // the extreme at the bottom, which it reaches with the curvature of the free
 // side there: of the curvatures at the join, the one whose curve changes its
 // curvature least abruptly (curvatureRate).  The two quarters of the free side
-// meet with the curvature aFreeMeet, and the connection to the upper join
-// leaves the extreme at the top with the curvature of the free side there and
-// keeps its handle at the join.
+// meet with the curvature aFreeMeet.
 func aBowlCounter(b bowlSpec) chain {
-	up, low := bowlCounter(aBowlUpper, b), bowlCounter(aBowlUpper, aLowerHalf(b))
-	join, free := low[1].cubic, low[2].cubic
+	upShape, _ := aUpperHalf(b).innerShapes()
+	up := upShape.cubic(2, false) // from the free extreme to the stem
+	low := bowlCounter(aBowlUpper, aLowerHalf(b))
+	bottom, free := low[1].cubic, low[2].cubic
 	k3 := free.curvature(0)
-	tj := join.tangent(0)
+	tj := bottom.tangent(0)
 	a := math.Atan2(tj.Y, tj.X) + aJoinTurn*math.Pi/180
 	dir := outline.Point{X: math.Cos(a), Y: math.Sin(a)}
 	c, best := cubic{}, math.Inf(1)
 	for i := 1; i <= 100; i++ {
-		cv, err := g2Cubic(join.P0, dir, k3*float64(i)/100, join.P3, outline.Point{X: -1}, k3)
+		cv, err := g2Cubic(bottom.P0, dir, k3*float64(i)/100, bottom.P3, outline.Point{X: -1}, k3)
 		if err != nil || !oneWay(cv, -1) {
 			continue
 		}
@@ -145,23 +151,31 @@ func aBowlCounter(b bowlSpec) chain {
 	if math.IsInf(best, 1) {
 		panic("glyphs: glyph a: the bottom of the counter does not reach the lower join; glyphs.Check reports such parameters")
 	}
-	k := up[3].curvature(0) + aFreeMeet*(low[2].curvature(1)-up[3].curvature(0))
-	free, top := g2OrKeep(low[2].cubic, low[2].curvature(0), k), g2OrKeep(up[3].cubic, k, up[3].curvature(1))
-	conn := up[4].cubic
-	if cc, err := g2Start(conn.P0, conn.tangent(0), top.curvature(1), conn.P3, conn.tangent(1), math.Hypot(conn.P3.X-conn.P2.X, conn.P3.Y-conn.P2.Y)); err == nil {
-		conn = cc
-	}
-	return chain{low[0], curveSeg(c), curveSeg(free), curveSeg(top), curveSeg(conn)}
+	k := up.curvature(0) + aFreeMeet*(low[2].curvature(1)-up.curvature(0))
+	free, top := g2OrKeep(low[2].cubic, low[2].curvature(0), k), g2OrKeep(up, k, up.curvature(1))
+	return chain{low[0], curveSeg(c), curveSeg(free), curveSeg(top)}
 }
 
 // aLowerHalf returns the bowl from which the lower half of the bowl of a is
-// drawn: the bowl with its extreme at the bottom aLowerRun from the stem.  The
-// upper half has its extreme at the top ABowl.Run from the stem.  The two
-// halves meet at the free extreme, where both are vertical.
+// drawn: the bowl with its extreme at the bottom aLowerRun of its width from
+// the stem.  The
+// upper half has its extreme at the top at the stem.  The two halves meet at
+// the free extreme, where both are vertical.
 func aLowerHalf(b bowlSpec) bowlSpec {
-	b.Half = b.X - b.Left - aLowerRun
+	b.Half = (b.X - b.Left) * (1 - aLowerRun)
 	return b
 }
+
+// aUpperHalf returns the bowl from which the upper half of the bowl of a is
+// drawn: the bowl with the squareness aUpperSuperness on both edges.  Its
+// extreme at the top is at the stem (aBowl).
+func aUpperHalf(b bowlSpec) bowlSpec {
+	b.SupernessOuter, b.SupernessInner = aUpperSuperness, aUpperSuperness
+	return b
+}
+
+// aUpperSuperness is the squareness of the upper half of the bowl of a.
+const aUpperSuperness = 0.72
 
 // aFreeMeet is where the curvature at which the two halves of each edge of the
 // bowl of a meet at the free extreme lies between the curvatures of the
@@ -173,8 +187,8 @@ const aFreeMeet = 0.4
 const aJoinTurn = 8.0
 
 // aLowerRun is the distance from the extreme of the bowl of a at the bottom to
-// the stem.
-const aLowerRun = 105.0
+// the stem, as a fraction of the width of the bowl.
+const aLowerRun = 0.385
 
 // aTailShape is the shape of the tail of a, the foot of t with its constants
 // (tFoot) except for these: the outer edge starts at the lower notch of the
@@ -204,16 +218,21 @@ func aTailChain(p design.Params, bowl bowlSpec, stem stemSpec) chain {
 	return footChain(p, stem.Left, stem.right(), p.ATailReach, p.ATailTipHeight, p.ATailTipThick, aTailShape(bowl))
 }
 
-// aBowl returns the bowl of a.  Its free side has the thin parts, the
-// overshoot at the bottom and the squareness of the o, and the thickest part
-// below the middle.
+// aBowl returns the bowl of a.  Its free side has the thin part, the overshoot
+// at the bottom and the squareness of the o, and the thickest part below the
+// middle.  Its top is at the stem: the outer edge meets the stem at the upper
+// edge of the bar of e and the counter at its underside (eBar), and the
+// extreme at the top lies at the stem.
 func aBowl(p design.Params) bowlSpec {
 	b := bowlFrom(p, p.ABowl, design.AStemLeft(p), p.ASideLeft)
+	b.JoinUpper, b.NotchUpper = eBar(p)
+	b.Top, b.ThinTop = b.NotchUpper, b.NotchUpper-b.JoinUpper
+	b.Half = b.X - b.Left
 	b.SupernessOuter, b.SupernessInner = aSuperness, aSuperness
 	return b
 }
 
-// aSuperness is the squareness of both edges of the free side of the bowl of a.
+// aSuperness is the squareness of both edges of the lower half of the bowl of a.
 const aSuperness = 0.70
 
 // aArcChain returns the arc of a with the ball terminal tb.  From the crest

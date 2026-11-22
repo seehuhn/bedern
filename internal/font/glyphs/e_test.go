@@ -81,12 +81,12 @@ func TestEBar(t *testing.T) {
 	path, _ := eGlyph(t, p)
 	cx := (design.EBowlLeft(p) + design.EBowlRight(p)) / 2
 
-	// EBarHeight is the height of the vertical centre of the bar, which is 240.
+	// EBarHeight is the height of the vertical centre of the bar, which is 247.
 	// The thickness is 32, that of the thin parts of the round strokes, and a
 	// parameter of its own.
 	low, high := barLevel(t, path, cx+0.5)
 	near(t, "bar centre", (low+high)/2, p.EBarHeight)
-	near(t, "bar centre", (low+high)/2, 240)
+	near(t, "bar centre", (low+high)/2, 247)
 	near(t, "bar thickness", high-low, p.EBarThick)
 	near(t, "bar thickness", high-low, 32)
 	if design.Regular().EBarThick != design.Regular().ThinLower {
@@ -225,7 +225,7 @@ func TestEOpenBelowTheBar(t *testing.T) {
 	}
 	aperture := barLow - below
 	near(t, "aperture", aperture, p.EAperture)
-	near(t, "aperture", aperture, 114)
+	near(t, "aperture", aperture, 121)
 
 	// Open to the right: between the highest point of the terminal and the
 	// underside of the bar only the left stroke is ink.

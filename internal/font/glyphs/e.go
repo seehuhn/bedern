@@ -25,6 +25,23 @@ type eFrame struct {
 	innerBottomY float64
 }
 
+// eThickY returns the height of the left extreme of e, where the stroke is
+// thickest.
+func eThickY(p design.Params) float64 {
+	bottom, top := -p.OvershootLower, p.XHeight+p.OvershootLower
+	return bottom + p.EThickPos*(top-bottom)
+}
+
+// eBar returns the heights of the underside and of the upper edge of the bar of
+// e, which are also those of the counter and of the outer edge of the bowl of a
+// where they meet its stem (aBowl).  The bar is EBarThick thick and centred on
+// EBarHeight, and its underside lies at least 4 above the left extreme of the
+// eye, where the stroke is vertical.
+func eBar(p design.Params) (low, high float64) {
+	low = math.Max(p.EBarHeight-p.EBarThick/2, eThickY(p)+4)
+	return low, low + p.EBarThick
+}
+
 func newEFrame(p design.Params) eFrame {
 	return newEFrameWidth(p, p.EBowlWidth)
 }
@@ -43,11 +60,8 @@ func newEFrameAt(p design.Params, left, width float64) eFrame {
 	f.left, f.right = left, left+width
 	f.cx = (f.left + f.right) / 2
 	bottom, top := -p.OvershootLower, p.XHeight+p.OvershootLower
-	f.thickY = bottom + p.EThickPos*(top-bottom)
-	// The underside of the bar lies at least 4 above the left extreme of the eye,
-	// where the stroke is vertical.
-	f.barLow = math.Max(p.EBarHeight-p.EBarThick/2, f.thickY+4)
-	f.barHigh = f.barLow + p.EBarThick
+	f.thickY = eThickY(p)
+	f.barLow, f.barHigh = eBar(p)
 	// The upper and the lower half of each contour are halves of
 	// super-ellipses whose left and right extremes lie at the height of the
 	// thickest part; the halves differ in height.

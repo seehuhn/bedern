@@ -161,6 +161,7 @@ type Params struct {
 	// The letter e.  EBarHeight is the height of the vertical centre of the
 	// bar and EBarThick its thickness, so that its lower edge lies at
 	// EBarHeight - EBarThick/2 and its upper edge at EBarHeight + EBarThick/2.
+	// The upper stroke of the bowl of a meets its stem at the same heights.
 	// EBowlWidth is the width of the bowl from its left to its right extreme,
 	// EThickPos the height of the left extreme, where the stroke is thickest,
 	// as a fraction of the height of the bowl from its bottom.  EAperture is
@@ -194,12 +195,14 @@ type Params struct {
 
 	// The letter a.  Its bowl, ABowl, hangs on the left of the stem as in d,
 	// smaller: ABowl.Width is the distance from its free extreme to the
-	// left-hand edge of the stem and ABowl.Top the height of its top, at the
-	// extreme at the top and at the stem (the bottom has the overshoot of the
-	// o).  ABowl.Thick is the thickest part of the free side, at the fraction
+	// left-hand edge of the stem.  Its top is at the stem, where the outer edge
+	// and the counter meet the stem horizontally at the heights of the upper
+	// edge and of the underside of the bar of e; ABowl.Top, ABowl.NotchUpper and
+	// ABowl.JoinUpper are not used.  The bottom has the overshoot of the o.
+	// ABowl.Thick is the thickest part of the free side, at the fraction
 	// ABowl.ThickPos of the height of the bowl from the bottom, as in e.  The
-	// thin parts of the bowl and the thickness at the joins (BowlJoinThick) are
-	// those of the o and d.  AArcReach is the distance by
+	// thin part at the bottom and the thickness at the lower join
+	// (BowlJoinThick) are those of the o and d.  AArcReach is the distance by
 	// which the left end of the ball lies inside the free extreme of the bowl.
 	// BallDiameter and BallStalk belong to the ball terminal of a, c, f, j, r and
 	// y (internal/glyphs/ball.go): the diameter of the ball and the thickness of
@@ -605,12 +608,12 @@ func Regular() Params {
 			NotchUpper: 413, NotchLower: 50,
 		},
 
-		EBarHeight:    240,
+		EBarHeight:    247,
 		EBarThick:     32,
 		EBowlWidth:    400,
 		EThickPos:     0.48,
 		EEyeSuperness: 0.76,
-		EAperture:     114,
+		EAperture:     121,
 		ETerminalTip:  34,
 
 		CBowlWidth: 388,
@@ -618,9 +621,8 @@ func Regular() Params {
 		CBallInset: 24,
 
 		ABowl: Bowl{
-			Width: 273, Run: ABowlRun, Top: 273, Thick: 86, ThickPos: 0.36,
-			JoinUpper: 236, JoinLower: 120,
-			NotchUpper: 270, NotchLower: 52,
+			Width: 277, Thick: 86, ThickPos: 0.373,
+			JoinLower: 120, NotchLower: 52,
 		},
 		AArcReach:    20,
 		BallDiameter: 98,
@@ -795,10 +797,6 @@ func Regular() Params {
 // than the slit angle, about 23 degrees, are further apart than this ratio
 // allows, over their whole length, and are counted as a slit.
 const SlitRatio = 5.0
-
-// ABowlRun is the distance from the extreme at the top of the bowl of a to its
-// stem; the extreme at the bottom lies further from it (internal/glyphs/a.go).
-const ABowlRun = 50.0
 
 // The constants of the arch of n and h:
 // the length of the handle of the outer edge and of the underside at the left

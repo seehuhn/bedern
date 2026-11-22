@@ -76,7 +76,7 @@ func TestALeftSide(t *testing.T) {
 	// The leftmost ink above the bowl is the ball.
 	left := math.Inf(1)
 	for _, q := range path[0].Flatten() {
-		if q.Y > p.ABowl.Top+10 {
+		if q.Y > aBowl(p).Top+10 {
 			left = math.Min(left, q.X)
 		}
 	}
@@ -94,6 +94,7 @@ func TestAStem(t *testing.T) {
 	path, _ := aGlyph(t, p)
 	stemLeft := design.AStemLeft(p)
 	stemRight := stemLeft + p.Stem
+	b := aBowl(p)
 	// The right-hand edge is straight from the end of the tail to aOuterDrop below
 	// ShoulderStart and leaves to the left above it.
 	top := p.ShoulderStart - aOuterDrop
@@ -105,7 +106,7 @@ func TestAStem(t *testing.T) {
 	}
 	// Between the joins the stem has the stem width: the counter lies to its
 	// left.
-	for y := p.ABowl.JoinLower + 20; y < p.ABowl.JoinUpper-20; y += 25 {
+	for y := b.JoinLower + 20; y < b.JoinUpper-20; y += 25 {
 		xs := path.CrossingsX(y)
 		if len(xs) != 4 {
 			t.Fatalf("crossings between the joins at %.0f: %v", y, xs)
@@ -115,7 +116,7 @@ func TestAStem(t *testing.T) {
 	}
 	// Above the upper notch the left-hand edge is the stem's up to the height at
 	// which the underside of the arc meets it.
-	for y := p.ABowl.NotchUpper + 10; y < p.ShoulderStartInner+aInnerRaise-2; y += 20 {
+	for y := b.NotchUpper + 10; y < p.ShoulderStartInner+aInnerRaise-2; y += 20 {
 		xs := path.CrossingsX(y)
 		near(t, "left edge above the bowl", xs[len(xs)-2], stemLeft)
 	}
@@ -131,11 +132,12 @@ func TestABowl(t *testing.T) {
 		t.Error("the outer contour is not counter-clockwise or the counter not clockwise")
 	}
 	b := aBowl(p)
-	xt := b.xExtreme()
+	// The extreme at the top is at the stem: the bowl is scanned just left of it.
+	xt := b.X - 0.5
 
 	// Width: from the free extreme to the stem edge.  Top: the outer edge at the
-	// extreme at the top, which is the highest point of the bowl; the bowl is
-	// 0.63 of the width of the o.
+	// stem, which is the highest point of the bowl; the bowl is 0.63 of the width
+	// of the o.
 	cx0, cy0, cx1, cy1 := (outline.Path{counter}).BBox()
 	near(t, "right edge of the counter", cx1, stemLeft)
 	near(t, "left edge of the counter", cx0, p.ASideLeft+p.ABowl.Thick)
@@ -149,8 +151,8 @@ func TestABowl(t *testing.T) {
 	if len(ys) != 6 {
 		t.Fatalf("crossings through the extreme at the top of the bowl: %v", ys)
 	}
-	near(t, "top of the bowl", ys[3], p.ABowl.Top)
-	near(t, "thin part at the top", ys[3]-ys[2], p.ThinLower)
+	near(t, "top of the bowl", ys[3], b.Top)
+	near(t, "stroke at the top", ys[3]-ys[2], p.EBarThick)
 	ys = path.CrossingsY(aLowerHalf(b).xExtreme())
 	if len(ys) != 6 {
 		t.Fatalf("crossings through the extreme at the bottom of the bowl: %v", ys)
@@ -158,8 +160,8 @@ func TestABowl(t *testing.T) {
 	near(t, "bottom of the bowl", ys[0], -p.OvershootLower)
 	near(t, "thin part at the bottom", ys[1]-ys[0], p.ThinLower)
 	near(t, "bottom of the counter", cy0, -p.OvershootLower+p.ThinLower)
-	near(t, "top of the counter", cy1, p.ABowl.Top-p.ThinLower)
-	if r := p.ABowl.Top / p.XHeight; r < 0.585 || r > 0.663 {
+	near(t, "top of the counter", cy1, b.JoinUpper)
+	if r := b.Top / p.XHeight; r < 0.585 || r > 0.663 {
 		t.Errorf("the bowl top is %.3f of the x-height, outside the range 0.585 to 0.663", r)
 	}
 
@@ -168,7 +170,7 @@ func TestABowl(t *testing.T) {
 	// to the stroke.
 	var best, at float64
 	for _, q := range outer.Flatten() {
-		if q.X >= xt || q.Y > p.ABowl.Top+0.01 {
+		if q.X >= aLowerHalf(b).xExtreme() || q.Y > b.Top+0.01 {
 			continue
 		}
 		if d := thicknessAt(q, counter); d > best {
@@ -194,7 +196,7 @@ func TestAJoins(t *testing.T) {
 	path, _ := aGlyph(t, p)
 	stemLeft := design.AStemLeft(p)
 	b := aBowl(p)
-	if b.X != stemLeft || b.NotchUpper != p.ABowl.NotchUpper || b.JoinLower != p.ABowl.JoinLower || b.JoinUpper != p.ABowl.JoinUpper || b.NotchLower != p.ABowl.NotchLower {
+	if b.X != stemLeft || b.JoinLower != p.ABowl.JoinLower || b.NotchLower != p.ABowl.NotchLower {
 		t.Fatalf("the bowl of a does not take its heights from the parameters: %+v", b)
 	}
 	vertex := func(c outline.Contour, y float64) bool {
@@ -208,24 +210,24 @@ func TestAJoins(t *testing.T) {
 		}
 		return false
 	}
-	for _, y := range []float64{p.ABowl.JoinUpper, p.ABowl.JoinLower} {
+	for _, y := range []float64{b.JoinUpper, b.JoinLower} {
 		if !vertex(path[1], y) {
 			t.Errorf("the counter has no corner on the stem at height %v", y)
 		}
 	}
-	for _, y := range []float64{p.ABowl.NotchUpper, p.ABowl.NotchLower} {
+	for _, y := range []float64{b.NotchUpper, b.NotchLower} {
 		if !vertex(path[0], y) {
 			t.Errorf("the outer contour has no corner on the stem at height %v", y)
 		}
 	}
-	// Thickness at right angles to the stroke at the joins.
-	for _, y := range []float64{p.ABowl.NotchUpper, p.ABowl.NotchLower} {
-		near(t, "thickness at the join", thicknessAt(outline.Point{X: stemLeft, Y: y}, path[1]), p.BowlJoinThick)
-	}
+	// Thickness at right angles to the stroke at the joins: below that of the
+	// bowls, above that of the bar of e.
+	near(t, "thickness at the lower join", thicknessAt(outline.Point{X: stemLeft, Y: b.NotchLower}, path[1]), p.BowlJoinThick)
+	near(t, "thickness at the upper join", thicknessAt(outline.Point{X: stemLeft, Y: b.NotchUpper}, path[1]), p.EBarThick)
 	// The upper join lies at 0.50 to 0.60 of the x-height and the lower join at
 	// 0.19 to 0.27 of it.  Above, the counter's highest point at the stem is the
 	// join.
-	if r := p.ABowl.JoinUpper / p.XHeight; r < 0.50 || r > 0.60 {
+	if r := b.JoinUpper / p.XHeight; r < 0.50 || r > 0.60 {
 		t.Errorf("the upper join is at %.3f of the x-height, outside 0.50 to 0.60", r)
 	}
 	if r := p.ABowl.JoinLower / p.XHeight; r < 0.19 || r > 0.27 {
@@ -233,15 +235,52 @@ func TestAJoins(t *testing.T) {
 	}
 	// The upper stroke leaves the stem more horizontally than that of d: the
 	// outer edge runs from the notch at a smaller angle to the horizontal.
-	cosA, _ := aBowl(p).leaveAngle(p.ABowl.NotchUpper, p.ABowl.JoinUpper)
+	cosA, _ := b.leaveAngle(b.NotchUpper, b.JoinUpper)
 	cosD, _ := dBowl(p).leaveAngle(p.DBowl.NotchUpper, p.DBowl.JoinUpper)
 	if !(cosA > cosD+0.2) {
 		t.Errorf("the upper stroke of a leaves the stem at cos %.2f, that of d at %.2f: not more horizontal", cosA, cosD)
 	}
-	// The stroke grows monotonically from each join to the thickest part; the
-	// extreme at the bottom is that of the lower half.
+	// The stroke grows monotonically from the upper join, where it is as thick
+	// as the bar of e, to the thickest part, and shrinks from there to the thin
+	// part at the extreme at the bottom, that of the lower half; between that
+	// extreme and the lower join it neither pinches below the thin part nor swells
+	// beyond the thickest part.  The thickness is measured at right angles to the
+	// stroke.
+	pt := func(x, y float64) outline.Point { return outline.Point{X: x, Y: y} }
 	lower := aLowerHalf(b)
-	checkBowlStrokeHalves(t, path, b, lower.Left+lower.Half)
+	xb := lower.xExtreme()
+	thick := func(from, to outline.Point) []float64 {
+		pts, _ := outerEdge(t, path, from, to)
+		var th []float64
+		for _, q := range pts {
+			if q.X < b.X-0.01 {
+				th = append(th, thicknessAt(q, path[1]))
+			}
+		}
+		if len(th) < 10 {
+			t.Fatalf("only %d samples from %v to %v", len(th), from, to)
+		}
+		return th
+	}
+	monotone := func(what string, th []float64, sign, start, end float64) {
+		for i := 1; i < len(th); i++ {
+			if sign*(th[i]-th[i-1]) < -0.5 {
+				t.Errorf("the stroke %s goes from %.2f to %.2f", what, th[i-1], th[i])
+				break
+			}
+		}
+		if math.Abs(th[0]-start) > 2 || math.Abs(th[len(th)-1]-end) > 2 {
+			t.Errorf("the stroke %s runs from %.1f to %.1f, want %v to %v", what, th[0], th[len(th)-1], start, end)
+		}
+	}
+	monotone("from the upper join to the free extreme", thick(pt(b.X, b.NotchUpper), pt(b.Left, b.thickY())), 1, p.EBarThick, b.Thick)
+	monotone("from the free extreme to the bottom", thick(pt(b.Left, b.thickY()), pt(xb, b.Bottom)), -1, b.Thick, b.ThinBottom)
+	for _, d := range thick(pt(xb, b.Bottom), pt(b.X, b.NotchLower)) {
+		if d < math.Min(b.ThinBottom, b.JoinThick)-2 || d > b.Thick {
+			t.Errorf("the lower stroke is %.1f thick between the extreme at the bottom and the join, outside %v to %v", d, math.Min(b.ThinBottom, b.JoinThick)-2, b.Thick)
+			break
+		}
+	}
 }
 
 // heading returns the direction of the vector from a to b.
@@ -335,8 +374,8 @@ func TestATopHasNoKnuckle(t *testing.T) {
 	}
 }
 
-// The bowl of a is an oval: between the extreme at the top and the stem both
-// edges of its upper stroke turn one way only and have no straight stretch (no
+// The bowl of a is an oval: between the stem and the free extreme both edges
+// of its upper stroke turn one way only and have no straight stretch (no
 // stretch of bowlStretch units turns by less than bowlStretchTurn), and the roof
 // of the counter, from its free extreme to the stem, has no level stretch longer
 // than maxLevelRoof: a stretch whose direction stays within levelAngle of the
@@ -356,7 +395,6 @@ func TestABowlIsAnOval(t *testing.T) {
 			p := np.params
 			path, _ := cachedOutline(np, "a")
 			b := aBowl(p)
-			xt := b.xExtreme()
 			pt := func(x, y float64) outline.Point { return outline.Point{X: x, Y: y} }
 			counter := outline.Path{path[1]}
 			for _, e := range []struct {
@@ -364,8 +402,8 @@ func TestABowlIsAnOval(t *testing.T) {
 				path outline.Path
 				a, b outline.Point
 			}{
-				{"outer edge", path, pt(b.X, b.NotchUpper), pt(xt, b.Top)},
-				{"counter", counter, pt(xt, b.Top-b.ThinTop), pt(b.X, b.JoinUpper)},
+				{"outer edge", path, pt(b.X, b.NotchUpper), pt(b.Left, b.thickY())},
+				{"counter", counter, pt(b.Left+b.Thick, b.thickY()), pt(b.X, b.JoinUpper)},
 			} {
 				pts, s := outerEdge(t, e.path, e.a, e.b)
 				least, at := slidingTurns(pts, s, bowlStretch)
@@ -547,4 +585,82 @@ func turnRateAround(t *testing.T, ct outline.Contour, q outline.Point, w float64
 		return math.Abs(math.Atan2(ta.X*tb.Y-ta.Y*tb.X, ta.X*tb.X+ta.Y*tb.Y)) / length
 	}
 	return [2]float64{rate(segCubic(ct, (i+n-1)%n), 1), rate(segCubic(ct, i), 0)}
+}
+
+// The top of the bowl of a lies on the line of the bar of e: where the upper
+// stroke of the bowl meets the stem, its upper edge and its underside are at
+// the heights of the upper edge and of the underside of the bar, within
+// aBarMatch.  Both edges are level at the stem: the counter is highest there,
+// the outer edge is nowhere higher over the last aLevelSpan units before the
+// stem, and over the last aLevelRun units each edge falls by at most
+// aLevelDrop.
+const (
+	aBarMatch  = 1.0
+	aLevelSpan = 50.0
+	aLevelRun  = 5.0
+	aLevelDrop = 0.25
+)
+
+func TestAJoinMeetsTheBarOfE(t *testing.T) {
+	t.Parallel()
+	for _, np := range allParams() {
+		t.Run(np.name, func(t *testing.T) {
+			t.Parallel()
+			p := np.params
+			ePath, _ := cachedOutline(np, "e")
+			low, high := barLevel(t, ePath, (design.EBowlLeft(p)+design.EBowlRight(p))/2+0.5)
+
+			path, _ := cachedOutline(np, "a")
+			stem := design.AStemLeft(p)
+			// The roof of the counter: its highest point, which lies at the stem.
+			roof := outline.Point{Y: math.Inf(-1)}
+			for _, q := range path[1].Flatten() {
+				if q.Y > roof.Y {
+					roof = q
+				}
+			}
+			if roof.X < stem-0.5 {
+				t.Errorf("parameter set %s: the counter is highest at (%.1f, %.1f), not at the stem %v", np.name, roof.X, roof.Y, stem)
+			}
+			// The outer edge of the upper stroke at the distance d from the stem: the
+			// lowest crossing above the middle of the bar and below the arc.
+			edge := func(d float64) float64 {
+				y := math.NaN()
+				for _, v := range path.CrossingsY(stem - d) {
+					if v > (low+high)/2 && v < high+10 && (math.IsNaN(y) || v < y) {
+						y = v
+					}
+				}
+				if math.IsNaN(y) {
+					t.Fatalf("parameter set %s: no outer edge of the bowl %v left of the stem: %v", np.name, d, path.CrossingsY(stem-d))
+				}
+				return y
+			}
+			top := edge(0.01)
+			if np.name == "regular" {
+				t.Logf("the upper stroke of the bowl meets the stem from %.2f to %.2f, the bar of e runs from %.2f to %.2f", roof.Y, top, low, high)
+			}
+			if math.Abs(top-high) > aBarMatch || math.Abs(roof.Y-low) > aBarMatch {
+				t.Errorf("parameter set %s: the upper stroke of the bowl of a meets the stem from %.2f to %.2f, the bar of e runs from %.2f to %.2f", np.name, roof.Y, top, low, high)
+			}
+			for d := 1.0; d <= aLevelSpan; d++ {
+				if y := edge(d); y > top+0.01 {
+					t.Errorf("parameter set %s: the outer edge of the bowl is at %.2f %v left of the stem, higher than %.2f at the stem", np.name, y, d, top)
+					break
+				}
+			}
+			if drop := top - edge(aLevelRun); drop > aLevelDrop {
+				t.Errorf("parameter set %s: the outer edge of the bowl falls by %.2f over the last %v units before the stem", np.name, drop, aLevelRun)
+			}
+			under := math.Inf(-1)
+			for _, v := range path.CrossingsY(stem - aLevelRun) {
+				if v < (low+high)/2 && v > low-10 {
+					under = math.Max(under, v)
+				}
+			}
+			if drop := roof.Y - under; drop > aLevelDrop {
+				t.Errorf("parameter set %s: the counter falls by %.2f over the last %v units before the stem", np.name, drop, aLevelRun)
+			}
+		})
+	}
 }
