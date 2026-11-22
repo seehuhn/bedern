@@ -23,10 +23,10 @@ import (
 // the ends are cut at right angles to the stroke; there each edge has the
 // handle of a circular arc.
 //
-// Side kinds: open, TildeSide to the ends.
+// Side kinds: open, TildeSide to the ink.
 func asciitilde(p design.Params) (outline.Path, float64) {
 	s := p.Sym
-	x0, w, ax := s.TildeSide, s.TildeWidth, p.Punct.MathAxis
+	x0, w, ax := 0.0, s.TildeWidth, p.Punct.MathAxis
 	a := (s.TildeHeight - s.TildeThin) / 2 // the amplitude of the centre line
 	end := 0.84 * s.TildeThick
 	sts := []station{
@@ -51,7 +51,7 @@ func asciitilde(p design.Params) (outline.Path, float64) {
 		}
 		sts[i].K = k
 	}
-	return chainsPath(strokeChain(sts)), 2*x0 + w
+	return placeInk(chainsPath(strokeChain(sts)), design.PunctSides{Left: s.TildeSide, Right: s.TildeSide})
 }
 
 // asciicircum draws the circumflex: two straight strokes of CircThick which

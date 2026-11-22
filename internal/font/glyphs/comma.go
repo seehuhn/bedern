@@ -112,7 +112,7 @@ func commaAt(p design.Params, cx, top float64) chain {
 func comma(p design.Params) (outline.Path, float64) {
 	var path outline.Path
 	commaAt(p, 0, commaTop(p)).addContour(&path)
-	return placeInk(path, p.Punct.Comma)
+	return placeOnAxis(path, p.DotsAdvance())
 }
 
 // quoteChain returns the right single quotation mark, as a chain, with the

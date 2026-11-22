@@ -278,9 +278,9 @@ func TestDashes(t *testing.T) {
 	}
 }
 
-// The dashes keep side space: at least 40 on each side of the en dash and 30 on
+// The dashes keep side space: at least 40 on each side of the en dash and 20 on
 // each side of the em dash (the gap between two dashes next to each other is at
-// least 70).
+// least 60), and the em dash is not wider than an em.
 func TestDashSideSpace(t *testing.T) {
 	t.Parallel()
 	for _, s := range punctSets() {
@@ -288,11 +288,14 @@ func TestDashSideSpace(t *testing.T) {
 		for _, c := range []struct {
 			name string
 			min  float64
-		}{{"endash", 40}, {"emdash", 30}} {
+		}{{"endash", 40}, {"emdash", 20}} {
 			path, adv := punctOutline(t, c.name, p)
 			x0, _, x1, _ := path.BBox()
 			if x0 < c.min-0.5 || adv-x1 < c.min-0.5 {
 				t.Errorf("%s: %s has side spaces %v and %v, want at least %v", s.Name, c.name, x0, adv-x1, c.min)
+			}
+			if c.name == "emdash" && adv > 1000 {
+				t.Errorf("%s: the em dash has the advance %v, more than an em", s.Name, adv)
 			}
 		}
 	}

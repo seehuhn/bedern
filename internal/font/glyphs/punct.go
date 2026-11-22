@@ -17,7 +17,10 @@ import (
 // advance to the outermost ink on each side, and its advance is the ink between
 // them: the sign is drawn in a frame of its own, and placeInk moves it so that
 // its ink keeps the side spaces and returns the advance.  The advance is a whole
-// number, and the ink keeps at least the side space it is given.
+// number, and the ink keeps at least the side space it is given.  The comma and
+// the semicolon have no side spaces of their own: they have the advance of the
+// full stop (design.Params.DotsAdvance), and the centre of their head stands on
+// the centre of the advance.
 
 // The side kinds of the punctuation.  The numbers are far from those of the
 // letters.  The kind of a sign holds for both its sides, and punctSideSpace
@@ -65,12 +68,8 @@ func punctSideSpace(k sideKind, p design.Params, left bool) (float64, bool) {
 	switch k {
 	case sidePeriod:
 		s = q.Period
-	case sideComma:
-		s = q.Comma
 	case sideColon:
 		s = q.Colon
-	case sideSemicolon:
-		s = q.Semicolon
 	case sideExclam:
 		s = q.Exclam
 	case sideQuote:
@@ -125,6 +124,12 @@ func placeInk(path outline.Path, s design.PunctSides) (outline.Path, float64) {
 	dx := math.Ceil(s.Left - x0 - 1e-6)
 	out := shiftInk(path, dx, 0)
 	return out, math.Ceil(x1 + dx + s.Right - 1e-6)
+}
+
+// placeOnAxis moves the path sideways so that the abscissa 0 of its frame lies on
+// the centre of an advance of the given width, and returns it with the advance.
+func placeOnAxis(path outline.Path, advance float64) (outline.Path, float64) {
+	return shiftInk(path, advance/2, 0), advance
 }
 
 // shiftInk returns the path moved by dx to the right and dy up.

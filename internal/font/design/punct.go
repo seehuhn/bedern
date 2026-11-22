@@ -3,6 +3,8 @@
 
 package design
 
+import "math"
+
 // This file holds the parameters of the basic punctuation and of the signs of
 // ASCII mathematics: full stop, comma, colon, semicolon, exclamation mark,
 // the apostrophe and the quotation marks, hyphen and dashes, parentheses and
@@ -37,10 +39,12 @@ type Punct struct {
 	ExclamGap         float64
 	Period            PunctSides
 	Colon             PunctSides
-	Semicolon         PunctSides
 	Exclam            PunctSides
 
 	// The comma, in the frame in which the centre of the head is the origin.
+	// The comma and the semicolon have the advance of the full stop, with the
+	// centre of the head on the centre of the advance, where the centre of the
+	// full stop stands.
 	// The head is a circle of the diameter CommaHead; the lowest ink lies
 	// CommaDepth below the baseline.  The outer (right) edge of the tail runs
 	// into the head at its right extreme with the direction and the curvature
@@ -63,7 +67,6 @@ type Punct struct {
 	CommaOuterPull  float64
 	CommaInnerStart float64
 	CommaInnerPull  float64
-	Comma           PunctSides
 
 	// The quotation marks.  The right single mark and the apostrophe are the
 	// comma with its head's top at QuoteTop; the left one is that turned
@@ -170,7 +173,6 @@ func regularPunct() Punct {
 		ExclamGap:         80,
 		Period:            PunctSides{76, 76},
 		Colon:             PunctSides{76, 76},
-		Semicolon:         PunctSides{50, 76},
 		Exclam:            PunctSides{76, 76},
 
 		CommaHead:       110,
@@ -182,7 +184,6 @@ func regularPunct() Punct {
 		CommaOuterPull:  0.38,
 		CommaInnerStart: 20,
 		CommaInnerPull:  0.1,
-		Comma:           PunctSides{50, 76},
 
 		QuoteTop:            698,
 		QuotePitch:          190,
@@ -205,7 +206,7 @@ func regularPunct() Punct {
 		DashThick:    52,
 		DashCentre:   250,
 		Dash:         PunctSides{40, 40},
-		EmDash:       PunctSides{30, 30},
+		EmDash:       PunctSides{20, 20},
 		UnderLength:  500,
 		UnderThick:   46,
 		UnderTop:     94,
@@ -248,6 +249,13 @@ func regularPunct() Punct {
 		NotdefThick: 38,
 		NotdefSide:  40,
 	}
+}
+
+// DotsAdvance returns the advance shared by the full stop, the colon, the
+// semicolon, the comma and the exclamation mark: the dot and the side spaces of
+// the full stop, rounded up to a whole unit.
+func (p Params) DotsAdvance() float64 {
+	return math.Ceil(p.DotDiameter + p.Punct.Period.Left + p.Punct.Period.Right - 1e-6)
 }
 
 // PeriodCentre returns the height of the centre of the full stop, which is that

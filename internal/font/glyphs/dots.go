@@ -38,7 +38,7 @@ func semicolon(p design.Params) (outline.Path, float64) {
 	var path outline.Path
 	commaAt(p, 0, commaTop(p)).addContour(&path)
 	addDot(&path, p, 0, p.ColonUpperCentre())
-	return placeInk(path, p.Punct.Semicolon)
+	return placeOnAxis(path, p.DotsAdvance())
 }
 
 // taperedBar adds a bar which is wide at the top and narrow at the foot, with flat

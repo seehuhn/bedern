@@ -121,9 +121,9 @@ func regularSymbols() Symbols {
 		QStem: 50,
 		QSide: 46,
 
-		DegDiam: 287, DegThick: 42, DegTop: 699, DegSideLeft: 22, DegSideRight: 12,
+		DegDiam: 287, DegThick: 42, DegTop: 699, DegSideLeft: 38, DegSideRight: 30,
 
-		TildeWidth: 540, TildeHeight: 132, TildeThick: 60, TildeThin: 50, TildeSide: 20,
+		TildeWidth: 540, TildeHeight: 132, TildeThick: 60, TildeThin: 50, TildeSide: 24,
 
 		CircWidth: 520, CircHeight: 220, CircTop: 726, CircThick: 54, CircSide: 30,
 
@@ -152,7 +152,7 @@ func regularSymbols() Symbols {
 		AtBowlThick: 84, AtStem: 76, AtSide: 48,
 
 		AmpInk: 674, AmpTop: 697, AmpBottom: -14, AmpThick: 96, AmpBowlThick: 100, AmpTail: 48,
-		AmpArm: 418, AmpArmThick: 50, AmpSerifLeft: 100, AmpSerifRight: 95, AmpSideLeft: 54, AmpSideRight: 46,
+		AmpArm: 418, AmpArmThick: 50, AmpSerifLeft: 100, AmpSerifRight: 95, AmpSideLeft: 44, AmpSideRight: 32,
 	}
 }
 
