@@ -19,7 +19,7 @@ func capDiagUp(p *design.Params) {
 	d.NFlat, d.NDepth, d.NJoin, d.MFlat, d.MHeight, d.MCrotchDepth = 28, 12, 62, 28, 44, 85
 	d.ABar, d.XCross, d.YJunction, d.KJunction = d.ABar+12, d.XCross+17, d.YJunction+17, d.KJunction+17
 	d.KArmAngle, d.KLegAngle, d.XThinOffset, d.XLeanDiff = 47, 35, -8, 0.035
-	d.AInk, d.VInk, d.WInk, d.XInk, d.YInk, d.ZInk, d.KInk, d.MInk, d.NInk = 690, 715, 995, 705, 730, 510, 705, 845, 690
+	d.AInk, d.VInk, d.WInk, d.XInk, d.YInk, d.ZInk, d.KInk, d.MInk = 690, 715, 995, 705, 730, 510, 705, 845
 	d.ZInkTop = 480
 }
 
@@ -34,6 +34,6 @@ func capDiagDown(p *design.Params) {
 	d.NFlat, d.NDepth, d.NJoin, d.MFlat, d.MHeight, d.MCrotchDepth = 20, 7, 48, 20, 28, 65
 	d.ABar, d.XCross, d.YJunction, d.KJunction = d.ABar-12, d.XCross-17, d.YJunction-17, d.KJunction-17
 	d.KArmAngle, d.KLegAngle, d.XThinOffset, d.XLeanDiff = 45, 33, -4, 0.02
-	d.AInk, d.VInk, d.WInk, d.XInk, d.YInk, d.ZInk, d.KInk, d.MInk, d.NInk = 640, 665, 930, 655, 680, 470, 660, 790, 640
+	d.AInk, d.VInk, d.WInk, d.XInk, d.YInk, d.ZInk, d.KInk, d.MInk = 640, 665, 930, 655, 680, 470, 660, 790
 	d.ZInkTop = 442
 }

@@ -57,13 +57,12 @@ type CapBowls struct {
 	// D.  DWidth is the width of its bowl.
 	DWidth float64
 
-	// U.  UThin is the width of the right stem, UCounter the distance between
-	// the inner edges of the stems and UCurve the height at which the outer
-	// edges leave the stems for the round at the bottom; the round is RoundThin
-	// thick at its lowest point and overshoots the baseline by OvershootUpper.
-	UThin    float64
-	UCounter float64
-	UCurve   float64
+	// U.  UThin is the width of the right stem and UCurve the height at which
+	// the outer edges leave the stems for the round at the bottom; the round is
+	// RoundThin thick at its lowest point and overshoots the baseline by
+	// OvershootUpper.  The outer edges of the stems are those of H (CapUCounter).
+	UThin  float64
+	UCurve float64
 
 	// Side spaces.  BowlSideLeft is the distance from the left edge of the
 	// advance to the left-hand edge of the stem of B, D, P and R; BowlSideRight,
@@ -104,9 +103,8 @@ func regularCapBowls() CapBowls {
 
 		DWidth: 464,
 
-		UThin:    42,
-		UCounter: 341,
-		UCurve:   222,
+		UThin:  42,
+		UCurve: 222,
 
 		BowlSideLeft:  119,
 		BowlSideRight: 36,
@@ -156,5 +154,12 @@ func CapRAdvance(p Params) float64 {
 // counter.
 func CapUAdvance(p Params) float64 {
 	c := p.Caps
-	return c.SideStemLeft + c.Stem + c.UCounter + c.UThin + c.SideStemRight
+	return c.SideStemLeft + c.Stem + CapUCounter(p) + c.UThin + c.SideStemRight
+}
+
+// CapUCounter returns the distance between the inner edges of the stems of U,
+// whose outer edges stand where those of H stand.
+func CapUCounter(p Params) float64 {
+	c := p.Caps
+	return c.HCounter + c.Stem - c.UThin
 }

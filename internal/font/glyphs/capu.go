@@ -66,7 +66,7 @@ func capUStems(p design.Params) (ll, lr, rl, rr float64) {
 	c := p.Caps
 	ll = c.SideStemLeft
 	lr = ll + c.Stem
-	rl = lr + c.UCounter
+	rl = lr + design.CapUCounter(p)
 	rr = rl + c.UThin
 	return
 }

@@ -85,9 +85,10 @@ type CapDiag struct {
 	XLeanDiff            float64
 
 	// Widths.  The ink widths, see above; ZInkTop is the length of the upper bar of
-	// Z from the right-hand corner to the cut of the beak.
-	AInk, VInk, WInk, XInk, YInk, ZInk, KInk, MInk, NInk float64
-	ZInkTop                                              float64
+	// Z from the right-hand corner to the cut of the beak.  The ink of N is that of
+	// H (CapNInk).
+	AInk, VInk, WInk, XInk, YInk, ZInk, KInk, MInk float64
+	ZInkTop                                        float64
 
 	// Side spaces of the letters.
 	SideA, SideV, SideW, SideX, SideY, SideZ, SideK, SideM, SideN CapSides
@@ -130,8 +131,8 @@ func regularCapDiag() CapDiag {
 		XThinOffset: -6,
 		XLeanDiff:   0.027,
 
-		AInk: 664, VInk: 690, WInk: 961, XInk: 681, YInk: 705, ZInk: 489, KInk: 682, MInk: 817, NInk: 663,
-		ZInkTop: 461,
+		AInk: 688, VInk: 690, WInk: 961, XInk: 681, YInk: 688, ZInk: 510, KInk: 682, MInk: 844,
+		ZInkTop: 482,
 
 		SideA: CapSides{17, 20},
 		SideV: CapSides{12, 11},
@@ -172,7 +173,11 @@ func CapKAdvance(p Params) float64 { d := p.CapDiag; return d.SideK.Left + d.KIn
 func CapMAdvance(p Params) float64 { d := p.CapDiag; return d.SideM.Left + d.MInk + d.SideM.Right }
 
 // CapNAdvance returns the advance of N.
-func CapNAdvance(p Params) float64 { d := p.CapDiag; return d.SideN.Left + d.NInk + d.SideN.Right }
+func CapNAdvance(p Params) float64 { d := p.CapDiag; return d.SideN.Left + CapNInk(p) + d.SideN.Right }
+
+// CapNInk returns the ink width of N, that of H: the stems of N stand where the
+// stems of H stand when SideN.Left is SideStemLeft less SerifJut.
+func CapNInk(p Params) float64 { return CapHInk(p) }
 
 // capDiagWidth is DiagWidth.
 func capDiagWidth(thick, lean float64) float64 { return DiagWidth(thick, lean) }
@@ -410,7 +415,7 @@ func CapNStemLeft(p Params) float64 { return p.CapDiag.SideN.Left + p.Caps.Serif
 
 // CapNStemRight returns the position of the right-hand edge of the right stem of N.
 func CapNStemRight(p Params) float64 {
-	return p.CapDiag.SideN.Left + p.CapDiag.NInk - p.Caps.SerifJut
+	return p.CapDiag.SideN.Left + CapNInk(p) - p.Caps.SerifJut
 }
 
 // CapNLean returns the lean of the diagonal of N in absolute value: its left-hand

@@ -238,7 +238,7 @@ func Perturbed() []Set {
 		c.PBar, c.PWidth, c.RBar, c.RWidth, c.DWidth = c.PBar+d/2, 390, c.RBar+d/2, 382, 490
 		c.RBowlRound, c.BLowerRound, c.BUpperRound = c.BowlRound, c.BowlRound, c.BowlRound
 		c.RLegTop, c.RLegFoot, c.RLeg, c.RLegSerifLeft, c.RLegSerifRight = 90, 335, 100, 66, 66
-		c.UThin, c.UCounter, c.UCurve = 48, 355, 245
+		c.UThin, c.UCurve = 48, 245
 		capDiagUp(p)
 		figuresUp(p)
 		symbolsUp(p)
@@ -268,7 +268,7 @@ func Perturbed() []Set {
 		c.PBar, c.PWidth, c.RBar, c.RWidth, c.DWidth = c.PBar+d/2, 350, c.RBar+d/2, 342, 440
 		c.RBowlRound, c.BLowerRound, c.BUpperRound = c.BowlRound, c.BowlRound, c.BowlRound
 		c.RLegTop, c.RLegFoot, c.RLeg, c.RLegSerifLeft, c.RLegSerifRight = 70, 280, 82, 54, 54
-		c.UThin, c.UCounter, c.UCurve = 36, 325, 200
+		c.UThin, c.UCurve = 36, 200
 		capDiagDown(p)
 		figuresDown(p)
 		symbolsDown(p)

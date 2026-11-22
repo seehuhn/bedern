@@ -113,15 +113,15 @@ func regularCaps() Caps {
 		EMiddleHeight: 355,
 		FMiddleHeight: 345,
 
-		HCounter:   287,
+		HCounter:   314,
 		OWidth:     646,
 		ETopArm:    390,
 		EMiddleArm: 240,
 		EBottomArm: 405,
 		FTopArm:    380,
 		FMiddleArm: 235,
-		LArm:       345,
-		TArm:       272,
+		LArm:       358,
+		TArm:       261,
 
 		SideStemLeft:   121,
 		SideStemRight:  120,
@@ -145,6 +145,13 @@ func CapStemLeft(p Params) float64 { return p.Caps.SideStemLeft }
 func CapHAdvance(p Params) float64 {
 	c := p.Caps
 	return c.SideStemLeft + 2*c.Stem + c.HCounter + c.SideStemRight
+}
+
+// CapHInk returns the ink width of H: two stems, the counter and the serifs
+// beyond the stems.
+func CapHInk(p Params) float64 {
+	c := p.Caps
+	return 2*(c.SerifJut+c.Stem) + c.HCounter
 }
 
 // CapOAdvance returns the advance of O: the round sides and the width of O.

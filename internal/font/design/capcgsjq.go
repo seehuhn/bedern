@@ -126,9 +126,9 @@ func regularCGSJQ() CGSJQ {
 		SUpperDrop:     240,
 		SLowerDrop:     255,
 
-		JReach:     225,
-		JOuterDrop: 230,
-		JInnerDrop: 200,
+		JReach:     250,
+		JOuterDrop: 255,
+		JInnerDrop: 225,
 		JHeadRight: 60,
 		JBall:      110,
 
@@ -173,10 +173,12 @@ func CapJStemLeft(p Params) float64 {
 	return g.JSideLeft + g.JReach
 }
 
-// CapJAdvance returns the advance of J: the ball side, the reach, the stem and
-// the stem side on the right.
+// CapJAdvance returns the advance of J: the ball side, the reach, the stem, the
+// head serif on the right and the space from its tip to the edge, which is that
+// of H (SideStemRight less SerifJut).
 func CapJAdvance(p Params) float64 {
-	return CapJStemLeft(p) + p.Caps.Stem + p.Caps.SideStemRight
+	c := p.Caps
+	return CapJStemLeft(p) + c.Stem + c.CGSJQ.JHeadRight + c.SideStemRight - c.SerifJut
 }
 
 // CapQAdvance returns the advance of Q, that of O: the tail ends inside the

@@ -411,7 +411,7 @@ func inkArea(path outline.Path) float64 {
 	return area
 }
 
-// The ink of B is 0.95 to 0.98 of that of H and its advance 0.91 to 0.94 of that
+// The ink of B is 0.95 to 0.98 of that of H and its advance 0.87 to 0.90 of that
 // of H; the ink of B is 0.97 to 1.045 of that of D, and the bowls of B are
 // thinner than those of D.
 func TestCapBColour(t *testing.T) {
@@ -426,8 +426,8 @@ func TestCapBColour(t *testing.T) {
 		if r := inkArea(b) / inkArea(h); r < 0.95 || r > 0.98 {
 			t.Errorf("the ink of B is %.3f of that of H, want 0.95 to 0.98", r)
 		}
-		if r := bAdv / hAdv; r < 0.91 || r > 0.94 {
-			t.Errorf("the advance of B is %.3f of that of H, want 0.91 to 0.94", r)
+		if r := bAdv / hAdv; r < 0.87 || r > 0.90 {
+			t.Errorf("the advance of B is %.3f of that of H, want 0.87 to 0.90", r)
 		}
 		if r := inkArea(b) / inkArea(d); r < 0.97 || r > 1.045 {
 			t.Errorf("the ink of B is %.3f of that of D, want 0.97 to 1.045", r)

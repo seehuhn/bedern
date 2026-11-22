@@ -71,14 +71,14 @@ func TestCapFitClearance(t *testing.T) {
 }
 
 // TestCapFitAnchors checks that the anchors of the fit of the capitals keep
-// their advances (H 720, O 746) and that the ten figures share one advance.
+// their advances (H 747, O 746) and that the ten figures share one advance.
 func TestCapFitAnchors(t *testing.T) {
 	p := design.Regular()
 	f := computed(p).Font
 	for _, c := range []struct {
 		r   rune
 		adv float64
-	}{{'H', 720}, {'O', 746}} {
+	}{{'H', 747}, {'O', 746}} {
 		if g := f.glyphOf(c.r); g == nil || math.Abs(g.Advance-c.adv) > 0.5 {
 			t.Errorf("advance of %c changed, want %.0f", c.r, c.adv)
 		}
