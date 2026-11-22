@@ -384,15 +384,8 @@ func hollowOK(c cubic, tip, P outline.Point) bool {
 	return signs == 1 && last > 0
 }
 
-// capUpperBeak returns the upper beak of the round as a chain, see the comment
-// above, with a bracket which meets the face with the curvature of the inner
-// edge (the Euro).
-func capUpperBeak(p design.Params, f capRoundFrame) chain {
-	return capBeak(p, f, capUpperBeakSpec(p)).chain()
-}
-
-// capUpperBeakEased returns the upper beak of C and G as a chain: capUpperBeak
-// with a bracket which eases into the face (beakRamp).
+// capUpperBeakEased returns the upper beak of C and G as a chain, see the
+// comment above, with a bracket which eases into the face (beakRamp).
 func capUpperBeakEased(p design.Params, f capRoundFrame) chain {
 	return capBeak(p, f, capUpperBeakEasedSpec(p)).chain()
 }

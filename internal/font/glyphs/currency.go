@@ -11,7 +11,8 @@ import (
 )
 
 // The currency signs dollar, sterling and euro.  All three stand at the figure
-// height on the common advance of the figures (Figures.Advance).
+// height; the dollar and the sterling on the common advance of the figures
+// (Figures.Advance), the euro on its own (design.EuroAdvance).
 
 // dollarParams returns p with the values of the S of the dollar in place of
 // those of the capital S, at the figure height, for the curve code of S
@@ -233,26 +234,57 @@ func circleDir(a, b, c outline.Point, chord bool) float64 {
 	return math.Atan2(t.Y, t.X) * 180 / math.Pi
 }
 
-// euro draws the euro: the capital C (capc.go) drawn at the figure height,
-// EuroRoundW wide, with the round side EuroThick and the thin parts of the
-// capitals, its upper beak cut vertically EuroBeakX from the left extreme and
-// its lower terminal ending on the same vertical, as on C; and two horizontal
-// bars EuroBar thick, EuroBarGap apart between their centres about the middle
-// of the figure height, which reach EuroReach beyond the left of the round and
-// end in the counter.  The outline is the union of the round and the bars.
+// euroParams returns p with the values of C scaled for the euro
+// (design.EuroScale): the round at the figure height, from OvershootUpper
+// below the baseline to OverTop above the figure height, sx times the width
+// of O with the round side EuroThick and the thin parts of the capitals, its
+// left extreme at x; the cut of the beak and the reach of the tail scaled in
+// width, the drop and the lift of the beak and the heights of the end of the
+// beak and of the tail and the run of the beak (an arc length along the steep
+// end of the edge) scaled in height.  The serif and the tail keep the weights
+// of C.
+func euroParams(p design.Params, x float64) design.Params {
+	s := p.Sym
+	sx, sy := design.EuroScale(p)
+	ov := p.OvershootUpper
+	y := func(v float64) float64 { return (v+ov)*sy - ov }
+	q := capCParams(p)
+	q.CapHeight = p.Figures.Height + p.Figures.OverTop - ov
+	c := &q.Caps
+	c.SideRoundLeft, c.OWidth, c.Round = x, sx*c.OWidth, s.EuroThick
+	g := &c.CGSJQ
+	g.BeakX, g.CTailReach = sx*g.BeakX, sx*g.CTailReach
+	g.BeakRun *= sy
+	g.BeakDrop, g.BeakLift = sy*g.BeakDrop, sy*g.BeakLift
+	g.BeakEnd, g.CTailHeight = y(g.BeakEnd), y(g.CTailHeight)
+	return q
+}
+
+// euro draws the euro: the capital C (capc.go) scaled to the figure height
+// and to EuroRound of its proportion (euroParams), with its upper beak and its
+// tail; and two horizontal bars EuroBar thick, EuroBarGap apart between their
+// centres about the middle of the figure height, which start EuroReach left of
+// the round with square ends and end in the counter on one line, EuroBarCut
+// degrees from the horizontal, through the point EuroBarEnd right of the left
+// of the ink at the middle of the figure height, so that the upper bar reaches
+// further right than the lower.  The outline is the union of the round and the
+// bars.
 //
-// Side kinds: open; the ink is centred on the advance of the figures.
+// Side kinds: open; the ink stands EuroSideLeft and EuroSideRight from the
+// edges of its own advance (design.EuroAdvance).
 func euro(p design.Params) (outline.Path, float64) {
 	s := p.Sym
-	x0 := math.Round((p.Figures.Advance - s.EuroInk) / 2)
-	q := p
-	q.CapHeight, q.OvershootUpper = p.Figures.Height, p.OvershootLower
-	c := &q.Caps
-	c.SideRoundLeft, c.OWidth, c.Round = x0+s.EuroReach, s.EuroRoundW, s.EuroThick
-	c.CGSJQ.BeakX, c.CGSJQ.BeakEnd = s.EuroBeakX, s.EuroBeakEnd
-	c.CGSJQ.CTailHeight *= p.Figures.Height / p.CapHeight
+	x0 := s.EuroSideLeft
+	q := euroParams(p, x0+s.EuroReach)
 	f := capRound(q)
-	round := join(capRoundLeft(f), capCTail(q, f), capRoundLeftInner(f), capUpperBeak(q, f))
-	bar := func(y float64) chain { return rectChain(x0, y-s.EuroBar/2, x0+s.EuroBarEnd, y+s.EuroBar/2) }
-	return chainsPath(union(round, bar(p.Figures.Height/2-s.EuroBarGap/2), bar(p.Figures.Height/2+s.EuroBarGap/2))...), p.Figures.Advance
+	round := join(capRoundLeft(f), capCTail(q, f), capRoundLeftInner(f), capUpperBeakEased(q, f))
+	mid := p.Figures.Height / 2
+	slope := math.Cos(s.EuroBarCut*math.Pi/180) / math.Sin(s.EuroBarCut*math.Pi/180)
+	end := func(y float64) outline.Point { return outline.Point{X: x0 + s.EuroBarEnd + (y-mid)*slope, Y: y} }
+	bar := func(yc float64) chain {
+		y0, y1 := yc-s.EuroBar/2, yc+s.EuroBar/2
+		a, b, c, d := outline.Point{X: x0, Y: y0}, end(y0), end(y1), outline.Point{X: x0, Y: y1}
+		return chain{lineSeg(a, b), lineSeg(b, c), lineSeg(c, d), lineSeg(d, a)}
+	}
+	return chainsPath(union(round, bar(mid-s.EuroBarGap/2), bar(mid+s.EuroBarGap/2))...), design.EuroAdvance(p)
 }

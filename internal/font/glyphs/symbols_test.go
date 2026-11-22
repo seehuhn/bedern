@@ -167,6 +167,104 @@ func TestEuroBarsCentred(t *testing.T) {
 	}
 }
 
+// The euro is the capital C scaled, with two bars.  Measured on the outlines,
+// the round of the euro (from the left extreme of its outer edge, between the
+// bars, to the tip of the tail) has the proportion of the ink of C, width over
+// height, times euroRoundFactor within euroRoundBand, and the whole sign that
+// of C times a factor between euroSignLow and euroSignHigh.  In the frame
+// scaled by the widths and the heights of the two, the cut of the beak stands
+// at the place of the cut of C within euroCutBand of the width, and the top and
+// the bottom of the cut and the tip of the tail are those of C within
+// euroFeatureTolerance units.
+const (
+	euroRoundFactor      = 0.78
+	euroRoundBand        = 0.02
+	euroSignLow          = 0.84
+	euroSignHigh         = 0.90
+	euroCutBand          = 0.01
+	euroFeatureTolerance = 4.0
+)
+
+// A cShape holds the features of a C measured on its outline: the left
+// extreme of the round, the tip of the tail (right), the bottom and the top,
+// the vertical cut of the beak, the top and the bottom of the cut and the
+// height of the tip of the tail.
+type cShape struct {
+	left, right, bottom, top  float64
+	cut, cutTop, cutEnd, tipY float64
+}
+
+// measureC measures the C-shaped outline path whose round has its left
+// extreme at left.
+func measureC(t *testing.T, name string, path outline.Path, left float64) cShape {
+	_, y0, x1, y1 := path.BBox()
+	s := cShape{left: left, right: x1, bottom: y0, top: y1, cut: math.Inf(-1)}
+	mid := (y0 + y1) / 2
+	for y := mid + 120; y < y1-5; y += 8 {
+		if xs := path.CrossingsX(y); len(xs) > 0 {
+			s.cut = math.Max(s.cut, xs[len(xs)-1])
+		}
+	}
+	var up []float64
+	for _, y := range path.CrossingsY(s.cut - 1.5) {
+		if y > mid {
+			up = append(up, y)
+		}
+	}
+	ys := path.CrossingsY(x1 - 1.5)
+	if len(up) < 2 || len(ys) < 2 {
+		t.Fatalf("%s: no cut of the beak or no tip of the tail", name)
+	}
+	s.cutEnd, s.cutTop = up[0], up[len(up)-1]
+	s.tipY = (ys[0] + ys[1]) / 2
+	return s
+}
+
+func TestEuroIsCScaled(t *testing.T) {
+	t.Parallel()
+	for _, np := range allParams() {
+		cp, _, _ := outlineOf("C", np.params)
+		cx0, _, _, _ := cp.BBox()
+		c := measureC(t, np.name+", C", cp, cx0)
+
+		ep, _, _ := outlineOf("Euro", np.params)
+		ex0, ey0, ex1, ey1 := ep.BBox()
+		mid := np.params.Figures.Height / 2
+		left := math.Inf(1)
+		for y := mid - 20; y <= mid+20; y += 4 {
+			if xs := ep.CrossingsX(y); len(xs) > 0 {
+				left = math.Min(left, xs[0])
+			}
+		}
+		e := measureC(t, np.name+", Euro", ep, left)
+
+		sx := (e.right - e.left) / (c.right - c.left)
+		sy := (e.top - e.bottom) / (c.top - c.bottom)
+		if f := sx / sy; math.Abs(f-euroRoundFactor) > euroRoundBand {
+			t.Errorf("%s: the round of the euro has %.3f of the proportion of C", np.name, f)
+		}
+		sign := ((ex1 - ex0) / (ey1 - ey0)) / ((c.right - c.left) / (c.top - c.bottom))
+		if sign < euroSignLow || sign > euroSignHigh {
+			t.Errorf("%s: the euro has %.3f of the proportion of C", np.name, sign)
+		}
+		if d := (e.cut-e.left)/(e.right-e.left) - (c.cut-c.left)/(c.right-c.left); math.Abs(d) > euroCutBand {
+			t.Errorf("%s: the cut of the beak of the euro stands %.3f of the width from that of C", np.name, d)
+		}
+		for _, f := range []struct {
+			what string
+			e, c float64
+		}{
+			{"the top of the cut below the top", (e.top - e.cutTop) / sy, c.top - c.cutTop},
+			{"the end of the beak below the top", (e.top - e.cutEnd) / sy, c.top - c.cutEnd},
+			{"the tip of the tail above the bottom", (e.tipY - e.bottom) / sy, c.tipY - c.bottom},
+		} {
+			if d := f.e - f.c; math.Abs(d) > euroFeatureTolerance {
+				t.Errorf("%s: %s of the euro, scaled to C, is %.1f from that of C", np.name, f.what, d)
+			}
+		}
+	}
+}
+
 // The diagonal of the percent keeps clear of the two zeros by at least
 // pctClearance.
 const pctClearance = 30.0

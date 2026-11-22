@@ -3,6 +3,8 @@
 
 package design
 
+import "math"
+
 // This file holds the parameters of the question mark, the ampersand and the
 // symbols of the basic set: at sign, number sign, percent, dollar, sterling,
 // euro, section sign, braces, the ASCII tilde, circumflex and grave, and the
@@ -74,16 +76,17 @@ type Symbols struct {
 	// SterBarLen long.
 	SterInk, SterStem, SterBar, SterBarY, SterBarLen, SterBase float64
 
-	// The euro: EuroInk wide, of which the bars reach EuroReach left of the
-	// round.  The round is the capital C (the round of O, the upper beak and
-	// the lower terminal) at the figure height, EuroRoundW wide with the cut of
-	// the beak EuroBeakX from its left extreme and the end of the beak at
-	// EuroBeakEnd, EuroThick at the left and the thin part of the capitals at
-	// the top and the bottom; two bars EuroBar thick, EuroBarGap apart between
-	// their centres about the middle of the figure height, reach EuroBarEnd
-	// from the left of the ink.
-	EuroInk, EuroReach, EuroRoundW, EuroBeakX, EuroBeakEnd, EuroThick float64
-	EuroBar, EuroBarGap, EuroBarEnd                                   float64
+	// The euro: the capital C (the round of O, the upper beak and the tail)
+	// scaled from the height of C to the figure height with the overshoots of
+	// the figures, and in width by EuroRound times that, with the round side
+	// EuroThick and the thin parts and the serif weights of the capitals; and
+	// two bars EuroBar thick, EuroBarGap apart between their centres about the
+	// middle of the figure height, which start EuroReach left of the round and
+	// end on one line through the point EuroBarEnd right of the left of the
+	// ink at the middle of the figure height, EuroBarCut degrees from the
+	// horizontal.  EuroSideLeft and EuroSideRight are the side spaces.
+	EuroRound, EuroThick, EuroReach, EuroSideLeft, EuroSideRight float64
+	EuroBar, EuroBarGap, EuroBarEnd, EuroBarCut                  float64
 
 	// The section sign: from SectBottom to SectTop; two strokes whose spines
 	// are SectSpine thick across their length, with a counter between them
@@ -140,8 +143,8 @@ func regularSymbols() Symbols {
 
 		SterInk: 440, SterStem: 86, SterBar: 40, SterBarY: 300, SterBarLen: 300, SterBase: 72,
 
-		EuroInk: 458, EuroReach: 56, EuroRoundW: 425, EuroBeakX: 402, EuroBeakEnd: 405, EuroThick: 96,
-		EuroBar: 38, EuroBarGap: 110, EuroBarEnd: 300,
+		EuroRound: 0.78, EuroThick: 96, EuroReach: 56, EuroSideLeft: 24, EuroSideRight: 32,
+		EuroBar: 38, EuroBarGap: 110, EuroBarEnd: 315, EuroBarCut: 70,
 
 		SectTop: 700, SectBottom: -160, SectSpine: 76, SectEyeLong: 300, SectEyeShort: 148, SectHookThick: 66, SectSide: 48,
 
@@ -151,4 +154,20 @@ func regularSymbols() Symbols {
 		AmpInk: 674, AmpTop: 697, AmpBottom: -14, AmpThick: 96, AmpBowlThick: 100, AmpTail: 48,
 		AmpArm: 418, AmpArmThick: 50, AmpSerifLeft: 100, AmpSerifRight: 95, AmpSideLeft: 54, AmpSideRight: 46,
 	}
+}
+
+// EuroScale returns the factors by which the euro scales C: sx in width and
+// sy in height.
+func EuroScale(p Params) (sx, sy float64) {
+	sy = (p.Figures.Height + p.Figures.OverTop + p.OvershootUpper) / (p.CapHeight + 2*p.OvershootUpper)
+	return p.Sym.EuroRound * sy, sy
+}
+
+// EuroAdvance returns the advance of the euro: the side spaces, the reach of
+// the bars and the width of C to the tip of its tail, scaled.
+func EuroAdvance(p Params) float64 {
+	sx, _ := EuroScale(p)
+	g := p.Caps.CGSJQ
+	s := p.Sym
+	return math.Round(s.EuroSideLeft + s.EuroReach + sx*(g.BeakX+g.CTailReach) + s.EuroSideRight)
 }
