@@ -257,7 +257,7 @@ func regularFigures() Figures {
 		FiveBowlTop:    412,
 		FiveBallLeft:   0,
 
-		SixBowlTop:     432,
+		SixBowlTop:     416,
 		SixBowlTopThin: 42,
 		SixCounterLeft: 86,
 		SixLeftY:       300,
