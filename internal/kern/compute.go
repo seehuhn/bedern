@@ -73,52 +73,47 @@ func Compute(p design.Params, gs []glyphs.Glyph) *Table {
 	for _, e := range design.KernExceptions {
 		exc[[2]string{e.Left, e.Right}] = e
 	}
-	type tkey struct {
-		ref string
-		z   Zone
-	}
-	targets := make(map[tkey]float64)
-
 	all := make(map[[2]int]*Pair)
 	for _, a := range kernable {
 		for _, b := range kernable {
 			if a.Kind == Punct && b.Kind == Punct {
 				continue
 			}
-			if !f.markPair(a, b) {
-				continue
-			}
 			z, ref := f.ZoneOf(a, b)
 			if z.Hi <= z.Lo {
 				continue
 			}
-			var target float64
-			if a.Kind == Punct || b.Kind == Punct {
-				// The target of a mark is the white of the mark next to the
-				// letter of ref which is not the mark.
-				r := f.glyphOf(rune(ref[0]))
-				if a.Kind == Punct {
-					target = f.white(a, r, z, 0)
-				} else {
-					target = f.white(r, b, z, 0)
+			if !f.markPair(a, b) || floorOnly[a.Rune] || floorOnly[b.Rune] {
+				// Only the floor applies.
+				if minDepth(a.Right)+minDepth(b.Left) >= k.Floor {
+					continue
 				}
-			} else {
-				key := tkey{ref, z}
-				var ok bool
-				target, ok = targets[key]
-				if !ok {
-					target = f.Target(ref, z)
-					targets[key] = target
+				d0 := f.Distance(a, b, 0)
+				if d0 >= k.Floor {
+					continue
 				}
+				pr := &Pair{Left: a, Right: b, Zone: z, Ref: ref, Dist0: d0}
+				pr.Kern, pr.Floor = f.applyFloor(a, b, 0, d0)
+				pr.White0 = f.white(a, b, z, 0)
+				pr.White1 = f.white(a, b, z, float64(pr.Kern))
+				pr.Target = pr.White0
+				pr.Dist1 = f.Distance(a, b, float64(pr.Kern))
+				all[[2]int{a.Index, b.Index}] = pr
+				continue
 			}
+			bs := f.shared(a, b, z)
+			target := f.Target(a, b, ref, bs)
 			pr := &Pair{Left: a, Right: b, Zone: z, Ref: ref, Target: target}
-			pr.White0 = f.white(a, b, z, 0)
+			pr.White0 = f.whiteRows(a, b, bs, 0)
 			allow := k.Allowance
-			if a.Kind != Punct && b.Kind != Punct && a.Kind != b.Kind {
+			switch {
+			case a.Kind == Upper && b.Kind == Upper:
+				allow = k.AllowanceUpper
+			case a.Kind != Punct && b.Kind != Punct && a.Kind != b.Kind:
 				allow = k.AllowanceMixed
 			}
 			pr.Allow = allow
-			pr.Model = f.Solve(a, b, z, target+allow)
+			pr.Model = f.Solve(a, b, bs, target+allow)
 			v := 0.0
 			if pr.Model < 0 && f.interplay(a, b, z) {
 				v = math.Max(k.Soft*math.Tanh(pr.Model/k.Soft), -k.MaxNegative)
@@ -161,7 +156,24 @@ func Compute(p design.Params, gs []glyphs.Glyph) *Table {
 	return t
 }
 
-// markPair says whether the pair is kerned at all: a mark which stands above
+// floorOnly holds the marks which keep only the floor distance to a letter:
+// the brackets.
+var floorOnly = map[rune]bool{'(': true, ')': true, '[': true, ']': true, '{': true, '}': true}
+
+// minDepth returns the smallest depth of a profile over all bands, which bounds
+// the horizontal distance of the ink of the side from the edge of the advance.
+func minDepth(p []float64) float64 {
+	m := math.Inf(1)
+	for _, x := range p {
+		if !math.IsNaN(x) {
+			m = math.Min(m, x)
+		}
+	}
+	return m
+}
+
+// markPair says whether the pair is kerned by the model of white; the other
+// pairs keep only the floor.  A mark which stands above
 // the baseline (the quotation marks, the hyphen and the dashes) is kerned
 // against capitals only.
 func (f *Font) markPair(a, b *Glyph) bool {

@@ -52,6 +52,12 @@ type Glyph struct {
 	// The band i covers the heights Lo + i*Band to Lo + (i+1)*Band.
 	Right, Left []float64
 
+	// openRight and openLeft are the profiles as far as ink of a neighbour
+	// can enter, at most design.Kern.SideDepth: an opening of a side lower than
+	// design.Kern.Mouth times the x-height counts only as deep as its
+	// entrance.
+	openRight, openLeft []float64
+
 	// Top and Bottom are the highest and lowest ink.
 	Top, Bottom float64
 
@@ -64,8 +70,9 @@ type Font struct {
 	P      design.Params
 	Glyphs []*Glyph
 
-	lo    float64 // height of the lower edge of band 0
-	nrows int
+	lo     float64 // height of the lower edge of band 0
+	nrows  int
+	byRune map[rune]*Glyph
 }
 
 // Analyse computes the profiles of the glyphs.
@@ -94,14 +101,21 @@ func Analyse(p design.Params, gs []glyphs.Glyph) *Font {
 			f.profile(kg, g.Path)
 		}
 		f.Glyphs = append(f.Glyphs, kg)
+		if f.byRune == nil {
+			f.byRune = make(map[rune]*Glyph)
+		}
+		if _, ok := f.byRune[kg.Rune]; !ok && kg.Rune != 0 {
+			f.byRune[kg.Rune] = kg
+		}
 	}
 	return f
 }
 
 // KernPunct lists the punctuation which is kerned against letters: the full
 // stop, comma, colon and semicolon, the question and exclamation marks, the
-// quotation marks and the apostrophe, and the hyphen and dashes.
-const KernPunct = ".,:;!?'\"‘’‚“”„-–—"
+// quotation marks and the apostrophe, the hyphen and dashes, and the brackets,
+// which keep only the floor.
+const KernPunct = ".,:;!?'\"‘’‚“”„-–—()[]{}"
 
 // profile fills in the profiles and the sample points of one glyph.
 func (f *Font) profile(g *Glyph, path outline.Path) {
@@ -149,6 +163,8 @@ func (f *Font) profile(g *Glyph, path outline.Path) {
 		}
 		g.Right[i], g.Left[i] = r, l
 	}
+	m := int(math.Round(k.Mouth * f.P.XHeight / k.Band))
+	g.openRight, g.openLeft = opening(g.Right, m, k.SideDepth), opening(g.Left, m, k.SideDepth)
 	defer func() {
 		sort.Slice(g.rpts, func(i, j int) bool { return g.rpts[i].Y < g.rpts[j].Y })
 		sort.Slice(g.lpts, func(i, j int) bool { return g.lpts[i].Y < g.lpts[j].Y })
@@ -179,6 +195,46 @@ func (f *Font) profile(g *Glyph, path outline.Path) {
 			}
 		}
 	}
+}
+
+// opening returns the profile p as far as a probe of m bands can enter it from
+// the side, and at most limit: in each band the largest depth which the probe
+// reaches in a position which covers the band.  A band without ink is open to
+// any depth, and so is the space beyond the first and the last band; it stays
+// without ink in the result.
+func opening(p []float64, m int, limit float64) []float64 {
+	n := len(p)
+	if m < 1 {
+		m = 1
+	}
+	at := func(i int) float64 {
+		if i < 0 || i >= n || math.IsNaN(p[i]) {
+			return math.Inf(1)
+		}
+		return p[i]
+	}
+	// reach[j] is the depth of the probe which covers the bands j-m+1 to j.
+	reach := make([]float64, n+m-1)
+	for j := range reach {
+		v := math.Inf(1)
+		for i := j - m + 1; i <= j; i++ {
+			v = math.Min(v, at(i))
+		}
+		reach[j] = v
+	}
+	out := make([]float64, n)
+	for i := 0; i < n; i++ {
+		if math.IsNaN(p[i]) {
+			out[i] = math.NaN()
+			continue
+		}
+		v := 0.0
+		for j := i; j < i+m; j++ {
+			v = math.Max(v, reach[j])
+		}
+		out[i] = math.Min(limit, math.Min(v, p[i]))
+	}
+	return out
 }
 
 // Row returns the index of the band which starts at height y, which must be a

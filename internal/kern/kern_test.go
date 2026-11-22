@@ -327,3 +327,82 @@ func TestDepthTellsPairsApart(t *testing.T) {
 		}
 	}
 }
+
+// TestMarksKeepTheFloor: no lowercase letter comes closer than the floor to a
+// mark on either side, the brackets and the raised marks included, kerned as
+// the font does it, in the regular font and the variants.
+func TestMarksKeepTheFloor(t *testing.T) {
+	t.Parallel()
+	for _, v := range design.Variants() {
+		t.Run(v.Name, func(t *testing.T) {
+			t.Parallel()
+			gs := glyphstest.Set(v.Params)
+			tb := computed(v.Params)
+			f := tb.Font
+			floor := v.Params.Kern.Floor
+			for _, a := range f.Glyphs {
+				for _, b := range f.Glyphs {
+					if !(a.Kind == Punct && b.Kind == Lower || a.Kind == Lower && b.Kind == Punct) {
+						continue
+					}
+					k := tb.Kern(a.Index, b.Index)
+					if f.Distance(a, b, float64(k)) > floor+10 {
+						continue
+					}
+					if d := exactDistance(gs[a.Index], gs[b.Index], float64(k)); d < floor-2 {
+						t.Errorf("%s %s with kern %d: closest distance %.1f, floor %v", a.Name, b.Name, k, d, floor)
+					}
+				}
+			}
+		})
+	}
+}
+
+// kernRanges gives for some pairs the range of the kern, as fractions of the
+// em.
+var kernRanges = []struct {
+	pair   string
+	lo, hi float64
+}{
+	{"Ta", -0.105, -0.020}, {"Te", -0.105, -0.025}, {"To", -0.105, -0.025}, {"Tr", -0.100, 0.020}, {"Tu", -0.110, 0.020}, {"Ty", -0.110, 0.025},
+	{"Va", -0.100, -0.056}, {"Ve", -0.100, -0.065}, {"Vo", -0.100, -0.065}, {"Vr", -0.090, -0.035}, {"Vu", -0.083, 0.000}, {"Vy", -0.100, -0.013},
+	{"Wa", -0.100, -0.056}, {"We", -0.100, -0.061}, {"Wo", -0.100, -0.061}, {"Wr", -0.090, -0.035}, {"Wu", -0.083, 0.000}, {"Wy", -0.100, -0.013},
+	{"Ya", -0.100, -0.054}, {"Ye", -0.105, -0.071}, {"Yo", -0.105, -0.071}, {"Yu", -0.083, 0.000}, {"Yr", -0.083, 0.000},
+	{"AT", -0.095, -0.030}, {"AV", -0.140, -0.056}, {"AW", -0.140, -0.055}, {"AY", -0.090, -0.042},
+	{"Av", -0.111, -0.037}, {"Aw", -0.083, -0.037}, {"Ay", -0.090, -0.023}, {"A’", -0.120, 0.000}, {"A”", -0.125, 0.000},
+	{"LT", -0.120, 0.000}, {"LV", -0.125, 0.000}, {"LW", -0.111, 0.000}, {"LY", -0.108, 0.000}, {"L’", -0.125, 0.000}, {"L”", -0.130, 0.000},
+	{"Pa", -0.050, 0.000}, {"Po", -0.055, 0.000}, {"P,", -0.188, -0.024}, {"P.", -0.188, -0.024},
+	{"Fa", -0.083, 0.000}, {"Fo", -0.083, 0.000}, {"F,", -0.169, 0.000}, {"F.", -0.169, 0.000},
+	{"Ko", -0.030, 0.000}, {"Ro", -0.040, 0.015},
+	{"r,", -0.111, 0.000}, {"r.", -0.111, 0.000}, {"v,", -0.120, 0.000}, {"v.", -0.120, 0.000},
+	{"w,", -0.120, 0.000}, {"w.", -0.120, 0.000}, {"y,", -0.133, -0.059}, {"y.", -0.133, -0.059},
+	{"f)", 0.000, 0.094}, {"f]", 0.000, 0.094}, {"f?", 0.000, 0.070}, {"f’", 0.000, 0.101}, {"f”", 0.000, 0.101},
+	{"(j", 0.000, 0.102}, {"[j", 0.000, 0.102}, {"{j", 0.000, 0.102},
+	{"ov", -0.035, 0.000}, {"ev", -0.025, 0.000}, {"ey", -0.030, 0.000}, {"cv", -0.020, 0.000}, {"cy", -0.020, 0.000},
+	{"ox", -0.035, 0.000}, {"rv", 0.000, 0.025},
+	{"T.", -0.103, 0.000}, {"V,", -0.140, 0.000}, {"“A", -0.130, 0.000}, {"‘A", -0.130, 0.000},
+}
+
+// kernRangeMargin widens each range of kernRanges on both sides, as a fraction
+// of the em.
+const kernRangeMargin = 0.015
+
+// TestKernRanges: in the regular font the kern of each pair of kernRanges lies
+// within its range, widened by kernRangeMargin.
+func TestKernRanges(t *testing.T) {
+	t.Parallel()
+	p := design.Regular()
+	tb := computed(p)
+	for _, c := range kernRanges {
+		rs := []rune(c.pair)
+		a, b := tb.Font.glyphOf(rs[0]), tb.Font.glyphOf(rs[1])
+		if a == nil || b == nil {
+			t.Errorf("%s: no glyph", c.pair)
+			continue
+		}
+		k := float64(tb.Kern(a.Index, b.Index)) / p.UnitsPerEm
+		if k < c.lo-kernRangeMargin || k > c.hi+kernRangeMargin {
+			t.Errorf("%s: kern %.3f em, want %.3f to %.3f", c.pair, k, c.lo-kernRangeMargin, c.hi+kernRangeMargin)
+		}
+	}
+}

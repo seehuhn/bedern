@@ -11,8 +11,10 @@ import (
 )
 
 // TestCapFitIsEven checks the fit of the capitals in the regular font with the
-// measure of the kerning: for every capital the mean white of its pairs with
-// the 26 capitals, as the left and as the right neighbour and without kerns,
+// measure by which it is set: the mean over the bands from the baseline to the
+// cap height of the horizontal distance between two capitals, capped at
+// Kern.Depth.  For every capital the mean white of its pairs with the 26
+// capitals, as the left and as the right neighbour and without kerns,
 // exceeds the white of HH by -5 to 80 per cent of it.
 func TestCapFitIsEven(t *testing.T) {
 	const lo, hi = -0.05, 0.80
@@ -27,13 +29,26 @@ func TestCapFitIsEven(t *testing.T) {
 		}
 		caps = append(caps, g)
 	}
+	depth := p.Kern.Depth
+	white := func(a, b *Glyph) float64 {
+		var s float64
+		for i := z.Lo; i < z.Hi; i++ {
+			ra, lb := a.Right[i], b.Left[i]
+			if math.IsNaN(ra) || math.IsNaN(lb) {
+				s += depth
+				continue
+			}
+			s += math.Max(0, math.Min(depth, ra+lb))
+		}
+		return s / float64(z.Hi-z.Lo)
+	}
 	H := f.glyphOf('H')
-	hh := f.white(H, H, z, 0)
+	hh := white(H, H)
 	for _, a := range caps {
 		var left, right float64
 		for _, b := range caps {
-			right += f.white(a, b, z, 0)
-			left += f.white(b, a, z, 0)
+			right += white(a, b)
+			left += white(b, a)
 		}
 		n := float64(len(caps))
 		for _, s := range []struct {

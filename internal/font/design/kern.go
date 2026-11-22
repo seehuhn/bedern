@@ -17,13 +17,27 @@ type Kern struct {
 	// on one side counts as this much.
 	Depth float64
 
-	// Allowance is the amount by which the mean white of a pair may exceed the
-	// target before the pair is kerned; the kern removes the excess over the
-	// target plus the allowance.  It is an amount and not a fraction.
+	// SideDepth is the cap of the depth of one glyph side in one band.
+	SideDepth float64
+
+	// Narrow is the weight of the white of the narrowest band in the white of
+	// a pair of letters; the mean over the bands has the weight 1 - Narrow.
+	Narrow float64
+
+	// Mouth is the height, as a fraction of the x-height, below which an
+	// opening of a glyph side counts only as deep as its entrance.
+	Mouth float64
+
+	// Allowance is the amount by which the white of a pair of lowercase
+	// letters or of a letter and a mark may exceed the target before the pair
+	// is kerned; the kern removes the excess over the target plus the
+	// allowance.  It is an amount and not a fraction.
 	Allowance float64
 
+	// AllowanceUpper is the allowance of two capitals.
+	AllowanceUpper float64
+
 	// AllowanceMixed is the allowance of a capital next to a lowercase letter.
-	// It is larger than Allowance.
 	AllowanceMixed float64
 
 	// Soft is the scale of the soft limit of negative kerns.  The shift which
@@ -89,9 +103,13 @@ func regularKern() Kern {
 	return Kern{
 		Band:           10,
 		Depth:          400,
+		SideDepth:      300,
+		Narrow:         0.5,
+		Mouth:          0.5,
 		Allowance:      70,
-		AllowanceMixed: 68,
-		Soft:           125,
+		AllowanceUpper: 40,
+		AllowanceMixed: 20,
+		Soft:           100,
 		Interplay:      0.4,
 		Threshold:      8,
 		MaxNegative:    135,
