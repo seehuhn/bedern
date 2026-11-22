@@ -27,12 +27,24 @@ import (
 // the eye are thin, and the eye is the widest part: its extremes lie outside
 // the hooks.
 //
-// The eye is a super-ellipse with the squareness of the inner edge of o,
-// SectEyeLong long along the spines and SectEyeShort across them, about O and
-// turned to the angle of the spines: its long sides are the inner edges of
-// the two spines, slightly curved and nowhere straight, and its round ends
-// are the inner edges of the thin arcs.  The eye is one convex curve; the arc
-// of each stroke runs into the other spine along it without a joint.
+// The frame of the eye is a super-ellipse with the squareness of the inner
+// edge of o, SectEyeLong long along the spines and SectEyeShort across them,
+// about O and turned to the angle of the spines; the middles of its long sides
+// and its extremes place the parts.  The eye itself is a rounded lozenge whose
+// long sides are the inner edges of the two spines and whose short ends are
+// the inner edges of the thin arcs.  Each half of it, from the middle of one
+// long side round one end to the middle of the other, is three cubic curves
+// with the points, directions and curvatures given at their ends (g2Cubic):
+// from the middle of the upper long side, in the direction of the spine with
+// the curvature of the super-ellipse there, to the point ThinLower inside the
+// outer edge of the arc where that edge has turned a quarter turn from the
+// direction of the spine; on to the bottom of the eye, ThinLower above the
+// bottom of the arc; and on to the middle of the lower long side.  At the two
+// inner points the eye runs in the direction of the outer edge with the
+// curvature of a circle concentric with it.  So each arc leaves its own spine
+// with the spine's weight, falls to the thin weight by the middle of its turn
+// and keeps it until it runs into the other spine.  The eye is one convex
+// curve.
 //
 // The upper edge of the stroke is drawn as the edges of s are (s.go).  It has
 // its inflection at the middle of the spine, SectSpine from the middle of the
@@ -41,13 +53,15 @@ import (
 // whose first handle lies on the line of the spine, sectSpineHandle of the
 // way to its second control point, the corner where that line meets the
 // vertical through the extreme.  On the right the extreme lies sectArcSide
-// times Figures.Thin outside the eye's right extreme, and the quarter on to
-// the bottom, Figures.Thin below the eye's bottom, has the handle of the
+// times Figures.Thin outside the frame's right extreme, and the quarter on to
+// the bottom, Figures.Thin below the frame's bottom, has the handle of the
 // quarters of s at the bottom and at the side the curvature of the curve
 // before it (sideQuarter); the height of the side extreme is the one at which
 // that handle is sectArcHandle of the quarter's height.  Beyond the bottom the
-// edge runs on as the mirror image of that quarter, until it crosses the upper
-// edge of the lower stroke's spine, where the white beside the eye ends in a
+// edge turns on into the direction of the spine in one cubic, which leaves the
+// bottom with its curvature and ends straight ThinLower below the middle of
+// the eye's lower long side, and crosses the outer edge of the lower stroke's
+// spine at a small angle, where the white beside the eye ends in a narrow
 // crotch.  On the left the extreme is the inner side of the hook,
 // SectHookThick right of its outer side and sectHookInY above its outer
 // extreme, and the quarter on to the top of the hook, Figures.Thin below the
@@ -56,14 +70,13 @@ import (
 // The lower edge of the stroke runs down the outside of the hook, a quarter
 // of a super-ellipse with the squareness of the outer edge of o from the top
 // to the left extreme (sectHookLeft left of O and sectHookY above it, the
-// super-ellipse sectHookW wide), and from the left extreme into the eye in
-// one cubic which leaves the quarter with its direction and curvature and
-// joins the eye with its direction and curvature (g2Cubic), sectJoin of the
-// way from the middle of the eye's upper long side towards its upper end;
-// from there it follows the eye round its lower right end.  The outer edge of
-// the lower stroke's arc crosses it above the eye's upper left end: the
+// super-ellipse sectHookW wide), and from the left extreme towards the middle
+// of the eye's upper long side in one cubic which leaves the quarter with its
+// direction and curvature and ends there in the direction of the spine with
+// sectJoinBend of the curvature of the frame there (g2Cubic).  The outer edge
+// of the lower stroke's arc crosses it above the eye's upper left end: the
 // crotch on the left.
-//
+
 // Over the top the stroke runs on to the right as the hook of 6 does
 // (openingCurve): both edges leave their tops with the curvature there and
 // open to a circle of sectHookRadius as they turn through sectHookAngle, and
@@ -103,13 +116,27 @@ func section(p design.Params) (outline.Path, float64) {
 	// Clockwise, segment 3 runs from the top (the middle of the upper long
 	// side) to the right end, 0 from there to the bottom, 1 on to the left.
 	eyeA, eyeB := turned(eye.cubic(3, false)), turned(eye.cubic(0, false))
-	// The lower edge of the spine leaves the eye sectJoin of the way from the
-	// middle of its long side towards its upper left end.
-	eyeJ := turned(eye.cubic(2, false)).sub(1-sectJoin, 1)
+
+	// The outer edge of the hook, a quarter of a super-ellipse from the top to
+	// the left extreme.
+	xl, yl := -sectHookLeft, sectHookY
+	so := newSuperShape(xl, 2*yl-top, xl+sectHookW, top, p.SupernessOuter)
+	outTop := so.cubic(1, true) // the top to the left extreme
+	down := outline.Point{Y: -1}
+	// The lower edge of the spine runs from the outer left extreme of the hook
+	// in one cubic which leaves the quarter with its direction and curvature
+	// and ends in the middle of the eye's upper long side, in the direction of
+	// the spine, with sectJoinBend of the curvature of the super-ellipse of
+	// the eye there (g2Cubic, drawn from its end); beside the eye it is hidden.
+	sl, err := g2Cubic(eyeA.P0, neg(d), -sectJoinBend*eyeA.curvature(0), outTop.P3, neg(down), -outTop.curvature(1))
+	if err != nil {
+		panic("glyphs: glyph section: the lower edge of the spine cannot be drawn; glyphs.Check reports such parameters")
+	}
+	outSpine := cubic{sl.P3, sl.P2, sl.P1, sl.P0}
 
 	// The outer edge of the arc has its right extreme sectArcSide times the
-	// thin part outside that of the eye at the same height and its bottom the
-	// thin part below that of the eye.
+	// thin part outside that of the frame of the eye at the same height and
+	// its bottom the thin part below that of the frame.
 	var eR, eB outline.Point
 	eR.X, eB.Y = math.Inf(-1), math.Inf(1)
 	for _, pc := range curveChains(eyeA, eyeB, turn(eyeA), turn(eyeB)) {
@@ -125,8 +152,7 @@ func section(p design.Params) (outline.Path, float64) {
 	// The middle of the upper edge of the spine, SectSpine from the middle of
 	// the eye's long side, where the edge has its inflection; from there to
 	// the right extreme and on to the bottom the edge is drawn as the edges of
-	// s are (fromSpine, sideQuarter), and beyond the bottom it runs on as the
-	// mirror image of its last quarter.
+	// s are (fromSpine, sideQuarter).
 	spineMid := outline.Point{X: eyeA.P0.X + sp*n.X, Y: eyeA.P0.Y + sp*n.Y}
 	fromSpine := func(right outline.Point) cubic {
 		corner := outline.Point{X: right.X, Y: spineMid.Y + (right.X-spineMid.X)*d.Y/d.X}
@@ -155,11 +181,20 @@ func section(p design.Params) (outline.Path, float64) {
 	right.Y = (yLo + yHi) / 2
 	arcA := fromSpine(right)
 	arcB := sideQuarter(right, bot, sShape.Quarter, endRadius(arcA))
-	arcC := mirrorCubic(arcB, bot.X)
+	// Beyond the bottom the outer edge turns on into the direction of the
+	// spine and runs, the thin weight below the middle of the eye's lower long
+	// side, into the lower stroke's spine: one cubic curve which leaves the
+	// bottom with the curvature there and ends straight (g2Cubic, drawn from
+	// its end).
+	w := p.ThinLower
+	endC := outline.Point{X: -eyeA.P0.X - w*n.X, Y: -eyeA.P0.Y - w*n.Y}
+	ac, err := g2Cubic(endC, d, 0, bot, outline.Point{X: 1}, -arcB.curvature(1))
+	if err != nil {
+		panic("glyphs: glyph section: the arc cannot run into the spine; glyphs.Check reports such parameters")
+	}
+	arcC := cubic{ac.P3, ac.P2, ac.P1, ac.P0}
 
 	// The hook.
-	xl, yl := -sectHookLeft, sectHookY
-	so := newSuperShape(xl, 2*yl-top, xl+sectHookW, top, p.SupernessOuter)
 	yi := yl + sectHookInY
 	// The inner edge is drawn as the edges of s are: from the middle of the
 	// spine to the inner left extreme with the corner handle (the curve has
@@ -171,21 +206,53 @@ func section(p design.Params) (outline.Path, float64) {
 	inCorner := outline.Point{X: inLeft.X, Y: spineMid.Y + (inLeft.X-spineMid.X)*d.Y/d.X}
 	inSpine := cubic{spineMid, lerp(spineMid, inCorner, sectSpineHandle), inCorner, inLeft}.reversed()
 	inTop := turn(sideQuarter(neg(inLeft), neg(inTopPt), sShape.Quarter, endRadius(inSpine.reversed()))).reversed()
-	outTop := so.cubic(1, true) // the top to the left extreme
-	down := outline.Point{Y: -1}
-	outSpine := spineCurve(outTop.P3, down, outTop.curvature(1), eyeJ)
 
+	// The eye's boundary from the middle of its upper long side round its
+	// right end to the middle of its lower long side, in three cubic curves
+	// (see above); the other half is the same turned through half a turn.
+	tMid := 0.0
+	for lo, hi, k := 0.0, 1.0, 0; k < 60; k++ {
+		tMid = (lo + hi) / 2
+		if g := arcB.tangent(tMid); math.Atan2(-g.X, -g.Y) > th {
+			hi = tMid
+		} else {
+			lo = tMid
+		}
+	}
+	conc := func(k float64) float64 { return k / (1 + w*k) }
+	inside := func(c cubic, tt float64) (outline.Point, outline.Point, float64) {
+		q, g := c.at(tt), c.tangent(tt)
+		return outline.Point{X: q.X + w*g.Y, Y: q.Y - w*g.X}, g, conc(c.curvature(tt))
+	}
+	g2or := func(p0, t0 outline.Point, k0 float64, p3, t3 outline.Point, k3 float64) cubic {
+		if k3 == 0 {
+			if c, err := g2Cubic(p3, neg(t3), 0, p0, neg(t0), -k0); err == nil {
+				return cubic{c.P3, c.P2, c.P1, c.P0}
+			}
+		} else if c, err := g2Cubic(p0, t0, k0, p3, t3, k3); err == nil {
+			return c
+		}
+		return nearG2(p0, t0, k0, p3, t3, k3)
+	}
+	pM, gM, kM := inside(arcB, tMid)
+	pB, gB, kB := inside(arcB, 1)
+	kT := eyeA.curvature(0)
+	eyeHalf := curveChains(
+		g2or(eyeA.P0, d, kT, pM, gM, kM),
+		g2or(pM, gM, kM, pB, gB, kB),
+		g2or(pB, gB, kB, neg(eyeA.P0), neg(d), kT),
+	)
 	// The edges of the upper stroke, walked from the top: the lower (outer
-	// edge of the hook, lower edge of the spine, the eye) and the upper (inner
-	// edge of the hook, upper edge of the spine, outer edge of the arc).
-	lower := []cubic{outTop, outSpine, eyeJ, eyeA, eyeB}
+	// edge of the hook, lower edge of the spine) and the upper (inner edge of
+	// the hook, upper edge of the spine, outer edge of the arc).
+	lower := []cubic{outTop, outSpine}
 	upper := []cubic{inTop, inSpine, arcA, arcB, arcC}
 
 	// The crotch at the lower right: the first place along the upper edge
 	// where it crosses the lower edge of the other stroke.
 	iU, tU, iL, tL := -1, 0.0, -1, 0.0
 	for i := 1; i < len(upper) && iU < 0; i++ {
-		for j := 1; j < 4; j++ {
+		for j := 1; j < len(lower); j++ {
 			if ta, tb, ok := crossing(upper[i], turn(lower[j])); ok {
 				iU, tU, iL, tL = i, ta, j, tb
 				break
@@ -219,13 +286,13 @@ func section(p design.Params) (outline.Path, float64) {
 
 	half := join(up.reversed(), ball, lo)
 	outer := join(half, half.rotated180(outline.Point{}))
-	counter := curveChains(eyeA, eyeB, turn(eyeA), turn(eyeB))
+	counter := join(eyeHalf, eyeHalf.rotated180(outline.Point{}))
 
 	// Place the ink SectSide from the left of the advance.
 	x0, _, x1, _ := chainBBox(outer)
-	w := math.Round(x1 - x0)
-	dx := s.SectSide - x0 - (w-(x1-x0))/2
-	return chainsPath(outer.shifted(dx, mid), counter.shifted(dx, mid)), w + 2*s.SectSide
+	width := math.Round(x1 - x0)
+	dx := s.SectSide - x0 - (width-(x1-x0))/2
+	return chainsPath(outer.shifted(dx, mid), counter.shifted(dx, mid)), width + 2*s.SectSide
 }
 
 // The shape constants of the section sign (see above): the fall of the spines
@@ -233,10 +300,10 @@ func section(p design.Params) (outline.Path, float64) {
 // width of its super-ellipse and the height of the inner extreme above the
 // outer; the radius at the end of the hook and the angle through which it
 // turns beyond the top (degrees); how far the rightmost ink of the ball lies
-// inside the right extreme of the arc; where the lower edge of the spine
-// joins the eye; the outer right extreme of the arc, in thin parts outside
-// the eye, and the handle which sets its height; the handles of the upper
-// edge at the spine.
+// inside the right extreme of the arc; the share of the curvature of the
+// frame of the eye with which the lower edge of the spine ends; the outer
+// right extreme of the arc, in thin parts outside the frame, and the handle
+// which sets its height; the handles of the upper edge at the spine.
 const (
 	sectSpineAngle  = 40.0
 	sectHookLeft    = 120.0
@@ -244,24 +311,13 @@ const (
 	sectHookW       = 290.0
 	sectHookRadius  = 240.0
 	sectHookAngle   = 75.0
-	sectJoin        = 0.2
+	sectJoinBend    = 0.3
 	sectHookInY     = 70.0
 	sectArcSide     = 1.2
 	sectArcHandle   = 0.55
 	sectSpineHandle = 0.6
 	sectBallIn      = 22.0
 )
-
-// spineCurve returns the curve from the left extreme p0 of a hook, which it
-// leaves in the direction t0 with the curvature k0, into the start of the
-// quarter q in the middle of a spine, which it meets with the direction and
-// the curvature of q.
-func spineCurve(p0, t0 outline.Point, k0 float64, q cubic) cubic {
-	if c, err := g2Cubic(p0, t0, k0, q.P0, q.tangent(0), q.curvature(0)); err == nil {
-		return c
-	}
-	return nearG2(p0, t0, k0, q.P0, q.tangent(0), q.curvature(0))
-}
 
 // curveChains returns the curves as one chain, each cut at its extremes.
 func curveChains(cs ...cubic) chain {
@@ -277,9 +333,11 @@ func curveChains(cs ...cubic) chain {
 // extreme up to its top, and inner the inner edge from its top to its right
 // extreme, as the contour walks them; the part is turned so that the rightmost
 // ink of the ball lies at right, with the centre of the ball on an integer
-// abscissa.  The chain runs from the top of the inner edge along it and the inner
-// edge of the stalk, round the ball with its stalk as the part draws them, and
-// back along the outer edge to its top.  It keeps the stalk of the part and
+// abscissa.  The chain runs from the top of the inner edge along it to a cut,
+// where the inner edge of the stalk of the part would leave it most evenly, and
+// from there in one curve to the tip of the wedge, round the ball with the
+// outer edge of its stalk as the part draws them, and back along the outer edge
+// to its top.  It keeps the stalk of the part and
 // does not wind the stroke into the ball on a spiral as roundTerminal does.
 func sectTerminal(name string, b ballPart, outer, inner cubic, right float64) chain {
 	x1 := func(angle float64) float64 {
@@ -306,7 +364,7 @@ func sectTerminal(name string, b ballPart, outer, inner cubic, right float64) ch
 	target := right + math.Round(tb.Centre.X) - tb.Centre.X
 	tb, tO := roundTerminalAt(b, outer, solve(target))
 
-	best, in, tI := math.Inf(1), cubic{}, 0.0
+	best, tI := math.Inf(1), 0.0
 	for _, free := range []bool{false, true} {
 		for _, u := range cCuts() {
 			fi := stalkFoot{At: inner.at(u), Dir: inner.tangent(u), Kappa: inner.curvature(u)}
@@ -315,7 +373,7 @@ func sectTerminal(name string, b ballPart, outer, inner cubic, right float64) ch
 			}
 			if c, err := edgeIn(fi, tb.In); err == nil {
 				if e := curvatureRate(c); e < best {
-					best, in, tI = e, c, u
+					best, tI = e, u
 				}
 			}
 		}
@@ -326,5 +384,22 @@ func sectTerminal(name string, b ballPart, outer, inner cubic, right float64) ch
 	if math.IsInf(best, 1) {
 		panic(fmt.Sprintf("glyphs: glyph %s: no inner edge of the stalk reaches the ball terminal; glyphs.Check reports such parameters", name))
 	}
-	return join(chain{curveSeg(inner.sub(0, tI))}, splitAtExtrema(in), tb.Chain, chain{curveSeg(outer.sub(tO, 1))})
+	// From the cut the inner edge runs in one curve to the tip of the wedge,
+	// with the direction and the curvature of the round at the cut and with the
+	// direction of the inner edge of the part and the handle of a circular arc
+	// at the tip.
+	tip := tipEnd(tb)
+	q := inner.at(tI)
+	in, err := g2Start(q, inner.tangent(tI), inner.curvature(tI), tip.At, tip.Dir, arcHandle(q, inner.tangent(tI), tip.At, tip.Dir))
+	if err != nil {
+		panic(fmt.Sprintf("glyphs: glyph %s: no inner edge reaches the tip of the wedge; glyphs.Check reports such parameters", name))
+	}
+	var rest chain
+	for i, pc := range tb.Chain {
+		if isTip(pc.P0, tb.Tip) {
+			rest = tb.Chain[i:]
+			break
+		}
+	}
+	return join(chain{curveSeg(inner.sub(0, tI))}, splitAtExtrema(in), rest, chain{curveSeg(outer.sub(tO, 1))})
 }

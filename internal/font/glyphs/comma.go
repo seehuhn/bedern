@@ -16,10 +16,10 @@ import (
 // The comma is a round head, a circle of CommaHead across whose top is level
 // with the top of the full stop, and a tail which curves to the left and ends in
 // a short cut.  It is one contour, drawn in the manner of the ball terminal:
-// the outer (right) edge of the tail runs into the head without a corner, as
-// one cubic curve which leaves the circle with its direction and its curvature,
-// and the curvature falls evenly from that of the head to that of the tail; the
-// inner (left) edge meets the head at a corner, the tip of a wedge of white
+// the outer (right) edge of the tail runs into the head without a corner at the
+// right extreme of the head, as one cubic curve which meets the circle with its
+// direction and its curvature, and the curvature falls evenly from that of the
+// head to that of the tail; the inner (left) edge meets the head at a corner, the tip of a wedge of white
 // between the tail and the head.  The right single quotation mark is the comma
 // raised to the quotation height, the left one is that turned through half a
 // turn, and the double marks are two of them side by side.
@@ -48,7 +48,7 @@ func commaChain(p design.Params, cy, bottom float64) chain {
 	q := p.Punct
 	r := q.CommaHead / 2
 	centre := outline.Point{Y: cy}
-	aOut, aIn := -degrees(q.CommaOuterAt), -degrees(q.CommaInnerAt)
+	aOut, aIn := 0.0, -degrees(q.CommaInnerAt)
 	on := func(a float64) outline.Point {
 		return outline.Point{X: centre.X + r*math.Cos(a), Y: centre.Y + r*math.Sin(a)}
 	}

@@ -51,6 +51,10 @@ func newQFrame(p design.Params) qFrame {
 // curve which has no curvature at either end.
 const qInflection = 1e-7
 
+// qCurlJoin is the angle (degrees) round the ball from its leftmost point at
+// which the curl of the terminal joins its circle.
+const qCurlJoin = 20.0
+
 // qStemRun is the length of the straight foot of the stem.
 const qStemRun = 30.0
 
@@ -75,7 +79,67 @@ func question(p design.Params) (outline.Path, float64) {
 	sts := qStations(p, f)
 	right, left := strokeOpen(sts)
 	r := p.BallDiameter / 2
-	ball := ballStart("question", p, right, left, f.x0+r, span(0.80*p.Sym.QTop, 0.86*p.Sym.QTop, 0.01*p.Sym.QTop), span(-60, 40, 2), true)
-	hook := join(right, lineChain(right.end(), left.start()), left, ball)
+	ball, tb := ballStartPlaced("question", p, right, left, f.x0+r, span(0.80*p.Sym.QTop, 0.86*p.Sym.QTop, 0.01*p.Sym.QTop), span(-60, 40, 2), true)
+	hook := join(right, lineChain(right.end(), left.start()), left, qTerminal(ball, tb, right))
 	return chainsPath(hook, dotChain(p, f.cx, p.DotDiameter/2)), f.x1 + p.Sym.QSide
+}
+
+// qTerminal returns the ball terminal of the hook on the ball tb, whose chain
+// with its stalk is ball (ballStartPlaced): the outer edge of the stalk and the
+// curl of the part to the start of its last curve before its leftmost point;
+// from there one cubic curve, with the direction and the curvature of the curl,
+// past the leftmost point to the circle of the ball qCurlJoin beyond its
+// leftmost point, which it meets with the direction and the curvature of the
+// circle (g2Cubic); the circle to the tip of the wedge; and from the tip the
+// inner edge, which leaves with the direction and the curvature of the inner
+// edge of the part and meets the start of the right-hand edge of the stroke
+// with its direction and its curvature (edgeOut), or, where no such curve
+// exists, leaves the tip with the handle of a circular arc (g2End).
+func qTerminal(ball chain, tb placedBall, right chain) chain {
+	r0 := right[0].cubic
+	c, r := tb.Centre, tb.Part.R
+	iL, iT := -1, -1
+	for i, pc := range ball {
+		if iL < 0 || pc.P3.X < ball[iL].P3.X {
+			iL = i
+		}
+		if iT < 0 && isTip(pc.P3, tb.Tip) {
+			iT = i
+		}
+	}
+	if iT < 0 {
+		panic("glyphs: glyph question: the ball terminal has no tip")
+	}
+	// The curl joins the circle qCurlJoin past its leftmost point.
+	aJ := math.Pi + qCurlJoin*math.Pi/180
+	join0 := outline.Point{X: c.X + r*math.Cos(aJ), Y: c.Y + r*math.Sin(aJ)}
+	l := ball[iL].cubic
+	curl, err := g2Cubic(l.P0, l.tangent(0), l.curvature(0), join0, dirOf(aJ+math.Pi/2), 1/r)
+	if err != nil {
+		panic("glyphs: glyph question: the curl cannot reach the ball; glyphs.Check reports such parameters")
+	}
+	aTip := math.Atan2(tb.Tip.Y-c.Y, tb.Tip.X-c.X)
+	for aTip <= aJ {
+		aTip += 2 * math.Pi
+	}
+	circ := arcAxes(c, r, aJ, aTip)
+	circ[len(circ)-1].P3 = tb.Tip
+	var tip stalkEnd
+	for _, pc := range ball {
+		if isTip(pc.P0, tb.Tip) {
+			tip = stalkEnd{At: tb.Tip, Dir: pc.tangent(0), Kappa: pc.curvature(0)}
+		}
+	}
+	foot := stalkFoot{At: r0.P0, Dir: r0.tangent(0), Kappa: r0.curvature(0)}
+	in, err := edgeOut(tip, foot)
+	if err != nil {
+		// The tip is a corner: the curve may leave it with any curvature.
+		in, err = g2End(tip.At, tip.Dir, arcHandle(tip.At, tip.Dir, foot.At, foot.Dir), foot.At, foot.Dir, foot.Kappa)
+		if err != nil {
+			panic("glyphs: glyph question: the inner edge cannot reach the ball terminal; glyphs.Check reports such parameters")
+		}
+	}
+	out := append(chain(nil), ball[:iL]...)
+	out = append(out, splitAtExtrema(curl)...)
+	return join(out, circ, splitAtExtrema(in))
 }

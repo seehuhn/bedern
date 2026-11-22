@@ -42,11 +42,11 @@ type Punct struct {
 
 	// The comma, in the frame in which the centre of the head is the origin.
 	// The head is a circle of the diameter CommaHead; the lowest ink lies
-	// CommaDepth below the baseline.  The outer (right) edge of the tail leaves
-	// the head at CommaOuterAt degrees below the horizontal through its centre
-	// and runs into the head with the direction and the curvature of the
-	// circle; the inner edge starts at a corner CommaInnerAt degrees below it
-	// (the tip of the notch between the tail and the head).  The tail ends in a
+	// CommaDepth below the baseline.  The outer (right) edge of the tail runs
+	// into the head at its right extreme with the direction and the curvature
+	// of the circle; the inner edge starts at a corner CommaInnerAt degrees
+	// below the horizontal through the centre (the tip of the notch between the
+	// tail and the head).  The tail ends in a
 	// cut CommaTip wide whose centre lies CommaRun to the left of the centre of
 	// the head, and it leaves in the direction CommaEndAngle degrees from the
 	// vertical, to the left.  CommaOuterPull is the length of the handle of the
@@ -58,7 +58,6 @@ type Punct struct {
 	CommaDepth      float64
 	CommaTip        float64
 	CommaRun        float64
-	CommaOuterAt    float64
 	CommaInnerAt    float64
 	CommaEndAngle   float64
 	CommaOuterPull  float64
@@ -178,10 +177,9 @@ func regularPunct() Punct {
 		CommaDepth:      168,
 		CommaTip:        28,
 		CommaRun:        55,
-		CommaOuterAt:    8,
 		CommaInnerAt:    90,
 		CommaEndAngle:   50,
-		CommaOuterPull:  0.42,
+		CommaOuterPull:  0.38,
 		CommaInnerStart: 20,
 		CommaInnerPull:  0.1,
 		Comma:           PunctSides{50, 76},

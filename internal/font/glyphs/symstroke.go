@@ -4,6 +4,7 @@
 package glyphs
 
 import (
+	"fmt"
 	"math"
 
 	"seehuhn.de/go/bedern/internal/font/design"
@@ -48,12 +49,21 @@ import (
 // inflection or at the end of a straight run needs: the edges then take that
 // curvature, corrected for their distance from the centre line.  A station
 // with Flat set has edges which are straight towards the next station: the
-// stroke is a straight run there.
+// stroke is a straight run there.  Between a station at an end of the stroke
+// with Ease set and its neighbour, which ends a straight run, an edge whose
+// curve has at the straight a shorter handle than the eased curve (easeCubic)
+// is that curve instead: it leaves the straight with the curvature zero and a
+// handle of a set fraction of that of a circular arc, and takes at the end the
+// curvature which follows.  At a station at an end of the stroke with ArcEnd
+// set, each edge has the handle of a circular arc and meets the neighbouring
+// station with the curvature there (g2End), where that curve exists.
 type station struct {
 	X, Y, Dir, W float64
 	Nib          float64
 	K            float64
 	Flat         bool
+	Ease         bool
+	ArcEnd       bool
 }
 
 // dir returns the unit vector of the direction of the stroke.
@@ -182,9 +192,64 @@ func strokeEdge(sts []station, side float64) chain {
 		if err != nil {
 			c = nearG2(p0, t0, ks[i], p3, t3, ks[i+1])
 		}
+		if i+1 == n-1 && sts[i+1].Ease && i > 0 && sts[i-1].Flat {
+			if e, err := easeCubic(p0, t0, p3, t3, true); err == nil && dist(c.P0, c.P1) < dist(e.P0, e.P1) {
+				c = e
+			}
+		}
+		if i == 0 && sts[0].Ease && n > 2 && sts[1].Flat {
+			if e, err := easeCubic(p0, t0, p3, t3, false); err == nil && dist(c.P2, c.P3) < dist(e.P2, e.P3) {
+				c = e
+			}
+		}
+		if i == 0 && sts[0].ArcEnd {
+			if e, err := g2End(p0, t0, arcHandle(p0, t0, p3, t3), p3, t3, ks[1]); err == nil {
+				c = e
+			}
+		}
+		if i+1 == n-1 && sts[n-1].ArcEnd {
+			if e, err := g2Start(p0, t0, ks[i], p3, t3, arcHandle(p0, t0, p3, t3)); err == nil {
+				c = e
+			}
+		}
 		ch = append(ch, splitAtExtrema(c)...)
 	}
 	return ch
+}
+
+// dist returns the distance between a and b.
+func dist(a, b outline.Point) float64 { return math.Hypot(b.X-a.X, b.Y-a.Y) }
+
+// easeHandle is the handle of an eased curve at the straight, as a fraction
+// of the handle of a circular arc.
+const easeHandle = 1.0 / 3
+
+// easeCubic returns the cubic curve from p0, leaving in the direction t0, to p3,
+// arriving in the direction t3, whose curvature is zero at the end which meets
+// a straight run (at p0 if atStart is set, else at p3) and whose handle there
+// is easeHandle times that of a circular arc between the same points and
+// directions (arcHandle).  The handle at the other end is the one which gives the
+// curvature zero.  It reports an error if a handle is not positive or not
+// shorter than the chord.
+func easeCubic(p0, t0, p3, t3 outline.Point, atStart bool) (cubic, error) {
+	cr := func(u, v outline.Point) float64 { return u.X*v.Y - u.Y*v.X }
+	d := outline.Point{X: p3.X - p0.X, Y: p3.Y - p0.Y}
+	chord := math.Hypot(d.X, d.Y)
+	s := cr(t0, t3)
+	h := easeHandle * arcHandle(p0, t0, p3, t3)
+	var a, b float64
+	if atStart {
+		a, b = h, cr(t0, d)/s
+	} else {
+		a, b = cr(d, t3)/s, h
+	}
+	if !(a > 0 && b > 0 && a < chord && b < chord) {
+		return cubic{}, fmt.Errorf("no eased curve runs from %v to %v", p0, p3)
+	}
+	return cubic{p0,
+		outline.Point{X: p0.X + a*t0.X, Y: p0.Y + a*t0.Y},
+		outline.Point{X: p3.X - b*t3.X, Y: p3.Y - b*t3.Y},
+		p3}, nil
 }
 
 // strokeChain returns the closed contour of the stroke with both ends cut
@@ -293,26 +358,34 @@ func (c chain) rotated180(at outline.Point) chain {
 // stalk bend least (bending).  It
 // panics with the name of the glyph if no place lets the edges reach the part.
 func ballStart(glyph string, p design.Params, right, left chain, cx float64, ys []float64, angles []float64, mirror bool) chain {
+	c, _ := ballStartPlaced(glyph, p, right, left, cx, ys, angles, mirror)
+	return c
+}
+
+// ballStartPlaced is ballStart which also returns the placed part.
+func ballStartPlaced(glyph string, p design.Params, right, left chain, cx float64, ys []float64, angles []float64, mirror bool) (chain, placedBall) {
 	b := newBallPart(p)
 	r0, l1 := right[0].cubic, left[len(left)-1].cubic
 	in := stalkFoot{At: l1.P3, Dir: l1.tangent(1), Kappa: l1.curvature(1)}
 	out := stalkFoot{At: r0.P0, Dir: r0.tangent(0), Kappa: r0.curvature(0)}
-	if best := ballSearch(b, in, out, cx, ys, angles, mirror); best != nil {
-		return best
+	if best, tb := ballSearch(b, in, out, cx, ys, angles, mirror); best != nil {
+		return best, tb
 	}
 	// No place lets the edges of the stalk go on with the curvature of the
 	// stroke: they take their direction only.
 	in.Kappa, out.Kappa = math.NaN(), math.NaN()
-	if best := ballSearch(b, in, out, cx, ys, angles, mirror); best != nil {
-		return best
+	if best, tb := ballSearch(b, in, out, cx, ys, angles, mirror); best != nil {
+		return best, tb
 	}
 	panic("glyphs: glyph " + glyph + ": the stalk cannot reach the ball terminal; glyphs.Check reports such parameters")
 }
 
 // ballSearch returns the stalk and the ball of ballStart for the place, among
-// those given, for which the edges of the stalk bend least, or nil.
-func ballSearch(b ballPart, in, out stalkFoot, cx float64, ys, angles []float64, mirror bool) chain {
+// those given, for which the edges of the stalk bend least, or nil, and the
+// placed part.
+func ballSearch(b ballPart, in, out stalkFoot, cx float64, ys, angles []float64, mirror bool) (chain, placedBall) {
 	var best chain
+	var bestTB placedBall
 	bestE := math.Inf(1)
 	for _, deg := range angles {
 		for _, y := range ys {
@@ -326,10 +399,11 @@ func ballSearch(b ballPart, in, out stalkFoot, cx float64, ys, angles []float64,
 			if e := bending(a) + bending(c); e < bestE {
 				bestE = e
 				best = join(splitAtExtrema(a), tb.Chain, splitAtExtrema(c))
+				bestTB = tb
 			}
 		}
 	}
-	return best
+	return best, bestTB
 }
 
 // span returns the values from lo to hi in steps of step.

@@ -32,10 +32,10 @@ func braceLeftChain(p design.Params) chain {
 	xa := x0 + 0.52*s.BraceInk // the centre line of the arm
 	turn := x1 - xa            // the reach of the turn from the end into the arm
 	sts := []station{
-		{X: x1, Y: top - s.BraceEnd/2, Dir: 180, W: s.BraceEnd, Nib: -90},
+		{X: x1, Y: top - s.BraceEnd/2, Dir: 180, W: s.BraceEnd, Nib: -90, Ease: true},
 		{X: xa, Y: top - 1.15*turn, Dir: -90, W: s.BraceArm, Flat: true},
 		{X: xa, Y: mid + 1.0*turn, Dir: -90, W: s.BraceArm},
-		{X: x0 + s.BraceTip/2, Y: mid, Dir: 180 + s.BraceTipAngle, W: s.BraceTip, Nib: 360},
+		{X: x0 + s.BraceTip/2, Y: mid, Dir: 180 + s.BraceTipAngle, W: s.BraceTip, Nib: 360, Ease: true},
 	}
 	right, left := strokeOpen(sts)
 	return join(

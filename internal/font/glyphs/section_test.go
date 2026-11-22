@@ -119,17 +119,26 @@ func TestSectionSymmetry(t *testing.T) {
 }
 
 // The eye is one convex counter, at least sectEyeMinW wide and sectEyeMinH
-// high, and the sides of the eye are thin while the spines carry the weight:
-// the arc at the eye's right extreme (and so, by the symmetry, at its left) is
-// at most sectArcMax thick, measured across from the eye's extreme, and the
-// spine at least sectSpineMin thick at right angles to the eye's long side
-// and at least sectWeight times as thick as the arc.
+// high; the spines carry the weight and the arcs which close the eye are thin
+// strokes.  The spine is at least sectSpineMin thick at right angles to the
+// eye's long side.  The arc on the left of the eye (and so, by the symmetry,
+// the one on the right) is measured along rays from the middle of the eye,
+// every sectArcStep degrees from the lower spine (sectArcFrom) round towards
+// the upper one: from the lower spine the ink along the ray grows no thicker
+// until the arc is at its thinnest, it is at most sectArcThin there and has
+// come down to sectArcThin by sectArcShare of the sweep from sectArcFrom to
+// the join, where the rays reach the upper spine; and between its thinnest place
+// and the join it stays at most sectArcThin, so that it meets the upper spine
+// without a swelling.  The join is the first ray beyond the thinnest place
+// along which the ink is more than twice sectArcThin.
 const (
-	sectEyeMinW  = 220.0
-	sectEyeMinH  = 190.0
-	sectArcMax   = 50.0
+	sectEyeMinW  = 245.0
+	sectEyeMinH  = 230.0
 	sectSpineMin = 64.0
-	sectWeight   = 1.6
+	sectArcThin  = 40.0
+	sectArcFrom  = 200.0
+	sectArcStep  = 2.0
+	sectArcShare = 0.6
 )
 
 func TestSectionEye(t *testing.T) {
@@ -147,17 +156,6 @@ func TestSectionEye(t *testing.T) {
 		}
 		eye := sampleContour(g.path[1], 1)
 		outer := sampleContour(g.path[0], 0.5)
-		// The arc: from the eye's right extreme to the right.
-		right := eye[0]
-		for _, q := range eye {
-			if q.X > right.X {
-				right = q
-			}
-		}
-		arc := rayHit(outer, right, outline.Point{X: 1})
-		if arc > sectArcMax {
-			t.Errorf("%s: the arc at the right of the eye is %.0f thick, want at most %v", np.name, arc, sectArcMax)
-		}
 		// The spine: across the eye's upper right side where it runs at
 		// sectSpineAngle, from the point of the eye furthest along the normal.
 		th := sectSpineAngle * math.Pi / 180
@@ -168,12 +166,50 @@ func TestSectionEye(t *testing.T) {
 				far = q
 			}
 		}
-		spine := rayHit(outer, far, nrm)
-		if spine < sectSpineMin {
+		if spine := rayHit(outer, far, nrm); spine < sectSpineMin {
 			t.Errorf("%s: the spine is %.0f thick across the eye's side, want at least %v", np.name, spine, sectSpineMin)
 		}
-		if spine < sectWeight*arc {
-			t.Errorf("%s: the spine (%.0f) is less than %v times as thick as the arc (%.0f)", np.name, spine, sectWeight, arc)
+		// The arc on the left.
+		c := outline.Point{X: (x0 + x1) / 2, Y: (y0 + y1) / 2}
+		var angles, ink []float64
+		for deg := sectArcFrom; deg > sectArcFrom-180; deg -= sectArcStep {
+			a := deg * math.Pi / 180
+			dir := outline.Point{X: math.Cos(a), Y: math.Sin(a)}
+			e := rayHit(eye, c, dir)
+			from := outline.Point{X: c.X + e*dir.X, Y: c.Y + e*dir.Y}
+			angles, ink = append(angles, deg), append(ink, rayHit(outer, from, dir))
+		}
+		iMin := 0
+		for i := range ink {
+			if ink[i] < ink[iMin] {
+				iMin = i
+			}
+		}
+		iJoin := -1
+		for i := iMin; i < len(ink); i++ {
+			if ink[i] > 2*sectArcThin {
+				iJoin = i
+				break
+			}
+		}
+		if iJoin < 0 {
+			t.Errorf("%s: the arc does not meet the upper spine", np.name)
+			continue
+		}
+		for i := 1; i <= iMin; i++ {
+			if ink[i] > ink[i-1]+0.5 {
+				t.Errorf("%s: the arc grows thicker at %.0f degrees (%.1f after %.1f)", np.name, angles[i], ink[i], ink[i-1])
+				break
+			}
+		}
+		for i := iMin; i < iJoin; i++ {
+			if ink[i] > sectArcThin {
+				t.Errorf("%s: the arc is %.0f thick at %.0f degrees, before it joins the spine at %.0f, want at most %v", np.name, ink[i], angles[i], angles[iJoin], sectArcThin)
+				break
+			}
+		}
+		if i := int(sectArcShare * float64(iJoin)); ink[i] > sectArcThin {
+			t.Errorf("%s: the arc is %.0f thick at %v of its sweep, want at most %v", np.name, ink[i], sectArcShare, sectArcThin)
 		}
 	}
 }
@@ -279,11 +315,12 @@ func TestSectionFairEdges(t *testing.T) {
 }
 
 // The joints are clean: the outline has two crotches away from the balls,
-// where the arc of one stroke meets the spine of the other, and each opens at
-// least sectCrotchMin degrees; and the white between each ball and the spine
-// below or above it is at least sectBallWhite straight towards the middle.
+// where the arc of one stroke runs into the spine of the other at a small
+// angle, and each opens at most sectCrotchMax degrees; and the white between
+// each ball and the spine below or above it is at least sectBallWhite straight
+// towards the middle.
 const (
-	sectCrotchMin = 50.0
+	sectCrotchMax = 50.0
 	sectBallWhite = 120.0
 )
 
@@ -298,8 +335,8 @@ func TestSectionJoints(t *testing.T) {
 				continue
 			}
 			n++
-			if ang[i] < sectCrotchMin {
-				t.Errorf("%s: the crotch at (%.0f, %.0f) opens %.0f degrees, want at least %v", np.name, at[i].X, at[i].Y, ang[i], sectCrotchMin)
+			if ang[i] > sectCrotchMax {
+				t.Errorf("%s: the crotch at (%.0f, %.0f) opens %.0f degrees, want at most %v", np.name, at[i].X, at[i].Y, ang[i], sectCrotchMax)
 			}
 		}
 		if n != 2 {

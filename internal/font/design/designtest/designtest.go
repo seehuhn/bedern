@@ -279,7 +279,7 @@ func Perturbed() []Set {
 	add("punct-up", func(p *design.Params) {
 		q := &p.Punct
 		q.DotLow, q.ColonOver, q.ExclamTopWidth, q.ExclamBottomWidth, q.ExclamGap = 12, 8, 96, 40, 90
-		q.CommaDepth, q.CommaRun, q.CommaEndAngle, q.CommaOuterAt, q.CommaInnerAt = 180, 62, 52, 9, 84
+		q.CommaDepth, q.CommaRun, q.CommaEndAngle, q.CommaInnerAt = 180, 62, 52, 84
 		q.QuoteTop, q.QuotePitch, q.StraightHeight, q.StraightTopWidth, q.StraightBottomWidth = 706, 200, 280, 66, 36
 		q.HyphenLength, q.HyphenThick, q.DashThick, q.UnderThick = 280, 72, 54, 54
 		q.BracketOver, q.BracketUnder, q.ParenSagitta, q.ParenThick, q.ParenEnd, q.ParenAngle = 70, 30, 190, 84, 54, 52
@@ -292,7 +292,7 @@ func Perturbed() []Set {
 	add("punct-down", func(p *design.Params) {
 		q := &p.Punct
 		q.DotLow, q.ColonOver, q.ExclamTopWidth, q.ExclamBottomWidth, q.ExclamGap = 6, 0, 76, 30, 70
-		q.CommaDepth, q.CommaRun, q.CommaEndAngle, q.CommaOuterAt, q.CommaInnerAt = 156, 50, 46, 6, 76
+		q.CommaDepth, q.CommaRun, q.CommaEndAngle, q.CommaInnerAt = 156, 50, 46, 76
 		q.QuoteTop, q.QuotePitch, q.StraightHeight, q.StraightTopWidth, q.StraightBottomWidth = 690, 180, 240, 50, 26
 		q.HyphenLength, q.HyphenThick, q.DashThick, q.UnderThick = 240, 56, 40, 40
 		q.BracketOver, q.BracketUnder, q.ParenSagitta, q.ParenThick, q.ParenEnd, q.ParenAngle = 44, 12, 160, 68, 40, 44

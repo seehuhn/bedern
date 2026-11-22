@@ -35,8 +35,19 @@ func at(p design.Params) (outline.Path, float64) {
 	bx0 := cx - 0.03*w - (s.AtBowlW+s.AtStem*0.55)/2
 	stemL := bx0 + s.AtBowlW - 0.45*s.AtStem
 	sx := stemL + s.AtStem/2
+	stemR := stemL + s.AtStem
+	outer := newSuperShape(bx0, bb-ov, stemR-4, bt+ov, p.SupernessOuter)
+	// The flat top of the stem lies where the outer edge of the bowl crosses
+	// the left edge of the stem, so that the two meet in a corner.
+	stemTop := bt - ov
+	for i := 0; i < 4; i++ {
+		c := outer.cubic(i, true)
+		if (c.P0.X-stemL)*(c.P3.X-stemL) <= 0 && c.P0.Y+c.P3.Y > bt+bb {
+			stemTop = c.at(c.tAtX(stemL)).Y
+		}
+	}
 	stroke := []station{
-		{X: sx, Y: bt - ov, Dir: -90, W: s.AtStem, Flat: true},
+		{X: sx, Y: stemTop, Dir: -90, W: s.AtStem, Flat: true},
 		{X: sx, Y: bb + 0.22*bh, Dir: -90, W: s.AtStem},
 		{X: sx + 0.95*s.AtStem, Y: bb - ov + 0.6*t, Dir: 0, W: 1.2 * t},
 		{X: x1 - rt/2, Y: cy + 0.08*h, Dir: 90, W: rt},
@@ -48,8 +59,6 @@ func at(p design.Params) (outline.Path, float64) {
 	// The bowl: the two super-ellipses of o, the counter AtBowlThick inside the
 	// outer edge at the left and Thin at the top and the bottom; at the right both
 	// end inside the stem.
-	stemR := stemL + s.AtStem
-	outer := newSuperShape(bx0, bb-ov, stemR-4, bt+ov, p.SupernessOuter)
 	inner := newSuperShape(bx0+s.AtBowlThick, bb-ov+t, stemL+16, bt+ov-t, p.SupernessInner)
 	var bo, bc chain
 	for i := 0; i < 4; i++ {

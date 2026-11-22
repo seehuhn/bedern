@@ -19,8 +19,9 @@ import (
 // left, crests, falls through the middle, where it is thickest (TildeThick),
 // passes a trough and rises to the right, the same turned through half a turn
 // about its centre, which lies on the maths axis.  At the crest and the trough
-// the stroke is TildeThin thick, and the ends are cut at right angles to the
-// stroke.
+// the stroke is TildeThin thick, its edges concentric with the centre line, and
+// the ends are cut at right angles to the stroke; there each edge has the
+// handle of a circular arc.
 //
 // Side kinds: open, TildeSide to the ends.
 func asciitilde(p design.Params) (outline.Path, float64) {
@@ -29,11 +30,26 @@ func asciitilde(p design.Params) (outline.Path, float64) {
 	a := (s.TildeHeight - s.TildeThin) / 2 // the amplitude of the centre line
 	end := 0.84 * s.TildeThick
 	sts := []station{
-		{X: x0, Y: ax - 0.5*a, Dir: 42, W: end},
+		{X: x0, Y: ax - 0.5*a, Dir: 42, W: end, ArcEnd: true},
 		{X: x0 + 0.27*w, Y: ax + a, Dir: 0, W: s.TildeThin},
 		{X: x0 + 0.5*w, Y: ax, Dir: -40, W: s.TildeThick},
 		{X: x0 + 0.73*w, Y: ax - a, Dir: 0, W: s.TildeThin},
-		{X: x0 + w, Y: ax + 0.5*a, Dir: 42, W: end},
+		{X: x0 + w, Y: ax + 0.5*a, Dir: 42, W: end, ArcEnd: true},
+	}
+	// At the crest and the trough the centre line has the mean curvature of
+	// the two circles which touch it there and pass through the centres of the
+	// stations before and after; the edges are concentric with it.
+	for _, i := range []int{1, 3} {
+		t := sts[i].dir()
+		var k float64
+		for _, j := range []int{i - 1, i + 1} {
+			d := outline.Point{X: sts[j].X - sts[i].X, Y: sts[j].Y - sts[i].Y}
+			k += math.Abs(t.X*d.Y-t.Y*d.X) / (d.X*d.X + d.Y*d.Y)
+		}
+		if i == 1 {
+			k = -k
+		}
+		sts[i].K = k
 	}
 	return chainsPath(strokeChain(sts)), 2*x0 + w
 }
@@ -68,8 +84,8 @@ func asciicircum(p design.Params) (outline.Path, float64) {
 
 // grave draws the grave: a wedge which falls from a round head at the upper
 // left to a small round tip at the lower right, the outline of two circles
-// (GraveHead and GraveTip across) and the two straight lines which touch both,
-// GraveWidth wide and GraveHeight high with its top at GraveTop.  The head is
+// (GraveHead and GraveTip across) and two straight lines which run into both on
+// lead spirals (leadspiral.go), GraveWidth wide and GraveHeight high with its top at GraveTop.  The head is
 // the heavy end.
 //
 // Side kinds: open, GraveSideLeft and GraveSideRight to the ink.
@@ -82,26 +98,13 @@ func grave(p design.Params) (outline.Path, float64) {
 	return chainsPath(wedgeChain(c0, r0, c1, r1)), x0 + s.GraveWidth + s.GraveSideRight
 }
 
-// wedgeChain returns the counter-clockwise outline of the two circles about c0
-// and c1 of the radii r0 and r1 and of the two straight lines which touch both,
-// cut at its extremes.
+// wedgeChain returns the counter-clockwise outline of the circle about c0 of
+// the radius r0 and the circle about c1 of the radius r1, joined by two lines
+// which run into both circles on lead spirals (leadWedge).
 func wedgeChain(c0 outline.Point, r0 float64, c1 outline.Point, r1 float64) chain {
-	phi := math.Atan2(c1.Y-c0.Y, c1.X-c0.X)
-	beta := math.Acos((r0 - r1) / math.Hypot(c1.X-c0.X, c1.Y-c0.Y))
-	on := func(c outline.Point, r, a float64) outline.Point {
-		return outline.Point{X: c.X + r*math.Cos(a), Y: c.Y + r*math.Sin(a)}
-	}
-	arc1 := arcPieces(c1, r1, phi-beta, phi+beta)
-	arc0 := arcPieces(c0, r0, phi+beta, phi-beta+2*math.Pi)
-	var ch chain
-	for _, part := range []chain{arc1, lineChain(on(c1, r1, phi+beta), on(c0, r0, phi+beta)), arc0, lineChain(on(c0, r0, phi-beta), on(c1, r1, phi-beta))} {
-		for _, pc := range part {
-			if pc.line {
-				ch = append(ch, pc)
-			} else {
-				ch = append(ch, splitAtExtrema(pc.cubic)...)
-			}
-		}
+	ch, err := leadWedge(c0, r0, c1, r1).chain()
+	if err != nil {
+		panic("glyphs: the wedge: " + err.Error())
 	}
 	return ch
 }
