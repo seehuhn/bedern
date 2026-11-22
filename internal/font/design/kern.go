@@ -88,9 +88,9 @@ var KernExceptions = []KernException{}
 func regularKern() Kern {
 	return Kern{
 		Band:           10,
-		Depth:          500,
+		Depth:          400,
 		Allowance:      70,
-		AllowanceMixed: 82,
+		AllowanceMixed: 68,
 		Soft:           125,
 		Interplay:      0.4,
 		Threshold:      8,

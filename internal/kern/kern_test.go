@@ -295,3 +295,35 @@ func TestOverhangsAgainstStems(t *testing.T) {
 		})
 	}
 }
+
+// TestDepthTellsPairsApart checks the cap of the white in one band: it lies
+// above the white between the stems of HH in every band, so that a pair of
+// capitals responds to a shift, and above the depth of the open side of e and
+// c, so that these count in full and not as much as a stem gap.
+func TestDepthTellsPairsApart(t *testing.T) {
+	p := design.Regular()
+	f := computed(p).Font
+	depth := p.Kern.Depth
+	z := Zone{f.Row(0), f.Row(0) + int(p.CapHeight/p.Kern.Band)}
+	H := f.glyphOf('H')
+	var gap float64
+	for i := z.Lo; i < z.Hi; i++ {
+		if !math.IsNaN(H.Right[i]) && !math.IsNaN(H.Left[i]) {
+			gap = math.Max(gap, H.Right[i]+H.Left[i])
+		}
+	}
+	if depth <= gap {
+		t.Errorf("Kern.Depth %.0f is not above the largest band gap of HH, %.0f", depth, gap)
+	}
+	for _, r := range "ec" {
+		var d float64
+		for i := f.Row(0); i < f.Row(0)+int(p.XHeight/p.Kern.Band); i++ {
+			if v := f.glyphOf(r).Right[i]; !math.IsNaN(v) {
+				d = math.Max(d, v)
+			}
+		}
+		if depth < d {
+			t.Errorf("Kern.Depth %.0f is below the depth of the open side of %c, %.0f", depth, r, d)
+		}
+	}
+}
