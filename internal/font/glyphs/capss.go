@@ -24,7 +24,7 @@ import (
 // Side kinds: the leftmost ink, the cut of the lower beak, and the rightmost ink,
 // the right extreme of the lower bowl, SSideLeft and SSideRight from the edges.
 func capS(p design.Params) (outline.Path, float64) {
-	f := newCapSFrame(p)
+	f := newCapSFrameRamp(p, beakRamp)
 	var path outline.Path
 	path.MoveTo(f.C.X+f.LowerE.Inner[0].P0.X, f.C.Y+f.LowerE.Inner[0].P0.Y)
 	f.circuit(&path, f.LowerE, 1)
@@ -59,17 +59,23 @@ func capSShape(p design.Params) sShapeSpec {
 // above the bottom; the inner edge leaves the counter at its bottom extreme with
 // its direction and curvature and runs into the face of the serif.  The beak
 // is drawn in the frame of the beaks of C, which is that of the half turned
-// through half a turn.
-func capSBeak(p design.Params, e *sEdges, h sHalf) {
+// through half a turn.  A positive ramp eases the bracket into the face
+// (capBeakParts.ease).
+func capSBeak(p design.Params, e *sEdges, h sHalf, ramp float64) {
 	g := p.Caps.CGSJQ
-	if err := sBeak(e, h, capBeakSpec{Drop: g.BeakDrop, Arc: g.BeakArc, Lift: g.BeakLift, Run: g.BeakRun}, p.Caps.ArmSerifThick, p.Caps.Bar); err != nil {
+	if err := sBeak(e, h, capBeakSpec{Drop: g.BeakDrop, Arc: g.BeakArc, Lift: g.BeakLift, Run: g.BeakRun, Ramp: ramp}, p.Caps.ArmSerifThick, p.Caps.Bar); err != nil {
 		panic(fmt.Sprintf("glyphs: a beak of S: %v; glyphs.Check reports such parameters", err))
 	}
 }
 
 // newCapSFrame returns the frame of S, as newSFrame does for s, with the beaks
-// of capSBeak.
-func newCapSFrame(p design.Params) sFrame {
+// of capSBeak and brackets which meet the face with the curvature of the inner
+// edge (the dollar).
+func newCapSFrame(p design.Params) sFrame { return newCapSFrameRamp(p, 0) }
+
+// newCapSFrameRamp is newCapSFrame with brackets which ease into the face over
+// the turn ramp (degrees), as on S.
+func newCapSFrameRamp(p design.Params, ramp float64) sFrame {
 	sh := capSShape(p)
 	q := capSParams(p)
 	var f sFrame
@@ -82,7 +88,7 @@ func newCapSFrame(p design.Params) sFrame {
 	f.Upper = sHalf{Rx: r * (q.SLowerWidth - u), Lx: r * u, H: top - f.C.Y, Drop: q.SUpperDrop}
 	f.LowerE = sh.edges(q, f.Lower, q.SArcThick)
 	f.UpperE = sh.edges(q, f.Upper, q.SUpperArcThick)
-	capSBeak(p, &f.LowerE, f.Lower)
-	capSBeak(p, &f.UpperE, f.Upper)
+	capSBeak(p, &f.LowerE, f.Lower, ramp)
+	capSBeak(p, &f.UpperE, f.Upper, ramp)
 	return f
 }

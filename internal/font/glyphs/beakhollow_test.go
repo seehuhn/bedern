@@ -38,7 +38,7 @@ func beakParts(p design.Params) []beakPart {
 		name string
 		fr   sFrame
 		lift float64
-	}{{"s", newSFrame(p), p.SBeakLift}, {"S", newCapSFrame(p), p.Caps.CGSJQ.BeakLift}} {
+	}{{"s", newSFrame(p), p.SBeakLift}, {"S", newCapSFrameRamp(p, beakRamp), p.Caps.CGSJQ.BeakLift}} {
 		for i, e := range []sEdges{f.fr.UpperE, f.fr.LowerE} {
 			out = append(out, beakPart{f.name + " " + sBeakNames[i],
 				turnC(e.Outer[3]).reversed(), turnC(e.Outer[2]).reversed(), turn(e.Corner), turn(e.TipOuter), f.lift})

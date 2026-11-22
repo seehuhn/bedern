@@ -124,7 +124,7 @@ type sHalf struct {
 
 // sEdges holds the curves of one half, in the frame of the half.
 type sEdges struct {
-	Inner    [3]cubic      // from C - (S/2) n to the top of the face of the serif
+	Inner    [4]cubic      // from C - (S/2) n to the top of the face of the serif: the two quarters, the bracket and its easing into the face (empty without a ramp)
 	Outer    [4]cubic      // from C + (S/2) n to the corner on the cut: the two quarters, the round to P and the hollow
 	TipInner outline.Point // the inner end of the flat end, the foot of the face
 	TipOuter outline.Point // the other end of the flat end, on the cut
@@ -242,6 +242,9 @@ func sBeak(e *sEdges, h sHalf, s capBeakSpec, thick, bar float64) error {
 		e.Outer[3] = cubic{}
 	}
 	e.Inner[2] = turnC(b.Inner)
+	if b.Ease != (cubic{}) {
+		e.Inner[3] = turnC(b.Ease)
+	}
 	e.Corner, e.TipOuter, e.TipInner = turn(b.Corner), turn(b.TipOut), turn(b.TipIn)
 	return nil
 }
@@ -270,7 +273,7 @@ func newSFrame(p design.Params) sFrame {
 	f.Upper = sHalf{Rx: r * (p.SLowerWidth - u), Lx: r * u, H: top - f.C.Y, Drop: p.SUpperDrop}
 	f.LowerE = sShape.edges(p, f.Lower, p.SArcThick)
 	f.UpperE = sShape.edges(p, f.Upper, p.SUpperArcThick)
-	spec := capBeakSpec{Drop: p.SBeakDrop, Arc: p.SBeakArc, Lift: p.SBeakLift, Run: p.SBeakRun}
+	spec := capBeakSpec{Drop: p.SBeakDrop, Arc: p.SBeakArc, Lift: p.SBeakLift, Run: p.SBeakRun, Ramp: beakRamp}
 	for _, half := range []struct {
 		e *sEdges
 		h sHalf
@@ -299,9 +302,14 @@ func (f sFrame) circuit(path *outline.Path, e sEdges, sign float64) {
 		path.CurveTo(x1, y1, x2, y2, x3, y3)
 	}
 	for _, c := range e.Inner {
+		if c == (cubic{}) {
+			continue
+		}
 		curve(c)
 	}
-	path.LineTo(at(e.TipInner))
+	if e.Inner[3] == (cubic{}) {
+		path.LineTo(at(e.TipInner))
+	}
 	path.LineTo(at(e.TipOuter))
 	path.LineTo(at(e.Corner))
 	for i := 3; i >= 0; i-- {

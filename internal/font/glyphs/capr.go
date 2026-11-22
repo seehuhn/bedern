@@ -67,6 +67,29 @@ func capRJoin(b capBowl, leg diagonal) (q outline.Point, rest chain) {
 	return q, chain{curveSeg(bl.sub(tb, 1))}
 }
 
+// capREaseBracket returns the right foot serif of the leg, walked up the leg,
+// with the end of its bracket, over the last capRRamp degrees of its turn, a
+// curve (footCubic) which meets the right edge of the leg, on the way to q, at
+// the same point without curvature; the bracket is long, and its curvature
+// would otherwise jump to the straight edge.
+func capREaseBracket(out chain, q outline.Point) chain {
+	n := len(out)
+	last := out[n-1]
+	if last.line {
+		return out
+	}
+	c := last.cubic
+	up := unit(c.P3, q)
+	u := tTurned(c, 1, capRRamp)
+	ramp := straightFoot(c.at(u), c.tangent(u), c.curvature(u), c.P3, up)
+	res := append(chain(nil), out[:n-1]...)
+	return append(res, curveSeg(c.sub(0, u)), curveSeg(ramp))
+}
+
+// capRRamp is the turn in degrees of the end of the bracket of the right foot
+// serif of the leg which capREaseBracket redraws.
+const capRRamp = 15.0
+
 // capR draws the capital R, see above.
 func capR(p design.Params) (outline.Path, float64) {
 	c := p.Caps
@@ -80,6 +103,7 @@ func capR(p design.Params) (outline.Path, float64) {
 	in := leg.footServif(edgeLeft, 0, diagSerif{Over: c.RLegSerifLeft, Thick: thick, Bracket: design.CapDiagBracket(p)})
 	out := leg.footServif(edgeRight, 0, diagSerif{Over: c.RLegSerifRight, Thick: thick, Bracket: design.CapDiagBracket(p)}).reversed()
 	q, rest := capRJoin(b, leg)
+	out = capREaseBracket(out, q)
 
 	ch := join(
 		s.up(p, s.start(), b.Bottom),

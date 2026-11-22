@@ -13,7 +13,7 @@ import (
 
 // capC draws the capital C: the round of O (capRound), open on the right, in
 // one counter-clockwise contour without a counter.  The upper end is the upper
-// beak (capUpperBeak), a serif on a thin arc of the family of the serifs on the
+// beak (capUpperBeakEased), a serif on a thin arc of the family of the serifs on the
 // arms of E; the lower end is a tapered tail without a serif (capCTail), the
 // lower terminal of the lowercase c at the size and with the weights of the
 // capitals.  The tail sweeps out and up to the right and ends in a fine cut a
@@ -29,7 +29,7 @@ func capC(p design.Params) (outline.Path, float64) {
 	adv := design.CapCAdvance(p)
 	p = capCParams(p)
 	f := capRound(p)
-	return capContour(join(capRoundLeft(f), capCTail(p, f), capRoundLeftInner(f), capUpperBeak(p, f))), adv
+	return capContour(join(capRoundLeft(f), capCTail(p, f), capRoundLeftInner(f), capUpperBeakEased(p, f))), adv
 }
 
 // capCParams returns p with the end of the upper beak of C in the place of that

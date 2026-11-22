@@ -460,6 +460,34 @@ func capWithoutHollow(runs [][]outline.Point, b capBeakParts) [][]outline.Point 
 	return out
 }
 
+// capWithoutFace returns the runs without the points of the face of the serif
+// of the beak b, where the curve into the face (Ease) runs within 5 degrees of
+// the direction of the face: the face is straight by design.
+func capWithoutFace(runs [][]outline.Point, b capBeakParts) [][]outline.Point {
+	if b.Ease == (cubic{}) {
+		return runs
+	}
+	top := b.Ease.at(tTurned(b.Ease, 1, 5))
+	var out [][]outline.Point
+	for _, run := range runs {
+		var cur []outline.Point
+		for _, q := range run {
+			if q.X >= top.X-0.01 && q.X <= b.TipIn.X+0.01 && q.Y >= b.TipIn.Y-0.01 && q.Y <= top.Y+0.01 {
+				if len(cur) > 1 {
+					out = append(out, cur)
+				}
+				cur = nil
+				continue
+			}
+			cur = append(cur, q)
+		}
+		if len(cur) > 1 {
+			out = append(out, cur)
+		}
+	}
+	return out
+}
+
 // capEdgeWindow and capEdgeTurn: every stretch of capEdgeWindow units of a curved
 // edge of C, G, J and Q turns by at least capEdgeTurn radians (a mean curvature of
 // 0.001 per unit); the turns of the regular letters are logged.
@@ -503,7 +531,8 @@ func TestCapCGJQEdges(t *testing.T) {
 				var where outline.Point
 				runs := capCurveRuns(ct)
 				if name == "C" || name == "G" {
-					runs = capWithoutHollow(runs, capBeak(np.params, capRound(np.params), capUpperBeakSpec(np.params)))
+					b := capBeak(np.params, capRound(np.params), capUpperBeakEasedSpec(np.params))
+					runs = capWithoutFace(capWithoutHollow(runs, b), b)
 				}
 				for _, run := range runs {
 					s := make([]float64, len(run))
@@ -540,7 +569,7 @@ func TestCapSFollowsTheRulesOfS(t *testing.T) {
 	t.Parallel()
 	forCaps(t, func(t *testing.T, np namedParams) {
 		p := np.params
-		f := newCapSFrame(p)
+		f := newCapSFrameRamp(p, beakRamp)
 		for k, edge := range sLongEdges(f) {
 			var s, kap []float64
 			length, prev := 0.0, edge[0].at(0)

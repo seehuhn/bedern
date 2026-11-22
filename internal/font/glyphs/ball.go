@@ -791,6 +791,33 @@ func stalkChain(letter string, in stalkFoot, tb placedBall, out stalkFoot) chain
 	return join(splitAtExtrema(a), tb.Chain, splitAtExtrema(b))
 }
 
+// stalkChainStraight is stalkChain for a stalk whose outer edge runs into the
+// straight edge of a stem at the foot out: that edge, drawn as stalkChain draws
+// it, is a transition curve (straightFoot) over the last ramp degrees of its
+// turn towards the stem, which meets the stem without curvature at the foot.
+// The point to which the edge is drawn is found by a few steps of moving it
+// along the edge of the stem until the transition curve ends at the foot.  The
+// edge from the foot in is that of stalkChain.
+func stalkChainStraight(letter string, in stalkFoot, tb placedBall, out stalkFoot, ramp float64) chain {
+	a, err := edgeIn(in, tb.In)
+	if err != nil {
+		panic(fmt.Sprintf("glyphs: glyph %s: the edge into the ball terminal: %v", letter, err))
+	}
+	var b, rampOut cubic
+	var v float64
+	f := out
+	for i := 0; i < 8; i++ {
+		b, err = edgeOut(tb.Out, f)
+		if err != nil {
+			panic(fmt.Sprintf("glyphs: glyph %s: the edge out of the ball terminal: %v", letter, err))
+		}
+		v = tTurned(b, 1, ramp)
+		rampOut = straightFoot(b.at(v), b.tangent(v), b.curvature(v), f.At, out.Dir)
+		f.At = outline.Point{X: f.At.X + out.At.X - rampOut.P3.X, Y: f.At.Y + out.At.Y - rampOut.P3.Y}
+	}
+	return join(splitAtExtrema(a), tb.Chain, splitAtExtrema(b.sub(0, v)), chain{curveSeg(rampOut)})
+}
+
 // windHook returns the stalk and the ball of a letter whose stroke leaves a stem
 // (f, r) as one chain, from the foot in round the ball to the foot out.  The
 // inner edge is one cubic curve from the foot in to the tip of the wedge, which

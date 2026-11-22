@@ -97,7 +97,7 @@ func capBeakSerifs(t *testing.T, np namedParams) (e hangingSerif, beaks map[stri
 		x, _, _ := cBeak(t, path, cap)
 		beaks[name] = measureHangingSerif(t, path, x)
 	}
-	f := newCapSFrame(p)
+	f := newCapSFrameRamp(p, beakRamp)
 	sp := capOutline(np, "S")
 	beaks["S"] = measureHangingSerif(t, sp, f.C.X+f.Upper.Lx)
 	turned := mapPath(sp, func(q outline.Point) outline.Point { return outline.Point{X: -q.X, Y: -q.Y} })

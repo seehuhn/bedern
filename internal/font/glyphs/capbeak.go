@@ -43,6 +43,9 @@ import (
 // may leave the counter, the one whose curve changes its curvature least abruptly
 // is taken (curvatureRate).  The underside of the arc runs thin from the top and
 // turns, bending more and more and without a knee, into the face: the bracket.
+// With a ramp (capBeakSpec.Ramp), the last stretch of the bracket and the face
+// are one curve which arrives at the foot of the face without curvature
+// (capBeakParts.ease).
 //
 // capBeakParts.chain returns the beak as the chain from the counter of the
 // round, at the top extreme, along the inner edge and down the face, across the
@@ -100,8 +103,9 @@ func capCuts(lo, hi float64) []float64 {
 type capBeakParts struct {
 	Counter       cubic         // the upper right quarter of the counter, top to right extreme
 	TI            float64       // the parameter on Counter at which Inner leaves it
-	Inner         cubic         // the inner edge of the arc, from the counter to Face
-	Face          outline.Point // the top of the straight inner face of the serif
+	Inner         cubic         // the inner edge of the arc, from the counter to Face (to Ease, if there is one)
+	Ease          cubic         // the end of the bracket and the face, from Inner to TipIn; empty without Ramp
+	Face          outline.Point // the top of the straight inner face of the serif; TipIn where the bracket eases into the face (Ease)
 	TipIn, TipOut outline.Point // the ends of the flat end, inside and on the cut
 	Corner        outline.Point // the top of the cut, where the outer edge meets it
 	Outer         cubic         // the outer edge of the round, from Hollow (or from Corner) to the top extreme
@@ -113,13 +117,19 @@ type capBeakParts struct {
 // of the arc which the serif is placed against, and End the height of the end.
 // The tip of the serif, the corner, stands Lift higher, where the outer edge
 // lifts off the round Run (of arc length) before the cut, see capBeakParts.lift.
-type capBeakSpec struct{ Drop, Arc, End, Lift, Run float64 }
+// Ramp, if positive, is the turn in degrees of the end of the bracket which
+// eases into the face, see capBeakParts.ease.
+type capBeakSpec struct{ Drop, Arc, End, Lift, Run, Ramp float64 }
 
 // capUpperBeakSpec returns the size of the upper beak of C and G.
 func capUpperBeakSpec(p design.Params) capBeakSpec {
 	g := p.Caps.CGSJQ
 	return capBeakSpec{Drop: g.BeakDrop, Arc: g.BeakArc, End: g.BeakEnd, Lift: g.BeakLift, Run: g.BeakRun}
 }
+
+// beakRamp is the turn in degrees of the end of the bracket of the beaks of s,
+// S, C and G which eases into the face of the serif (capBeakParts.ease).
+const beakRamp = 15.0
 
 // capBeak returns the beak of the size s at the top of the round, see the
 // comment above.
@@ -227,6 +237,9 @@ func (a beakArc) beakSized(s capBeakSpec, thick, bar float64) (capBeakParts, err
 	if math.IsInf(best, 1) {
 		return b, fmt.Errorf("the inner edge cannot reach the face (%+v)", s)
 	}
+	if s.Ramp > 0 {
+		b.ease(s.Ramp, down)
+	}
 	// A lift which no hollow can follow (a narrow bowl, a perturbed set) is
 	// reduced in steps and at last given up.
 	for _, k := range []float64{1, 0.75, 0.5, 0.25} {
@@ -240,6 +253,45 @@ func (a beakArc) beakSized(s capBeakSpec, thick, bar float64) (capBeakParts, err
 		}
 	}
 	return b, nil
+}
+
+// ease replaces the last stretch of the bracket, over which it turns by ramp
+// degrees, and the straight face below it by one curve (footCubic), which
+// leaves the bracket with its direction and curvature and arrives at the foot
+// of the face, TipIn, in the direction of the face without curvature: the
+// bracket turns into the face without a jump of curvature, and the face is
+// straight where it meets the flat end.  Face becomes TipIn.  Where no such
+// curve turns one way, the bracket and the face stay as they are.
+func (b *capBeakParts) ease(ramp float64, down outline.Point) {
+	in := b.Inner
+	u := tTurned(in, 1, ramp)
+	c, ok := footCubic(in.at(u), in.tangent(u), in.curvature(u), b.TipIn, down)
+	if !ok || !oneWay(c, -1) {
+		return
+	}
+	b.Ease = c
+	b.Inner = in.sub(0, u)
+	b.Face = b.TipIn
+}
+
+// footCubic returns the cubic curve from p0, leaving in the direction t0 with
+// the signed curvature k0, to p3, where it arrives in the direction t3 without
+// curvature: its first handle ends on the line through p3 in the direction t3,
+// and its second handle is the one which gives the curvature k0 at p0.  The
+// result is false unless both handles point forward and the second lies
+// between the first and p3.
+func footCubic(p0, t0 outline.Point, k0 float64, p3, t3 outline.Point) (cubic, bool) {
+	cr := func(u, v outline.Point) float64 { return u.X*v.Y - u.Y*v.X }
+	s := cr(t0, t3)
+	d := outline.Point{X: p3.X - p0.X, Y: p3.Y - p0.Y}
+	a := cr(d, t3) / s
+	b := (cr(t0, d) - 1.5*k0*a*a) / s
+	c := cubic{p0,
+		outline.Point{X: p0.X + a*t0.X, Y: p0.Y + a*t0.Y},
+		outline.Point{X: p3.X - b*t3.X, Y: p3.Y - b*t3.Y},
+		p3}
+	reach := math.Hypot(p3.X-c.P1.X, p3.Y-c.P1.Y)
+	return c, a > 0 && b > 0 && b < reach
 }
 
 // The tip of the serif, where the outer edge ends on the cut, stands Lift above
@@ -332,10 +384,25 @@ func hollowOK(c cubic, tip, P outline.Point) bool {
 	return signs == 1 && last > 0
 }
 
-// capUpperBeak returns the upper beak of C and G as a chain, see the comment
-// above.
+// capUpperBeak returns the upper beak of the round as a chain, see the comment
+// above, with a bracket which meets the face with the curvature of the inner
+// edge (the Euro).
 func capUpperBeak(p design.Params, f capRoundFrame) chain {
 	return capBeak(p, f, capUpperBeakSpec(p)).chain()
+}
+
+// capUpperBeakEased returns the upper beak of C and G as a chain: capUpperBeak
+// with a bracket which eases into the face (beakRamp).
+func capUpperBeakEased(p design.Params, f capRoundFrame) chain {
+	return capBeak(p, f, capUpperBeakEasedSpec(p)).chain()
+}
+
+// capUpperBeakEasedSpec returns the size of the upper beak of C and G with the
+// ramp of its bracket.
+func capUpperBeakEasedSpec(p design.Params) capBeakSpec {
+	s := capUpperBeakSpec(p)
+	s.Ramp = beakRamp
+	return s
 }
 
 // chain returns the beak as a chain, from the counter at the top extreme to the
@@ -344,7 +411,8 @@ func (b capBeakParts) chain() chain {
 	return join(
 		chain{curveSeg(b.Counter.sub(0, b.TI))},
 		splitAtExtrema(b.Inner),
-		lineChain(b.Face, b.TipIn),
+		b.easeChain(),
+		b.faceChain(),
 		lineChain(b.TipIn, b.TipOut),
 		lineChain(b.TipOut, b.Corner),
 		b.hollowChain(),
@@ -408,6 +476,24 @@ func searchOuterArriving(corner, top outline.Point, k, lo, hi float64) (cubic, b
 		}
 	}
 	return best, !math.IsInf(bestE, 1)
+}
+
+// easeChain returns the end of the bracket as a chain, empty if the beak has
+// none.
+func (b capBeakParts) easeChain() chain {
+	if b.Ease == (cubic{}) {
+		return nil
+	}
+	return chain{curveSeg(b.Ease)}
+}
+
+// faceChain returns the straight face of the serif, from Face to TipIn, empty
+// where the bracket eases into the face (Ease).
+func (b capBeakParts) faceChain() chain {
+	if b.Ease != (cubic{}) {
+		return nil
+	}
+	return lineChain(b.Face, b.TipIn)
 }
 
 // hollowChain returns the hollow of the outer edge as a chain, empty if the

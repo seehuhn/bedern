@@ -263,7 +263,7 @@ func TestSBeaksAreThoseOfS(t *testing.T) {
 			p := np.params
 			k := p.XHeight / p.CapHeight
 			lc := sBeakViews(t, capOutline(np, "s"), newSFrame(p))
-			uc := sBeakViews(t, capOutline(np, "S"), newCapSFrame(p))
+			uc := sBeakViews(t, capOutline(np, "S"), newCapSFrameRamp(p, beakRamp))
 			for i := range lc {
 				a, b := lc[i].Serif, uc[i].Serif
 				if r := a.Thick / (k * b.Thick); r < 1.0 || r > 1.8 {
@@ -413,8 +413,8 @@ func TestSSmoothEdges(t *testing.T) {
 			t.Fatalf("%s: %d runs of curves, want 2 (the two long edges)", np.name, len(runs))
 		}
 		for _, run := range runs {
-			if len(run) != 7 {
-				t.Fatalf("%s: a long edge has %d segments, want 7 (the hollow at the beak, the round to it, the two quarters and the three of the inner edge)", np.name, len(run))
+			if len(run) != 8 {
+				t.Fatalf("%s: a long edge has %d segments, want 8 (the hollow at the beak, the round to it, the two quarters and the four of the inner edge: two quarters, the bracket and the curve into the face)", np.name, len(run))
 			}
 			var signs []float64
 			var turned [2]float64
@@ -452,7 +452,7 @@ func TestSSmoothEdges(t *testing.T) {
 			if changes != 2 {
 				t.Errorf("%s: the direction of a long edge reverses its turning %d times, want twice (in the hollow at the beak and at the spine)", np.name, changes)
 			}
-			// The first four segments turn one way and the last three the
+			// The first four segments turn one way and the last four the
 			// other, by more than 90 degrees each.
 			if turned[0]*turned[1] >= 0 || math.Abs(turned[0]) < math.Pi/2 || math.Abs(turned[1]) < math.Pi/2 {
 				t.Errorf("%s: a long edge turns %.0f and %.0f degrees through its two halves", np.name, turned[0]*180/math.Pi, turned[1]*180/math.Pi)

@@ -46,7 +46,8 @@ const capGFootCurve = 1.0
 // The left-hand edge of the stem of G runs straight down from the foot of the
 // bracket to capGRise above the point where it would cross the counter, and
 // then in one short curve into the counter, which it meets capGDrop below that
-// point.
+// point; the first stemRamp degrees of the turn of that curve are a transition
+// curve which leaves the straight edge without curvature (straightFoot).
 const (
 	capGRise = 20
 	capGDrop = 30
@@ -75,6 +76,11 @@ func capGChain(p design.Params) chain {
 		panic(fmt.Sprintf("glyphs: glyph G: the stem does not run into the counter: %v; glyphs.Check reports such parameters", err))
 	}
 
+	// The first stemRamp degrees of the turn of the curve are a transition
+	// curve which leaves the straight stem without curvature (straightFoot).
+	u := tTurned(blend, 0, stemRamp)
+	ramp := straightFoot(blend.at(u), neg(blend.tangent(u)), -blend.curvature(u), low, outline.Point{Y: 1}).reversed()
+
 	hr := capHeadRight(p, xR, top, g.GSerifRight)
 	hl := capHeadLeft(p, xL, top, g.GSerifLeft)
 	return join(
@@ -82,11 +88,12 @@ func capGChain(p design.Params) chain {
 		chain{curveSeg(foot)},
 		lineChain(join0, hr.start()), hr,
 		lineChain(hr.end(), hl.start()), hl,
-		lineChain(bracket, low),
-		splitAtExtrema(blend),
+		lineChain(bracket, ramp.P0),
+		chain{curveSeg(ramp)},
+		splitAtExtrema(blend.sub(u, 1)),
 		chain{curveSeg(qi.sub(tL, 1))},
 		capRoundLeftInner(f),
-		capUpperBeak(p, f),
+		capUpperBeakEased(p, f),
 	)
 }
 

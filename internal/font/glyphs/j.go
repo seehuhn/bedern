@@ -29,7 +29,9 @@ import (
 //
 // Each edge of the tail is one cubic curve from the stem, which it leaves
 // vertically, to the section of the terminal, with the handle at the stem which
-// makes it fairest.  The terminal is turned by jBallAngle, that of f and half a
+// makes it fairest; the stretch of the outer edge next to the stem, over which it
+// turns by jRamp, is a transition curve which meets the stem without curvature.
+// The ball is placed with the edges as stalkChain draws them.  The terminal is turned by jBallAngle, that of f and half a
 // turn; the lowest ink lies JDepth below the baseline and the leftmost ink JReach to
 // the left of the left-hand edge of the stem (placeAtExtreme).  The left edge of the
 // stem stands at JStemLeft, which gives the tail room.
@@ -65,13 +67,30 @@ func jHook(p design.Params) hookSpec {
 
 // jTailChain returns the tail of j with the ball terminal tb: from the left-hand
 // edge of the stem, where it begins to curve, along the inner edge, round the ball
-// and back along the outer edge to the right-hand edge.
+// and back along the outer edge to the right-hand edge.  The ball is placed with
+// these edges (jTerminal).
 func jTailChain(p design.Params, tb placedBall) chain {
+	in, out := jTailFeet(p)
+	return stalkChain("j", in, tb, out)
+}
+
+// jTailFeet returns the feet of the edges of the tail of j on the stem.
+func jTailFeet(p design.Params) (in, out stalkFoot) {
 	s, h := jStem(p), jHook(p)
-	return stalkChain("j",
-		footRising(outline.Point{X: s.Left, Y: -h.InnerJoin}, -math.Pi/2),
-		tb,
-		footAt(outline.Point{X: s.right(), Y: -h.OuterJoin}, math.Pi/2))
+	return footRising(outline.Point{X: s.Left, Y: -h.InnerJoin}, -math.Pi/2),
+		footAt(outline.Point{X: s.right(), Y: -h.OuterJoin}, math.Pi/2)
+}
+
+// jRamp is the turn in degrees over which the outer edge of the tail of j runs
+// into the stem without curvature (stalkChainStraight).
+const jRamp = 15.0
+
+// jTailDrawn returns the tail of j as it is drawn: jTailChain with an outer
+// edge which meets the straight right-hand edge of the stem without curvature
+// (stalkChainStraight).
+func jTailDrawn(p design.Params, tb placedBall) chain {
+	in, out := jTailFeet(p)
+	return stalkChainStraight("j", in, tb, out, jRamp)
 }
 
 // jTerminal returns the ball terminal of j: its leftmost ink JReach left of the
@@ -89,12 +108,13 @@ func j(p design.Params) (outline.Path, float64) {
 
 // jOutline draws the letter j.
 func jOutline(p design.Params) outline.Path {
-	stem, hook := jStem(p), jHook(p)
+	stem := jStem(p)
 	var path outline.Path
 	path.MoveTo(stem.right(), stem.Top)
 	stemCap(&path, p, stem)
-	path.LineTo(stem.Left, -hook.InnerJoin)
-	jTailChain(p, jTerminal(p)).appendTo(&path)
+	tail := jTailDrawn(p, jTerminal(p))
+	path.LineTo(tail.start().X, tail.start().Y)
+	tail.appendTo(&path)
 	path.LineTo(stem.right(), stem.Top)
 	cx := stem.Left + p.Stem/2 + design.DotOffset(p)
 	r := p.DotDiameter / 2
