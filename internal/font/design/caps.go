@@ -93,7 +93,7 @@ type Caps struct {
 func regularCaps() Caps {
 	return Caps{
 		Stem:      96,
-		Round:     116,
+		Round:     113,
 		RoundThin: 38,
 		Bar:       38,
 		TBar:      48,

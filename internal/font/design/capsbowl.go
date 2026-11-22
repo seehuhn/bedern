@@ -84,7 +84,7 @@ func regularCapBowls() CapBowls {
 		DFlat:     0.33,
 
 		BWaist:      355,
-		BUpper:      354,
+		BUpper:      347,
 		BLower:      376,
 		BUpperRound: 96,
 		BLowerRound: 98,

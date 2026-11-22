@@ -130,7 +130,7 @@ func regularSymbols() Symbols {
 		GraveHead: 70, GraveTip: 26, GraveWidth: 190, GraveHeight: 171, GraveTop: 698,
 		GraveSideLeft: 96, GraveSideRight: 104,
 
-		BraceInk: 280, BraceArm: 73, BraceEnd: 32, BraceTip: 44, BraceTipAngle: 32, BraceSide: 55,
+		BraceInk: 280, BraceArm: 73, BraceEnd: 32, BraceTip: 55, BraceTipAngle: 32, BraceSide: 55,
 
 		PctInk: 680, PctZeroW: 280, PctZeroH: 370, PctZeroThick: 68, PctZeroThin: 32, PctSlash: 46, PctSide: 50,
 

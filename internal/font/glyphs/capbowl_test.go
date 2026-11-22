@@ -311,7 +311,7 @@ func TestCapURound(t *testing.T) {
 
 // stemSerifs returns the serifs of the given stems of a capital, as capSerifs
 // does for every stem: the foot serifs at footScanY and the head serifs just
-// below the cap height, on both sides of each stem, no longer than twice jut.
+// below the cap height, on both sides of each stem, no longer than one and a half times jut.
 func stemSerifs(path outline.Path, cap, jut float64, stems [][2]float64) (serifs []measuredSerif) {
 	for _, s := range stems {
 		for _, level := range []struct {
@@ -324,7 +324,7 @@ func stemSerifs(path outline.Path, cap, jut float64, stems [][2]float64) (serifs
 				}
 				for _, side := range []struct{ edge, tip, dir float64 }{{s[0], r[0], -1}, {s[1], r[1], 1}} {
 					j := (side.tip - side.edge) * side.dir
-					if j < 1 || j > 2*jut {
+					if j < 1 || j > 1.5*jut {
 						continue
 					}
 					v := vruns(path, side.tip-side.dir*tipInset)

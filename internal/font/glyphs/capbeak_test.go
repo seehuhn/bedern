@@ -209,7 +209,7 @@ func TestCapGStemEdge(t *testing.T) {
 			}
 		}
 		for y := cross + 15; y > cross-40; y-- {
-			if qi.at(qi.tAtY(y)).X < xL-8 {
+			if qi.at(qi.tAtY(y)).X < xL-7 {
 				break
 			}
 			r := runs(g, y)
