@@ -61,8 +61,9 @@ type Figures struct {
 
 	// 2.  The upper bowl reaches from TwoBowlLeft (from the ink left; the
 	// left extreme is cut off by the ball and lies outside the ink where the
-	// value is negative) to the ink right, and its right extreme, the
-	// rightmost ink, is TwoShoulder above the baseline.
+	// value is negative) to the ink right; its left half is that of the oval
+	// whose centre is TwoBowlMid above the baseline, and its right extreme,
+	// the rightmost ink, is TwoShoulder above the baseline.
 	// TwoNeckThick is the thickness of its right side.  The outer edge of
 	// the diagonal meets the top of the base TwoDiagFoot from the ink left,
 	// at TwoDiagAngle (degrees from the vertical), and its inner edge meets
@@ -71,6 +72,7 @@ type Figures struct {
 	// TwoRise above it, TwoSerifThick wide.  The ball's leftmost ink is
 	// TwoBallLeft from the ink left.
 	TwoBowlLeft   float64
+	TwoBowlMid    float64
 	TwoShoulder   float64
 	TwoNeckThick  float64
 	TwoDiagFoot   float64
@@ -214,7 +216,8 @@ func regularFigures() Figures {
 		OneRise:      10,
 
 		TwoBowlLeft:   10,
-		TwoShoulder:   420,
+		TwoBowlMid:    420,
+		TwoShoulder:   476,
 		TwoNeckThick:  94,
 		TwoDiagFoot:   128,
 		TwoDiagAngle:  50,
