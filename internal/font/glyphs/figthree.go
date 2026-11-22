@@ -48,7 +48,7 @@ func figThree(p design.Params) (outline.Path, float64) {
 
 	b := figBall(p)
 	upper := upperLeftBall("three", b, uo.cubic(1, true), ui.cubic(2, false), x0+f.ThreeUpperBall, figStroke{})
-	lower := lowerLeftBall("three", b, lo.cubic(2, true), li.cubic(1, false), x0+f.ThreeLowerBall, figStroke{})
+	lower := lowerLeftBall("three", b, lo.cubic(2, true), li.cubic(1, false), x0+f.ThreeLowerBall, figStroke{Rise: true, Before: li.cubic(0, false)})
 
 	// The notch on the right, where the outer edges cross.
 	loR, uoR := lo.cubic(0, true), uo.cubic(3, true) // right to top, bottom to right
@@ -70,7 +70,7 @@ func figThree(p design.Params) (outline.Path, float64) {
 		curveChain(toCut),
 		lineChain(toCut.P3, fromCut.P0),
 		curveChain(fromCut),
-		chain{curveSeg(li.cubic(3, false)), curveSeg(li.cubic(0, false))},
+		chain{curveSeg(li.cubic(3, false))},
 		lower,
 	)
 	return contourPath(c), f.Advance

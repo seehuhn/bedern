@@ -342,7 +342,33 @@ func windBall(name string, tb placedBall, q0 outline.Point, phi0, k0 float64) ch
 	}
 	ball := circleArc(tb.Centre, tb.Part.R, aW, aA, 0)
 	ball[len(ball)-1].P3 = wind.start()
+	if a, s := ball[len(ball)-1].cubic, wind[0].cubic; len(ball) > 1 && len(wind) > 1 && cubicLen(s) < ballMinPiece {
+		// The short piece of the spiral and the arc of the circle before it are
+		// drawn as one curve.
+		if c, err := g2Cubic(a.P0, a.tangent(0), a.curvature(0), s.P3, s.tangent(1), s.curvature(1)); err == nil {
+			ball[len(ball)-1] = curveSeg(c)
+			wind = wind[1:]
+		}
+	}
 	return join(ball, wind)
+}
+
+// ballMinPiece is the shortest piece of the spiral next to the ball which
+// windBall draws as a curve of its own; a shorter one is drawn with the arc of
+// the circle before it as one curve, which leaves the circle with its
+// direction and its curvature and arrives with those of the spiral.
+const ballMinPiece = 30.0
+
+// cubicLen returns the arc length of c, from 100 chords.
+func cubicLen(c cubic) float64 {
+	var l float64
+	prev := c.P0
+	for i := 1; i <= 100; i++ {
+		q := c.at(float64(i) / 100)
+		l += math.Hypot(q.X-prev.X, q.Y-prev.Y)
+		prev = q
+	}
+	return l
 }
 
 // windMinPiece is the shortest arc of the spiral from P0 which is drawn as a

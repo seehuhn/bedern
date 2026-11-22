@@ -45,7 +45,7 @@ func figFive(p design.Params) (outline.Path, float64) {
 	h, bot := f.Height, figBottom(p)
 	o := newSuperShape(x0+f.FiveOuterLeft, bot, x1, f.FiveBowlTop, p.SupernessOuter)
 	i := newSuperShape(x0+f.FiveInnerLeft, bot+f.Thin, x1-f.Bowl, f.FiveBowlTop-f.Thin, p.SupernessInner)
-	ball := lowerLeftBall("five", figBall(p), o.cubic(2, true), i.cubic(1, false), x0+f.FiveBallLeft, figStroke{})
+	ball := lowerLeftBall("five", figBall(p), o.cubic(2, true), i.cubic(1, false), x0+f.FiveBallLeft, figStroke{Rise: true, Before: i.cubic(0, false)})
 
 	sl := x0 + f.FiveStrokeLeft
 	sr := sl + f.FiveStroke
@@ -91,7 +91,7 @@ func figFive(p design.Params) (outline.Path, float64) {
 		lineChain(outline.Point{X: sl, Y: h}, knee),
 		splitAtExtrema(bracket),
 		curveChain(fromCorner),
-		chain{curveSeg(i.cubic(3, false)), curveSeg(i.cubic(0, false))},
+		chain{curveSeg(i.cubic(3, false))},
 		ball,
 		chain{curveSeg(o.cubic(3, true)), curveSeg(o.cubic(0, true))},
 		curveChain(toNotch),
