@@ -206,7 +206,7 @@ func regularFigures() Figures {
 
 		//      0    1    2    3    4    5    6    7    8    9
 		Ink:   [10]float64{416, 0, 395, 401, 458, 391, 408, 420, 407, 0},
-		Shift: [10]float64{0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		Shift: [10]float64{0, 0, -12, -14, 0, -12, 0, 0, 0, 0},
 
 		OneFlag:      125,
 		OneFlagDrop:  100,

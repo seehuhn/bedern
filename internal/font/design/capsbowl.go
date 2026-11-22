@@ -109,9 +109,9 @@ func regularCapBowls() CapBowls {
 		UCurve:   222,
 
 		BowlSideLeft:  119,
-		BowlSideRight: 56,
-		BSideRight:    74,
-		DSideRight:    63,
+		BowlSideRight: 36,
+		BSideRight:    68,
+		DSideRight:    58,
 		RSideRight:    16,
 	}
 }

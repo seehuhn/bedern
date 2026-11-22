@@ -138,11 +138,11 @@ func regularCGSJQ() CGSJQ {
 		QTailDepth: 150,
 		QTailTip:   20,
 
-		CSideRight: 16,
-		GSideRight: 35,
+		CSideRight: 28,
+		GSideRight: 21,
 		SSideLeft:  56,
-		SSideRight: 55,
-		JSideLeft:  32,
+		SSideRight: 47,
+		JSideLeft:  10,
 	}
 }
 
