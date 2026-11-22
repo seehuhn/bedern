@@ -70,7 +70,7 @@ func TestVAdvanceAndInk(t *testing.T) {
 	t.Parallel()
 	p := design.Regular()
 	path, adv := vGlyph(t, p)
-	tight(t, "advance", adv, 505)
+	tight(t, "advance", adv, 508)
 	tight(t, "advance from side spaces and body", adv, p.DiagSideLeft+p.VInk+p.DiagSideRight)
 	if r := adv / design.NAdvance(p); r < 0.788 || r > 1.0 {
 		t.Errorf("v is %.3f of n wide, want 0.788 to 1.000", r)

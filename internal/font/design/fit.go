@@ -98,11 +98,11 @@ func EAdvance(p Params) float64 {
 }
 
 // CAdvance returns the advance of the letter c: the left side space CSideLeft, the
-// ink, which ends at the tip of the lower terminal, and the open right side
-// space of e.  CBowlWidth is the width of the ink, from the left extreme to the
-// tip, and SideOpenRight is measured to the rightmost ink in both letters.
+// ink, which ends at the tip of the lower terminal, and the right side space
+// CSideRight.  CBowlWidth is the width of the ink, from the left extreme to the
+// tip, and CSideRight is measured to the rightmost ink.
 func CAdvance(p Params) float64 {
-	return CBowlLeft(p) + p.CBowlWidth + p.SideOpenRight
+	return CBowlLeft(p) + p.CBowlWidth + p.CSideRight
 }
 
 // CBowlLeft returns the position of the left extreme of c.

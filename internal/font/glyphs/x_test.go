@@ -51,7 +51,7 @@ func TestXAdvanceAndInk(t *testing.T) {
 	t.Parallel()
 	p := design.Regular()
 	path, adv := xGlyph(t, p)
-	tight(t, "advance", adv, 497)
+	tight(t, "advance", adv, 500)
 	tight(t, "advance from side spaces and body", adv, p.DiagSideLeft+p.XInk+p.DiagSideRight)
 	if r := adv / design.NAdvance(p); r < 0.785 || r > 1.0 {
 		t.Errorf("x is %.3f of n wide, want 0.785 to 1.000", r)

@@ -43,9 +43,8 @@ import (
 // direction and the curvature of the inner edge of the part, at the cut with the
 // smallest rate of change of curvature (stalkToTip).
 //
-// Side kinds: a round left side, and an open right side, which is measured from
-// the right extreme of the bowl, as for e: SideOpenRight.  The tip of the lower
-// terminal lies a little inside that extreme; c has the same advance as e.
+// Side kinds: a round left side, CSideLeft to the left extreme, and an open right
+// side, CSideRight from the rightmost ink, the tip of the lower terminal.
 
 // cCuts returns the fractions of the parameter of the upper right quarter of the o,
 // counted from the top, at which the inner edge of the stalk may leave the o.  The

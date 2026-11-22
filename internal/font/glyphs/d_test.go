@@ -33,9 +33,9 @@ func TestDAdvance(t *testing.T) {
 	if want := p.DQSideLeft + p.DBowl.Width + p.Stem + p.DSideRight; adv != want || adv != design.DAdvance(p) {
 		t.Errorf("advance %v, want %v", adv, want)
 	}
-	// The advance is 546.
-	if math.Abs(adv-546) > 0.5 {
-		t.Errorf("advance %v, want 546", adv)
+	// The advance is 542.
+	if math.Abs(adv-542) > 0.5 {
+		t.Errorf("advance %v, want 542", adv)
 	}
 	e, ok := lookup("d")
 	if !ok || e.r != 'd' || e.left != sideBowlDQ || e.right != sideStemD {

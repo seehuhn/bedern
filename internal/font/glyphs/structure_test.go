@@ -166,9 +166,9 @@ func TestStructureChecksCatchBreakage(t *testing.T) {
 		{"f", 300, outline.Path{rect(24, 0, 360, 100, true)}},
 		{"j", 281, outline.Path{rect(-60, 0, 191, 100, true)}},
 		{"t", 350, outline.Path{rect(21, 0, 340, 100, true)}},
-		{"v", 505, outline.Path{rect(17, -12, 497, 448, true)}},
-		{"w", 709, outline.Path{rect(17, -12, 701, 448, true)}},
-		{"y", 505, outline.Path{rect(17, -200, 497, 448, true)}},
+		{"v", 508, outline.Path{rect(17, -12, 497, 448, true)}},
+		{"w", 712, outline.Path{rect(17, -12, 701, 448, true)}},
+		{"y", 508, outline.Path{rect(17, -200, 497, 448, true)}},
 	} {
 		if problems := checkBBox(structureCase{params: design.Regular(), glyph: c.glyph, path: c.path, advance: c.advance}); len(problems) > 0 {
 			t.Errorf("glyph %s: the bounding-box check rejects ink which the side kinds allow: %s", c.glyph, problems[0])

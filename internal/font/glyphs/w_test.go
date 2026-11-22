@@ -37,7 +37,7 @@ func TestWAdvanceAndInk(t *testing.T) {
 	t.Parallel()
 	p := design.Regular()
 	path, adv := wGlyph(t, p)
-	tight(t, "advance", adv, 709)
+	tight(t, "advance", adv, 712)
 	tight(t, "advance from side spaces and body", adv, p.DiagSideLeft+p.WInk+p.DiagSideRight)
 	if r := adv / design.NAdvance(p); r < 1.182 || r > 1.444 {
 		t.Errorf("w is %.3f of n wide, want 1.182 to 1.444", r)

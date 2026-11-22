@@ -42,7 +42,7 @@ func TestKAdvanceAndSides(t *testing.T) {
 	t.Parallel()
 	p := design.Regular()
 	path, adv := kGlyph(t, p)
-	tight(t, "advance", adv, 508)
+	tight(t, "advance", adv, 509)
 	tight(t, "advance from side spaces and body", adv, p.SideStemLeft+p.Stem+p.KReach+p.KSideRight)
 	if r := adv / design.NAdvance(p); r < 0.847 || r > 1.0 {
 		t.Errorf("k is %.3f of n wide, want 0.847 to 1.000", r)

@@ -56,12 +56,12 @@ func TestCAdvanceAndSides(t *testing.T) {
 	p := design.Regular()
 	path, adv := cGlyph(t, p)
 	// The advance is the left side space of c, the ink and the open right side
-	// space of e: 31 + 388 + 17 = 436.
-	if want := p.CSideLeft + p.CBowlWidth + p.SideOpenRight; adv != want || adv != design.CAdvance(p) {
+	// space: 32 + 388 + 9 = 429.
+	if want := p.CSideLeft + p.CBowlWidth + p.CSideRight; adv != want || adv != design.CAdvance(p) {
 		t.Errorf("advance %v, want %v", adv, want)
 	}
-	if adv != 436 {
-		t.Errorf("advance %v, want 436", adv)
+	if adv != 429 {
+		t.Errorf("advance %v, want 429", adv)
 	}
 	ent, ok := lookup("c")
 	if !ok || ent.r != 'c' || ent.left != sideBowlC || ent.right != sideOpen {
@@ -69,7 +69,7 @@ func TestCAdvanceAndSides(t *testing.T) {
 	}
 	x0, _, x1, _ := path.BBox()
 	cWithin(t, "left side space", x0, p.CSideLeft, 0.01)
-	cWithin(t, "right side space", adv-x1, p.SideOpenRight, 0.01)
+	cWithin(t, "right side space", adv-x1, p.CSideRight, 0.01)
 	cWithin(t, "ink width", x1-x0, p.CBowlWidth, 0.01)
 	cWithin(t, "ink width, absolute", x1-x0, 388, 0.01)
 	// The advance is 0.727 to 0.888 of that of n.

@@ -38,14 +38,14 @@ func TestZAdvanceAndInk(t *testing.T) {
 	t.Parallel()
 	p := design.Regular()
 	path, adv := zGlyph(t, p)
-	tight(t, "advance", adv, 429)
+	tight(t, "advance", adv, 426)
 	tight(t, "advance from side spaces and body", adv, p.ZSideLeft+p.ZInk+p.ZSideRight)
 	if r := adv / design.NAdvance(p); r < 0.727 || r > 0.888 {
 		t.Errorf("z is %.3f of n wide, want 0.727 to 0.888", r)
 	}
-	// The width of 429 gives 0.794 of n.
-	if r := adv / design.NAdvance(p); math.Abs(r-0.799) > 0.01 {
-		t.Errorf("z is %.3f of n wide, want 0.799 within 0.01", r)
+	// The width of 426 gives 0.789 of n.
+	if r := adv / design.NAdvance(p); math.Abs(r-0.789) > 0.01 {
+		t.Errorf("z is %.3f of n wide, want 0.789 within 0.01", r)
 	}
 	x0, y0, x1, y1 := path.BBox()
 	tight(t, "left space", x0, p.ZSideLeft)

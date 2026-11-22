@@ -38,7 +38,7 @@ func TestYAdvanceAndUpperPart(t *testing.T) {
 	p := design.Regular()
 	path, adv := yGlyph(t, p)
 	v, vadv := vGlyph(t, p)
-	tight(t, "advance", adv, 505)
+	tight(t, "advance", adv, 508)
 	tight(t, "advance of y is that of v", adv, vadv)
 	if r := adv / vadv; r < 0.98 || r > 1.04 {
 		t.Errorf("y is %.3f of v wide, want 0.98 to 1.04", r)

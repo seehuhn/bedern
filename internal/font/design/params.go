@@ -501,11 +501,12 @@ type Params struct {
 	SideRoundLeft  float64
 	SideRoundRight float64
 	DSideRight     float64 // distance from the right edge of the stem of d to the edge of the advance
-	SideOpenRight  float64 // distance from the right extreme of a letter with an open right side (e) to the edge of the advance
-	BPSideLeft     float64 // distance from the edge of the advance to the left-hand edge of the stem of b and p: 4 less than SideStemLeft
+	SideOpenRight  float64 // distance from the right extreme of the bowl of e to the edge of the advance
+	BPSideLeft     float64 // distance from the edge of the advance to the left-hand edge of the stem of b and p
 	DQSideLeft     float64 // distance from the edge of the advance to the left extreme of the bowl of d and q
 	BPSideRight    float64 // distance from the right extreme of the bowl of b and p to the edge of the advance
 	CSideLeft      float64 // distance from the edge of the advance to the left extreme of c
+	CSideRight     float64 // distance from the rightmost ink of c, the tip of the lower terminal, to the edge of the advance
 	QStemTop       float64 // height of the flat top of the stem of q: the x-height
 	QSpur          float64 // height of the spur of q: how far the right-hand edge of the stem rises above QStemTop, before the top is cut obliquely down to the bowl
 	QSideRight     float64 // distance from the right-hand edge of the stem of q to the edge of the advance
@@ -624,12 +625,12 @@ func Regular() Params {
 		AArcReach:    20,
 		BallDiameter: 98,
 		BallStalk:    34,
-		ASideLeft:    30,
+		ASideLeft:    33,
 
 		ATailReach:     100,
 		ATailTipHeight: 85,
 		ATailTipThick:  36,
-		ATailSideRight: 3,
+		ATailSideRight: 0,
 
 		SSpineThick:    84,
 		SSpineAngle:    20,
@@ -646,8 +647,8 @@ func Regular() Params {
 		SBeakRun:       60,
 		SBeakArc:       40,
 		SSerifThick:    40,
-		SSideLeft:      22,
-		SSideRight:     23,
+		SSideLeft:      37,
+		SSideRight:     29,
 
 		MCounter: 189,
 
@@ -661,8 +662,8 @@ func Regular() Params {
 		RJoin:      322,
 		RReach:     206,
 		RFootRight: 80,
-		RSideLeft:  95,
-		RSideRight: 8,
+		RSideLeft:  94,
+		RSideRight: 7,
 
 		FFootRight: 80,
 		FOvershoot: 10,
@@ -671,7 +672,7 @@ func Regular() Params {
 		FReach:     160,
 		FBarLeft:   75,
 		FBarRight:  112,
-		FSideRight: 5,
+		FSideRight: 3,
 
 		TRise:      178,
 		TBarLeft:   88,
@@ -679,7 +680,7 @@ func Regular() Params {
 		TReach:     172,
 		TTipHeight: 110,
 		TTipThick:  36,
-		TSideRight: 6,
+		TSideRight: 3,
 
 		TObliqueDrop: 90,
 		TObliqueFlat: 18,
@@ -708,8 +709,8 @@ func Regular() Params {
 		GEarRise:        20,
 		GEarDrop:        42,
 		GEarThick:       26,
-		GSideLeft:       22,
-		GSideRight:      27,
+		GSideLeft:       20,
+		GSideRight:      18,
 
 		MaxOverhang: 60,
 
@@ -718,7 +719,7 @@ func Regular() Params {
 		DiagOverThick:  52,
 		DiagOverThin:   64,
 		DiagSideLeft:   17,
-		DiagSideRight:  8,
+		DiagSideRight:  11,
 		VInk:           480,
 		WInk:           684,
 		WStemCut:       5,
@@ -741,8 +742,8 @@ func Regular() Params {
 		ZDiag:            79,
 		ZInk:             396,
 		ZInkTop:          374,
-		ZSideLeft:        6,
-		ZSideRight:       27,
+		ZSideLeft:        12,
+		ZSideRight:       18,
 		ZUpperBeakHeight: 118,
 		ZUpperBeakThick:  36,
 		ZLowerBeakHeight: 115,
@@ -753,7 +754,7 @@ func Regular() Params {
 		KLegAngle:  35,
 		KJunction:  269,
 		KReach:     319,
-		KSideRight: 9,
+		KSideRight: 10,
 		KOverArm:   60,
 		KOverLeg:   50,
 
@@ -761,15 +762,16 @@ func Regular() Params {
 		SideStemRight:  90,
 		SideRoundLeft:  26,
 		SideRoundRight: 27,
-		DSideRight:     98,
+		DSideRight:     90,
 		BPSideLeft:     95,
-		DQSideLeft:     29,
-		BPSideRight:    33,
-		CSideLeft:      31,
-		QSideRight:     76,
+		DQSideLeft:     33,
+		BPSideRight:    38,
+		CSideLeft:      32,
+		CSideRight:     9,
+		QSideRight:     71,
 		QStemTop:       448,
 		QSpur:          10,
-		SideOpenRight:  17,
+		SideOpenRight:  25,
 		NCounter:       189,
 		OBowlWidth:     433,
 		NarrowSideCut:  0,

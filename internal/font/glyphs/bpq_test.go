@@ -114,11 +114,11 @@ func TestBPQAdvancesAndSides(t *testing.T) {
 		want        float64
 		sum         float64 // the advance as the sum of the side spaces and the body
 	}{
-		// 95 + 81 + 332 + 33.
-		{"b", 'b', sideStemBP, sideBowlBP, 541, p.BPSideLeft + p.Stem + p.BBowl.Width + p.BPSideRight},
-		{"p", 'p', sideStemBP, sideBowlBP, 541, p.BPSideLeft + p.Stem + p.PBowl.Width + p.BPSideRight},
-		// 29 + 338 + 81 + 76.
-		{"q", 'q', sideBowlDQ, sideStemQ, 524, p.DQSideLeft + p.QBowl.Width + p.Stem + p.QSideRight},
+		// 95 + 81 + 332 + 38.
+		{"b", 'b', sideStemBP, sideBowlBP, 546, p.BPSideLeft + p.Stem + p.BBowl.Width + p.BPSideRight},
+		{"p", 'p', sideStemBP, sideBowlBP, 546, p.BPSideLeft + p.Stem + p.PBowl.Width + p.BPSideRight},
+		// 33 + 338 + 81 + 71.
+		{"q", 'q', sideBowlDQ, sideStemQ, 523, p.DQSideLeft + p.QBowl.Width + p.Stem + p.QSideRight},
 	} {
 		_, adv := bpqGlyph(t, c.name, p)
 		if adv != c.want || adv != c.sum {
