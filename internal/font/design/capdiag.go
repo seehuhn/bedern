@@ -113,7 +113,7 @@ func regularCapDiag() CapDiag {
 		KOverArm:  70,
 
 		VertexFlat: 28, VertexDepth: 10,
-		ApexFlat: 28, ApexRise: 12,
+		ApexFlat: 28, ApexRise: 19,
 		WApexFlat: 30, WApexHeight: 679,
 		NFlat: 24, NDepth: 8, NJoin: 55,
 		MFlat: 24, MHeight: 36,

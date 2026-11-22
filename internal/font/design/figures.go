@@ -215,7 +215,7 @@ func regularFigures() Figures {
 		OneFlagLean:  32,
 		OneFlagJoin:  45,
 		OneFoot:      118,
-		OneRise:      10,
+		OneRise:      15,
 
 		TwoBowlLeft:   10,
 		TwoBowlMid:    420,

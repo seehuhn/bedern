@@ -14,7 +14,7 @@ import (
 var figureNames = []string{"zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"}
 
 // The flat tops (4, 5, 7) stand at one height, within half a unit, and the 1
-// rises to the round tops, up to one per cent of the height above them; the round
+// rises above the round tops, by at most twice their overshoot; the round
 // tops (0, 2, 3, 6, 8, 9) rise above them by 0.5 to 2 per cent of that height;
 // and the round bottoms (0, 3, 5, 6, 8, 9)
 // reach as far below the baseline as the bottom of O, within a unit, while the
@@ -32,11 +32,11 @@ func TestFigureHeightsAndOvershoots(t *testing.T) {
 				t.Errorf("%s: the top of %s is at %.1f, the top of 7 at %.1f", np.name, n, top, h)
 			}
 		}
-		// The 1 meets the line with the point of its flag where 7 has a full
-		// bar, and stands as high as the round tops or a little higher.
+		// The top of 1 is a point and overshoots the figure height by more than
+		// the round tops, by at most twice the overshoot of 0.
 		_, zero := box("zero")
-		if _, one := box("one"); one < zero-0.5 || one > zero+0.01*h {
-			t.Errorf("%s: the top of 1 is at %.1f, the round top of 0 at %.1f", np.name, one, zero)
+		if _, one := box("one"); one < zero+0.5 || one-h > 2*(zero-h)+0.5 {
+			t.Errorf("%s: the top of 1 is at %.1f above the figure height, the round top of 0 at %.1f; want more than 0 and at most twice as much", np.name, one-h, zero-h)
 		}
 		for _, n := range []string{"zero", "two", "three", "six", "eight", "nine"} {
 			if _, top := box(n); top-h < 0.005*h || top-h > 0.02*h {

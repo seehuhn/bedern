@@ -15,6 +15,20 @@ import (
 // pointed forms, the level tops, the weight of the strokes, the bar of A and the
 // straight underside of the arm of K.
 
+// The apex of A is a pointed top: it stands at or above the round top of O and at
+// most twice the overshoot of O above the cap height.
+func TestCapApexOvershootsMoreThanRound(t *testing.T) {
+	t.Parallel()
+	forCaps(t, func(t *testing.T, np namedParams) {
+		cap := capHeight(np)
+		_, _, _, ya := capOutline(np, "A").BBox()
+		_, _, _, yo := capOutline(np, "O").BBox()
+		if ya < yo-0.5 || ya-cap > 2*(yo-cap)+0.5 {
+			t.Errorf("the apex of A is %.1f above the cap height, the top of O %.1f; want at least as much and at most twice as much", ya-cap, yo-cap)
+		}
+	})
+}
+
 // The apex of A overshoots the cap height and the vertices of V, W and N overshoot the
 // baseline, each by at least 1 per cent of the cap height; the vertex of M stays
 // above the baseline; the flat tops of the other letters stand on the cap height.

@@ -16,7 +16,7 @@ func figuresUp(p *design.Params) {
 			f.Ink[i] += 20
 		}
 	}
-	f.OneFlag, f.OneFoot, f.OneFlagThick = 132, 124, 44
+	f.OneFlag, f.OneFoot, f.OneFlagThick, f.OneRise = 132, 124, 44, 18
 	f.TwoBowlMid, f.TwoShoulder, f.TwoRise, f.TwoDiagFoot = 445, 501, 95, 148
 	f.ThreeWaist, f.ThreeUpperWidth, f.ThreeUpperRight, f.ThreeUpperBowl = 362, 395, 395, 98
 	f.ThreeOpen, f.ThreeUpperBall = 66, 20
@@ -39,7 +39,7 @@ func figuresDown(p *design.Params) {
 		}
 	}
 	f.Ink[4] -= 2 // the ink of 4 is narrowed by 2 more
-	f.OneFlag, f.OneFoot, f.OneFlagThick = 118, 110, 34
+	f.OneFlag, f.OneFoot, f.OneFlagThick, f.OneRise = 118, 110, 34, 10
 	f.TwoBowlMid, f.TwoShoulder, f.TwoRise, f.TwoDiagFoot = 402, 458, 80, 126
 	f.ThreeWaist, f.ThreeUpperWidth, f.ThreeUpperRight, f.ThreeUpperBowl = 330, 380, 360, 80
 	f.FourBarLow, f.FourFoot = 162, 90
