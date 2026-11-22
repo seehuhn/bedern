@@ -161,6 +161,7 @@ func WApexNotch(p Params) float64 {
 type DiagBracket struct {
 	Reach, Obtuse, Acute float64
 	ReachAcute           float64 // the reach on the acute side
+	Rise                 float64 // the rise of the stem bracket above the face
 }
 
 // The bracket of a serif on a diagonal is that of the serif on a stem adapted to the
@@ -177,6 +178,15 @@ const (
 	DiagBracketReachMax   = 0.8
 )
 
+// Where the bracket on a diagonal meets the edge with zero curvature
+// (glyphs.fairBracket), the flat of the underside of the serif, between the tip
+// and the bracket, is at least DiagBracketFlatMin and at most DiagBracketFlatMax
+// long, and the reach gives way.
+const (
+	DiagBracketFlatMin = 16
+	DiagBracketFlatMax = 28
+)
+
 // diagBracketFor returns the bracket of the serifs on the diagonals for a stem
 // bracket of the height height and the reach reach on serifs of the thickness thick.
 func diagBracketFor(height, reach, thick float64) DiagBracket {
@@ -184,6 +194,7 @@ func diagBracketFor(height, reach, thick float64) DiagBracket {
 	return DiagBracket{
 		Reach: reach, Obtuse: DiagBracketObtuse * rise,
 		ReachAcute: DiagBracketReachAcute * reach, Acute: DiagBracketAcute * rise,
+		Rise: rise,
 	}
 }
 

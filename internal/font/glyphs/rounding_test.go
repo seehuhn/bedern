@@ -255,8 +255,7 @@ const shortSeg = 15.0
 // shortSegments lists, for the regular parameters, the glyphs which keep
 // segments shorter than shortSeg between two smooth nodes, and how many.
 var shortSegments = map[string]int{
-	"k": 1, "v": 2, "w": 2, "x": 2, "y": 2,
-	"A": 2, "V": 2, "W": 2, "Y": 2, "five": 1,
+	"five": 1,
 }
 
 // In the regular parameters no segment of the rounded outline between two

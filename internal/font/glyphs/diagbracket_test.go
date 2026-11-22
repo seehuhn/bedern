@@ -91,6 +91,28 @@ func parallel(a, b outline.Point) bool {
 	return math.Abs(a.X*b.Y-a.Y*b.X) < 1e-6 && a.X*b.X+a.Y*b.Y > 0
 }
 
+// bracketSeen is the distance from the straight edge beyond which a bracket on a
+// diagonal is measured: its run ends at the last point of the bracket which lies
+// this far from the line of the edge.
+const bracketSeen = 0.5
+
+// seenRun returns the run of the bracket r from the face of the serif at the height
+// face to the last point of it which lies bracketSeen or more from the line of the
+// edge through q in the direction edge.
+func (r bracketRun) seenRun(face float64, q, edge outline.Point) float64 {
+	var run float64
+	for _, c := range r.segs {
+		pc := curveSeg(c)
+		for k := 0; k <= 200; k++ {
+			a := pc.at(float64(k) / 200)
+			if math.Abs((a.X-q.X)*edge.Y-(a.Y-q.Y)*edge.X) >= bracketSeen {
+				run = math.Max(run, math.Abs(a.Y-face))
+			}
+		}
+	}
+	return run
+}
+
 // diagBracketBand is the band in which the run of a bracket on a diagonal, along
 // the edge from the face of the serif, lies as a multiple of the run of the bracket
 // on a stem of the same case: as generous on the obtuse side, where the corner is
@@ -99,9 +121,9 @@ func parallel(a, b outline.Point) bool {
 var diagBracketBand = [2]float64{0.9, 2.2}
 
 // The brackets of the serifs on the diagonals are tangent to the face of the serif
-// and to the edge, concave, and have a run within diagBracketBand of the bracket of
-// the stem, and on every diagonal letter the run on the obtuse side is longer than
-// that on the stem.
+// and to the edge, concave, and have a run (seenRun) within diagBracketBand of the
+// bracket of the stem, and on every diagonal letter the run on the obtuse side is
+// longer than that on the stem.
 func TestDiagonalBracketsAreThoseOfTheStem(t *testing.T) {
 	t.Parallel()
 	letters := []struct {
@@ -151,7 +173,7 @@ func TestDiagonalBracketsAreThoseOfTheStem(t *testing.T) {
 					if !r.concave() {
 						t.Errorf("%s: the bracket from %v to %v is not concave", l.name, r.start, r.end)
 					}
-					run := math.Abs(edgeEnd.Y - faceEnd.Y)
+					run := r.seenRun(faceEnd.Y, edgeEnd, edge)
 					if f := run / stemRun; f < diagBracketBand[0] || f > diagBracketBand[1] {
 						t.Errorf("%s: the bracket from %v runs %.1f from the face, %.2f of the %.1f of the stem bracket, want %v to %v",
 							l.name, faceEnd, run, f, stemRun, diagBracketBand[0], diagBracketBand[1])

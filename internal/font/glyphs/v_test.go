@@ -112,7 +112,7 @@ func TestVDiagonals(t *testing.T) {
 		t.Errorf("the thick diagonal leans %.3f and the thin %.3f, want the thick one to the right going down", thick.lean, thin.lean)
 	}
 	// Both are straight: the edges are lines between the serifs and the flat.
-	for _, span := range [][2]float64{{125, 355}, {-8, 110}} {
+	for _, span := range [][2]float64{{125, 328}, {-8, 110}} {
 		for _, e := range edgeSamples2(path, span[0], span[1], 12) {
 			if e > 1e-6 {
 				t.Errorf("an edge of v deviates from a straight line by %v between %v and %v", e, span[0], span[1])

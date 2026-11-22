@@ -27,7 +27,7 @@ import (
 // thickness of the capitals at the tip.
 func capDiagSerifs(p design.Params) (thick, thin diagSerif) {
 	d, b := p.CapDiag, design.CapDiagBracket(p)
-	return diagSerif{Over: d.OverThick, Thick: p.Caps.SerifThick, Bracket: b}, diagSerif{Over: d.OverThin, Thick: p.Caps.SerifThick, Bracket: b}
+	return diagSerif{Over: d.OverThick, Thick: p.Caps.SerifThick, Bracket: b, Fair: true}, diagSerif{Over: d.OverThin, Thick: p.Caps.SerifThick, Bracket: b, Fair: true}
 }
 
 // A thinStem is a thin vertical stem of the capitals, the stem of M and N on the

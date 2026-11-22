@@ -36,16 +36,21 @@ import (
 // the line from the edge to the tip, the tip is Thick thick, and the underside runs
 // flat from the tip and then into the edge along a bracket.  Over is the overhang,
 // the horizontal distance from the edge to the tip at the level of the underside.
-// The bracket is the bracket of a stem serif (footUp) adapted to the inclined
-// edge: one cubic in the corner between the underside and the edge, which leaves
-// the underside the reach of design.DiagBracket from the edge (Reach or
-// ReachAcute), tangent to it, and meets the edge, tangent to it, a vertical run
-// below the underside; each handle runs half-way to the corner, as those of the
-// stem bracket do.  The run is the longer Obtuse where the white corner between
-// the underside and the edge is obtuse (the edge leans away from the serif going
-// down) and the shorter Acute where it is acute.  On the acute side the curve
-// turns through the vertical and has an extreme in x; it is cut there
-// (splitAtExtrema) and the extreme is an on-curve point.
+// The bracket is of the family of the bracket of a stem serif (footUp), adapted to
+// the inclined edge.  The corner between the underside and the edge is obtuse where
+// the edge leans away from the serif going down and acute where it leans towards
+// it; on the acute side the bracket turns through the vertical and has an extreme
+// in x, which is an on-curve point.  In v, w, x, y, k and the diagonal capitals the
+// bracket is fairBracket: it leaves the underside the reach of design.DiagBracket
+// from the edge, tangent to it, and meets the edge, tangent to it and with a
+// curvature close to zero, a few times the rise of the stem bracket below the
+// underside, one cubic on the obtuse side and two on the acute side.  Its reach is
+// Reach on the obtuse side and ReachAcute on the acute side, lengthened or
+// shortened as far as the flat of the underside at the tip needs to be between
+// design.DiagBracketFlatMin and DiagBracketFlatMax long.  In the other letters which
+// carry such serifs the bracket is stemBracket: one cubic which meets the edge a
+// vertical run below the underside (Obtuse or Acute), with each handle half-way to
+// the corner, and the reach is at most design.DiagBracketReachMax of the overhang.
 //
 // A serif on the left-hand edge extends to the left and one on the right-hand
 // edge to the right.  headServif returns the chain from the point where the top
@@ -165,6 +170,86 @@ type diagSerif struct {
 	Over    float64            // the overhang at the level of the underside
 	Thick   float64            // the thickness at the tip
 	Bracket design.DiagBracket // the size of the bracket
+	Fair    bool               // the bracket is fairBracket (see above)
+}
+
+// The sizes of fairBracket: fairRunObtuse and fairRunAcute are the runs, the
+// distances below the underside at which the bracket meets the edge, as multiples
+// of the rise of the stem bracket; fairHandleObtuse is the place of the handle on
+// the edge on the obtuse side, as a fraction of the way from the corner to the end;
+// fairOffsetObtuse and fairOffsetAcute are the distances of the other handle from
+// the line of the edge, on the white side.
+const (
+	fairRunObtuse    = 2.5
+	fairRunAcute     = 2.2
+	fairHandleObtuse = 0.7
+	fairOffsetObtuse = 0.5
+	fairOffsetAcute  = 0.3
+)
+
+// stemBracket returns the bracket of the stem type from the point leave on the
+// underside to the point end on the edge, where corner is the point where the
+// underside meets the edge: one cubic with each handle half-way to the corner.
+func stemBracket(leave, corner, end outline.Point) cubic {
+	h := diagBracketHandle
+	return cubic{
+		P0: leave,
+		P1: outline.Point{X: leave.X + h*(corner.X-leave.X), Y: leave.Y},
+		P2: outline.Point{X: end.X + h*(corner.X-end.X), Y: end.Y + h*(corner.Y-end.Y)},
+		P3: end,
+	}
+}
+
+// fairBracket returns the bracket of a serif on the edge e of the diagonal d from
+// the point leave on the underside to the edge, where corner is the point where the
+// underside meets the edge, see the comment above.  On the obtuse side it is one
+// cubic from leave to the edge fairRunObtuse times rise below the underside, whose
+// first handle lies on the underside fairOffsetObtuse from the line of the edge and
+// whose second handle lies on the edge fairHandleObtuse of the way from the corner.
+// On the acute side it is two cubics which meet at the extreme X in x of the stem
+// bracket of the reach of leave and the run acute: the first from leave to X, with
+// each handle half-way to the corner of the underside and the vertical through X,
+// and the second from X to the edge fairRunAcute times rise below the underside,
+// whose first handle lies on the vertical through X fairOffsetAcute from the line
+// of the edge and whose second handle lies on the edge, placed so that the two
+// cubics have the same curvature at X.  Both brackets leave the underside tangent
+// to it and meet the edge tangent to it, with a curvature of less than 1/400.
+func (d diagonal) fairBracket(e edge, leave, corner outline.Point, acute bool, rise, run float64) chain {
+	under := leave.Y
+	if !acute {
+		end := d.edgeAt(e, under-fairRunObtuse*rise)
+		f := fairHandleObtuse
+		u, v := unit(corner, leave), unit(corner, end)
+		off := fairOffsetObtuse / math.Abs(u.X*v.Y-u.Y*v.X)
+		return splitAtExtrema(cubic{
+			P0: leave,
+			P1: outline.Point{X: corner.X + off*u.X, Y: corner.Y + off*u.Y},
+			P2: outline.Point{X: corner.X + f*(end.X-corner.X), Y: corner.Y + f*(end.Y-corner.Y)},
+			P3: end,
+		})
+	}
+	sb := stemBracket(leave, corner, d.edgeAt(e, under-run))
+	ts := outline.CubicExtrema(sb.P0.X, sb.P1.X, sb.P2.X, sb.P3.X)
+	if len(ts) == 0 {
+		panic("glyphs: the bracket on the acute side of a diagonal has no extreme")
+	}
+	x := sb.at(ts[0])
+	k := outline.Point{X: x.X, Y: under}
+	first := cubic{
+		P0: leave,
+		P1: outline.Point{X: (leave.X + k.X) / 2, Y: under},
+		P2: outline.Point{X: x.X, Y: (x.Y + under) / 2},
+		P3: x,
+	}
+	below := d.edgeAt(e, corner.Y+(x.X-corner.X)/d.Lean)
+	end := d.edgeAt(e, under-fairRunAcute*rise)
+	handle := outline.Point{X: below.X, Y: below.Y + fairOffsetAcute/math.Abs(unit(below, end).X)}
+	on := func(beta float64) cubic {
+		return cubic{P0: x, P1: handle, P2: outline.Point{X: below.X + beta*(end.X-below.X), Y: below.Y + beta*(end.Y-below.Y)}, P3: end}
+	}
+	k0, k1 := on(0).curvature(0), on(1).curvature(0)
+	second := on((first.curvature(1) - k0) / (k1 - k0))
+	return join(chain{curveSeg(first)}, splitAtExtrema(second))
 }
 
 // headServif returns the head serif on the edge e of the diagonal d, whose top is
@@ -177,25 +262,26 @@ func (d diagonal) headServif(e edge, top float64, s diagSerif) chain {
 	}
 	down := d.down()
 	run, reach := s.Bracket.Obtuse, s.Bracket.Reach
-	if side*down.X > 0 { // the edge goes down towards the serif: acute corner
+	acute := side*down.X > 0 // the edge goes down towards the serif
+	if acute {
 		run, reach = s.Bracket.Acute, s.Bracket.ReachAcute
 	}
-	reach = math.Min(reach, design.DiagBracketReachMax*s.Over)
+	if s.Fair {
+		reach = max(min(reach, s.Over-design.DiagBracketFlatMin), s.Over-design.DiagBracketFlatMax)
+	} else {
+		reach = math.Min(reach, design.DiagBracketReachMax*s.Over)
+	}
 	topPt := d.edgeAt(e, top)
 	under := top - s.Thick
 	corner := d.edgeAt(e, under)
 	tipLower := outline.Point{X: corner.X + side*s.Over, Y: under}
 	tipUpper := outline.Point{X: tipLower.X, Y: top}
 	leave := outline.Point{X: corner.X + side*reach, Y: under}
-	end := d.edgeAt(e, under-run)
-	br := cubic{
-		P0: leave,
-		P1: outline.Point{X: leave.X + diagBracketHandle*(corner.X-leave.X), Y: under},
-		P2: outline.Point{X: end.X + diagBracketHandle*(corner.X-end.X), Y: end.Y + diagBracketHandle*(corner.Y-end.Y)},
-		P3: end,
-	}
 	ch := chain{lineSeg(topPt, tipUpper), lineSeg(tipUpper, tipLower), lineSeg(tipLower, leave)}
-	return join(ch, splitAtExtrema(br))
+	if s.Fair {
+		return join(ch, d.fairBracket(e, leave, corner, acute, s.Bracket.Rise, run))
+	}
+	return join(ch, splitAtExtrema(stemBracket(leave, corner, d.edgeAt(e, under-run))))
 }
 
 // footServif returns the foot serif on the edge e of the diagonal d, whose foot is

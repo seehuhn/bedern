@@ -89,8 +89,8 @@ func TestKArmAndLeg(t *testing.T) {
 	p := design.Regular()
 	path, _ := kGlyph(t, p)
 	_, right := kStem(p)
-	arm := readDiagonals(t, path, 290, 355, 2)[1]
-	leg := readDiagonals(t, path, 90, 190, 2)[1]
+	arm := readDiagonals(t, path, 290, 328, 2)[1]
+	leg := readDiagonals(t, path, 120, 190, 2)[1]
 	tight(t, "arm thickness", arm.thick(), p.Hair)
 	tight(t, "arm is 36", arm.thick(), 36)
 	tight(t, "arm angle", arm.angle(), 47)
@@ -108,7 +108,7 @@ func TestKArmAndLeg(t *testing.T) {
 	}
 	// The centre lines of the arm and of the leg meet at the junction height, at
 	// the distance from the stem which design.KJunctionX gives.
-	yJ := 290 + (leg.centreAt(90, 290)-arm.centreAt(290, 290))/(arm.lean-leg.lean)
+	yJ := 290 + (leg.centreAt(120, 290)-arm.centreAt(290, 290))/(arm.lean-leg.lean)
 	tight(t, "height of the junction", yJ, p.KJunction)
 	tight(t, "height of the junction is 269", yJ, 269)
 	xJ := arm.centreAt(290, yJ)
@@ -124,7 +124,7 @@ func TestKArmAndLeg(t *testing.T) {
 	if r := yS / p.XHeight; r < 0.366 || r > 0.540 {
 		t.Errorf("the arm meets the stem at %.3f of the x-height, want 0.366 to 0.540", r)
 	}
-	for _, span := range [][2]float64{{290, 355}, {90, 190}} {
+	for _, span := range [][2]float64{{290, 328}, {120, 190}} {
 		for _, e := range edgeSamples2(path, span[0], span[1], 12) {
 			if e > 1e-6 {
 				t.Errorf("an edge of k deviates from a straight line by %v between %v and %v", e, span[0], span[1])
@@ -153,8 +153,8 @@ func TestKJunctionGeometry(t *testing.T) {
 		}
 	}
 	// The corners.
-	arm := readDiagonals(t, path, 290, 355, 2)[1]
-	leg := readDiagonals(t, path, 90, 190, 2)[1]
+	arm := readDiagonals(t, path, 290, 328, 2)[1]
+	leg := readDiagonals(t, path, 120, 190, 2)[1]
 	line := func(x, y0, lean float64) [2]float64 { return [2]float64{x - lean*y0, lean} }
 	meet := func(a, b [2]float64) outline.Point {
 		y := (b[0] - a[0]) / (a[1] - b[1])
@@ -162,8 +162,8 @@ func TestKJunctionGeometry(t *testing.T) {
 	}
 	armLower := line(arm.right, 290, arm.lean)
 	armUpper := line(arm.left, 290, arm.lean)
-	legLeft := line(leg.left, 90, leg.lean)
-	legRight := line(leg.right, 90, leg.lean)
+	legLeft := line(leg.left, 120, leg.lean)
+	legRight := line(leg.right, 120, leg.lean)
 	stem := [2]float64{right, 0}
 	corners := []struct {
 		name   string

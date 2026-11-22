@@ -32,8 +32,8 @@ import (
 // diagSerifs returns the head serifs of the diagonal letters: the outer one and
 // the inner one.
 func diagSerifs(p design.Params) (thick, thin diagSerif) {
-	thick = diagSerif{Over: p.DiagOverThick, Thick: p.SerifThick, Bracket: design.LowerDiagBracket(p)}
-	thin = diagSerif{Over: p.DiagOverThin, Thick: p.SerifThick, Bracket: design.LowerDiagBracket(p)}
+	thick = diagSerif{Over: p.DiagOverThick, Thick: p.SerifThick, Bracket: design.LowerDiagBracket(p), Fair: true}
+	thin = diagSerif{Over: p.DiagOverThin, Thick: p.SerifThick, Bracket: design.LowerDiagBracket(p), Fair: true}
 	return thick, thin
 }
 

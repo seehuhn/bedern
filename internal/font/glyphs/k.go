@@ -78,8 +78,8 @@ func k(p design.Params) (outline.Path, float64) {
 	p1, p0 := atStem(edgeRight), atStem(edgeLeft)
 	p2 := edgeMeet(arm, edgeRight, leg, edgeLeft)
 	q := edgeMeet(arm, edgeRight, leg, edgeRight)
-	sArm := diagSerif{Over: p.KOverArm, Thick: p.SerifThick, Bracket: design.LowerDiagBracket(p)}
-	sLeg := diagSerif{Over: p.KOverLeg, Thick: p.SerifThick, Bracket: design.LowerDiagBracket(p)}
+	sArm := diagSerif{Over: p.KOverArm, Thick: p.SerifThick, Bracket: design.LowerDiagBracket(p), Fair: true}
+	sLeg := diagSerif{Over: p.KOverLeg, Thick: p.SerifThick, Bracket: design.LowerDiagBracket(p), Fair: true}
 	armOut := arm.headServif(edgeRight, p.XHeight, sArm)
 	armIn := arm.headServif(edgeLeft, p.XHeight, sArm)
 	legIn := leg.footServif(edgeLeft, 0, sLeg)

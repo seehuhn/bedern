@@ -57,8 +57,8 @@ func xDiagonals(p design.Params) (thick, thinUpper, thinLower diagonal) {
 func x(p design.Params) (outline.Path, float64) {
 	thick, thinU, thinL := xDiagonals(p)
 	top := p.XHeight
-	sThick := diagSerif{Over: p.XOverThick, Thick: p.SerifThick, Bracket: design.LowerDiagBracket(p)}
-	sThin := diagSerif{Over: p.XOverThin, Thick: p.SerifThick, Bracket: design.LowerDiagBracket(p)}
+	sThick := diagSerif{Over: p.XOverThick, Thick: p.SerifThick, Bracket: design.LowerDiagBracket(p), Fair: true}
+	sThin := diagSerif{Over: p.XOverThin, Thick: p.SerifThick, Bracket: design.LowerDiagBracket(p), Fair: true}
 	outL := thick.headServif(edgeLeft, top, sThick)
 	inL := thick.headServif(edgeRight, top, sThick)
 	inR := thinU.headServif(edgeLeft, top, sThin)

@@ -4,6 +4,7 @@
 package glyphs
 
 import (
+	"fmt"
 	"math"
 
 	"seehuhn.de/go/bedern/internal/font/design"
@@ -25,6 +26,9 @@ import (
 // heights YOuterDrop and YInnerDrop above the lowest point; there both edges leave
 // the diagonal in its direction and are each one cubic curve to the section of the
 // terminal, with the handle at the diagonal which makes them fairest (yTail).  The
+// inner edge leaves the diagonal without curvature: over the first stemRamp degrees
+// of its turn it is a transition curve (straightFoot) from the straight diagonal
+// into that cubic, as the edges of f and r leave their stems (windHook).  The
 // terminal is turned as that of j (yBallAngle); its lowest ink lies YDepth below the
 // baseline and its leftmost ink YReach left of the left-hand edge of the diagonal at
 // that depth (yTerminal).  The tail is one round sweep, down the diagonal, round
@@ -70,18 +74,26 @@ func yHook(p design.Params) hookSpec {
 }
 
 // yTail returns the tail as one chain with the ball terminal tb, from the left-hand
-// edge of the thin diagonal, YInnerDrop above the lowest point, along the inner
-// edge, round the ball and back along the outer edge to the right-hand edge of the
-// diagonal, YOuterDrop above the lowest point.  Both edges leave the diagonal in its
-// direction.
+// edge of the thin diagonal, where the transition curve leaves it a little above the
+// point YInnerDrop above the lowest point, along the inner edge, round the ball and
+// back along the outer edge to the right-hand edge of the diagonal, YOuterDrop above
+// the lowest point.  Both edges leave the diagonal in its direction.
 func yTail(p design.Params, tb placedBall) chain {
 	h := yHook(p)
 	r, d := yFrame(p).Right, yFrame(p).Right.down()
 	dn := math.Atan2(d.Y, d.X)
-	return stalkChain("y",
-		footRising(r.edgeAt(edgeLeft, -h.InnerJoin), dn),
-		tb,
-		footAt(r.edgeAt(edgeRight, -h.OuterJoin), dn+math.Pi))
+	in := footRising(r.edgeAt(edgeLeft, -h.InnerJoin), dn)
+	a, err := edgeIn(in, tb.In)
+	if err != nil {
+		panic(fmt.Sprintf("glyphs: glyph y: the edge into the ball terminal: %v", err))
+	}
+	u := tTurned(a, 0, stemRamp)
+	ramp := straightFoot(a.at(u), neg(a.tangent(u)), -a.curvature(u), in.At, neg(in.Dir)).reversed()
+	b, err := edgeOut(tb.Out, footAt(r.edgeAt(edgeRight, -h.OuterJoin), dn+math.Pi))
+	if err != nil {
+		panic(fmt.Sprintf("glyphs: glyph y: the edge out of the ball terminal: %v", err))
+	}
+	return join(chain{curveSeg(ramp)}, splitAtExtrema(a.sub(u, 1)), tb.Chain, splitAtExtrema(b))
 }
 
 // yTerminal returns the ball terminal of y: its leftmost ink YReach left of the

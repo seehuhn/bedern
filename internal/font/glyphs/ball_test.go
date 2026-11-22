@@ -510,8 +510,9 @@ func slidingTurns(pts []outline.Point, s []float64, window float64) (least float
 // the contour, in the order along the contour: the inner edge from the point where
 // it leaves the stem, stroke or o to the tip of the wedge, and the outer edge from
 // the point where it leaves the circle of the ball to the point where it meets the
-// stem (on c: the top extreme of the o, which the outer edge of the stalk continues).
-// On a the contour runs the other way: the outer edge from the stem to the circle,
+// stem (on c: the top extreme of the o, which the outer edge of the stalk continues;
+// on y the inner edge from the end of the transition curve by which it leaves the
+// diagonal).  On a the contour runs the other way: the outer edge from the stem to the circle,
 // and the inner edge from the tip to the stem; the runs are given in the order of
 // the contour.
 func stalkEdges(p design.Params, letter string) (inner, outer [2]outline.Point) {
@@ -532,7 +533,7 @@ func stalkEdges(p design.Params, letter string) (inner, outer [2]outline.Point) 
 		return [2]outline.Point{pt(s.Left, -h.InnerJoin), tb.Tip}, [2]outline.Point{tb.Tangent, pt(s.right(), -h.OuterJoin)}
 	case "y":
 		h, r := yHook(p), yFrame(p).Right
-		return [2]outline.Point{r.edgeAt(edgeLeft, -h.InnerJoin), tb.Tip}, [2]outline.Point{tb.Tangent, r.edgeAt(edgeRight, -h.OuterJoin)}
+		return [2]outline.Point{yTail(p, tb)[0].P3, tb.Tip}, [2]outline.Point{tb.Tangent, r.edgeAt(edgeRight, -h.OuterJoin)}
 	}
 	panic("stalkEdges: " + letter)
 }

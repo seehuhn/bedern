@@ -38,7 +38,7 @@ func xGlyph(t *testing.T, p design.Params) (outline.Path, float64) {
 // the thick one.
 func xReadings(t *testing.T, path outline.Path) (upper, lower []diagReading) {
 	t.Helper()
-	return readDiagonals(t, path, 300, 355, 2), readDiagonals(t, path, 90, 165, 2)
+	return readDiagonals(t, path, 300, 328, 2), readDiagonals(t, path, 120, 165, 2)
 }
 
 // centreAt returns the position of the centre line of the reading, taken at y0, at
@@ -141,10 +141,10 @@ func TestXDiagonals(t *testing.T) {
 	}
 	// The thick diagonal is one straight stroke through the crossing: its two
 	// halves lie on one line.
-	tight(t, "thick halves, centre line at the crossing", thickL.centreAt(90, p.XCross), thickU.centreAt(300, p.XCross))
+	tight(t, "thick halves, centre line at the crossing", thickL.centreAt(120, p.XCross), thickU.centreAt(300, p.XCross))
 	tight(t, "thick halves, lean", thickL.lean, thickU.lean)
 	// All edges are straight lines between the serifs and the crossing.
-	for _, span := range [][2]float64{{300, 355}, {90, 165}} {
+	for _, span := range [][2]float64{{300, 328}, {120, 165}} {
 		for _, e := range edgeSamples2(path, span[0], span[1], 12) {
 			if e > 1e-6 {
 				t.Errorf("an edge of x deviates from a straight line by %v between %v and %v", e, span[0], span[1])
@@ -164,7 +164,7 @@ func TestXThinHalvesAndCrossing(t *testing.T) {
 	thickU, thinU := up[0], up[1]
 	thinL, thickL := lo[0], lo[1]
 	tight(t, "the halves of the thin stroke are parallel", thinL.lean, thinU.lean)
-	off := thinL.centreAt(90, p.XCross) - thinU.centreAt(300, p.XCross)
+	off := thinL.centreAt(120, p.XCross) - thinU.centreAt(300, p.XCross)
 	tight(t, "offset of the lower half at the crossing", off, p.XThinOffset)
 	tight(t, "offset is -5", off, -5)
 	// The centre lines of the upper halves cross at XCross; those of the lower halves
@@ -175,7 +175,7 @@ func TestXThinHalvesAndCrossing(t *testing.T) {
 	}
 	yu := cross(thickU.centreAt(300, 300), thinU.centreAt(300, 300), thickU.lean, thinU.lean)
 	tight(t, "the upper halves cross at", yu, p.XCross)
-	yl := 90 + (thinL.centreAt(90, 90)-thickL.centreAt(90, 90))/(thickL.lean-thinL.lean)
+	yl := 120 + (thinL.centreAt(120, 120)-thickL.centreAt(120, 120))/(thickL.lean-thinL.lean)
 	want := p.XCross - p.XThinOffset/(design.XLeanThick(p)+design.XLeanThin(p))
 	tight(t, "the lower halves cross at", yl, want)
 	if r := (yu + yl) / 2 / (p.XHeight / 2); r < 1.00 || r > 1.11 {
@@ -210,8 +210,8 @@ func TestXInnerCornersAreSharp(t *testing.T) {
 		// (right notch) and above (top notch); the lower half meets the left-hand edge.
 		"top":    meet(e(up[0], 300, true), e(up[1], 300, false)),
 		"right":  meet(e(up[0], 300, true), e(up[1], 300, true)),
-		"bottom": meet(e(lo[1], 90, false), e(lo[0], 90, true)),
-		"left":   meet(e(lo[1], 90, false), e(lo[0], 90, false)),
+		"bottom": meet(e(lo[1], 120, false), e(lo[0], 120, true)),
+		"left":   meet(e(lo[1], 120, false), e(lo[0], 120, false)),
 	}
 	ct := path[0]
 	nodes := contourNodes(ct)
@@ -227,10 +227,14 @@ func TestXInnerCornersAreSharp(t *testing.T) {
 			t.Errorf("the %s corner of the crossing is not an inner corner (turn %.1f)", name, cross)
 		}
 	}
-	// Exactly four inner corners lie in the middle of the letter.
+	// Exactly four inner corners between two straight segments lie in the middle
+	// of the letter.
 	inner := 0
 	for i := 0; i < n; i++ {
 		a, b, c := nodes[(i+n-1)%n], nodes[i], nodes[i+1]
+		if ct.Segs[(i+n-1)%n].IsCurve || ct.Segs[i%n].IsCurve {
+			continue
+		}
 		if cross := (b.X-a.X)*(c.Y-b.Y) - (b.Y-a.Y)*(c.X-b.X); cross < 0 && b.Y > 100 && b.Y < 350 {
 			inner++
 		}

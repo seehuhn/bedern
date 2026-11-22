@@ -43,8 +43,8 @@ func capK(p design.Params) (outline.Path, float64) {
 	p1, p0 := atStem(edgeRight), atStem(edgeLeft)
 	p2 := edgeMeet(arm, edgeRight, leg, edgeLeft)
 	q := edgeMeet(arm, edgeRight, leg, edgeRight)
-	sArm := diagSerif{Over: d.KOverArm, Thick: p.Caps.SerifThick, Bracket: design.CapDiagBracket(p)}
-	sLeg := diagSerif{Over: d.KOverLeg, Thick: p.Caps.SerifThick, Bracket: design.CapDiagBracket(p)}
+	sArm := diagSerif{Over: d.KOverArm, Thick: p.Caps.SerifThick, Bracket: design.CapDiagBracket(p), Fair: true}
+	sLeg := diagSerif{Over: d.KOverLeg, Thick: p.Caps.SerifThick, Bracket: design.CapDiagBracket(p), Fair: true}
 	armOut := arm.headServif(edgeRight, p.CapHeight, sArm)
 	armIn := arm.headServif(edgeLeft, p.CapHeight, sArm)
 	legIn := leg.footServif(edgeLeft, 0, sLeg)
