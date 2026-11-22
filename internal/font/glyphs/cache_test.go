@@ -15,8 +15,9 @@ import (
 // A glyph is built once per test binary and shared.  The cache is keyed by the
 // glyph name and the value of the parameters, is filled when a glyph is first
 // asked for, and is safe for parallel tests.
-// The paths which cachedOutline and cachedRounded return are shared and must
-// not be changed by the tests; outlineOf and setOf return copies.
+// The paths which cachedOutline, cachedMerged and cachedRounded return are
+// shared and must not be changed by the tests; outlineOf and setOf return
+// copies.
 
 type buildKey struct {
 	glyph  string
@@ -32,6 +33,9 @@ type builtGlyph struct {
 
 	roundOnce sync.Once
 	rounded   outline.Path
+
+	mergeOnce sync.Once
+	merged    outline.Path
 }
 
 // gate bounds the goroutines which a test starts itself.
@@ -65,6 +69,13 @@ func built(glyph string, p design.Params) *builtGlyph {
 func (b *builtGlyph) roundedPath() outline.Path {
 	b.roundOnce.Do(func() { b.rounded = b.path.Round() })
 	return b.rounded
+}
+
+// mergedPath returns the outline of the shared build with its short segments
+// merged as the rounding merges them (outline.Path.Merged).
+func (b *builtGlyph) mergedPath() outline.Path {
+	b.mergeOnce.Do(func() { b.merged = b.path.Merged() })
+	return b.merged
 }
 
 // clonePath returns a deep copy of the path.
@@ -109,6 +120,13 @@ func setOf(p design.Params) []Glyph {
 func cachedOutline(np namedParams, glyph string) (outline.Path, float64) {
 	b := built(glyph, np.params)
 	return b.path, b.advance
+}
+
+// cachedMerged returns the unrounded outline of the glyph in the parameter set
+// np with its short segments merged, which has the segments of the rounded
+// outline.  The path is shared and must not be changed.
+func cachedMerged(np namedParams, glyph string) outline.Path {
+	return built(glyph, np.params).mergedPath()
 }
 
 // cachedRounded returns the glyph of Set(np.params) with the given name.  The

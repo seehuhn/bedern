@@ -23,7 +23,7 @@ v-w-y-up Q 746 4bcc88307ed4
 v-w-y-down Q 746 4bcc88307ed4
 x-z-k-up Q 746 4bcc88307ed4
 x-z-k-down Q 746 4bcc88307ed4
-caps-up Q 780 7907292d0a27
-caps-down Q 710 e1156194ffb3
+caps-up Q 780 5487537f3258
+caps-down Q 710 4af2a92ecdc4
 punct-up Q 746 4bcc88307ed4
 punct-down Q 746 4bcc88307ed4

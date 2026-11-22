@@ -135,14 +135,7 @@ func roundTerminal(name string, b ballPart, outer, inner cubic, right float64, h
 	for aA > aW+2*math.Pi {
 		aA -= 2 * math.Pi
 	}
-	var ball chain
-	for i, pc := range arcPieces(tb.Centre, b.R, aW, aA) {
-		if i == 0 {
-			ball = append(ball, splitPart(pc.cubic)...)
-		} else {
-			ball = append(ball, splitAtExtrema(pc.cubic)...)
-		}
-	}
+	ball := circleArc(tb.Centre, b.R, aW, aA, 0)
 	ball[len(ball)-1].P3 = wind.start()
 
 	c := join(in, ball, wind)

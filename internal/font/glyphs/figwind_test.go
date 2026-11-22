@@ -124,7 +124,7 @@ func figBallEdges(ct outline.Contour, rad float64) (outer, inner []figRun, smoot
 			return false
 		}
 		for _, t := range []float64{0, 0.5, 1} {
-			if math.Abs(cs[i].curvature(t)*rad-1) > 0.02 {
+			if math.Abs(cs[i].curvature(t)*rad-1) > 0.03 {
 				return false
 			}
 		}

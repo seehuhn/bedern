@@ -6,7 +6,6 @@ package glyphs
 import (
 	"fmt"
 	"math"
-	"sort"
 	"sync"
 
 	"seehuhn.de/go/bedern/internal/font/design"
@@ -41,9 +40,11 @@ import (
 // direction and its curvature; from there the outer edge is the arc of the
 // outer circle back to S.  The outer edge passes from the stalk into the ball
 // without a corner and without a jump of the curvature, and the far side of the
-// ball continues it.  The ball is a circle drawn as cubic arcs of at most a
-// quarter turn, cut at its extremes; its centre lies on the integer grid where
-// the letter allows it (snapped).
+// ball continues it.  The ball is a circle drawn as cubic arcs with the handles
+// of a circular arc, which have their nodes at the extremes of the circle in the
+// glyph and where another edge joins it, except an extreme within arcMinPiece of
+// such a join which the arc passes by less than arcMaxOvershoot; its centre lies
+// on the integer grid where the letter allows it (snapped).
 //
 // The constants.  The ball has the diameter BallDiameter (98, 1.21 times the stem
 // of 81) and the stalk the thickness BallStalk (34, 0.42 stem) at the section;
@@ -378,12 +379,55 @@ func arcPieces(c outline.Point, r, a0, a1 float64) chain {
 	return ch
 }
 
-// chainInFrame returns the part as a chain in its own frame: from the section on
-// the inner edge to the section on the outer edge.
-func (b ballPart) chainInFrame() chain {
-	in := arcPieces(b.C, b.Ri, b.PhiS, b.PhiW)
-	ball := arcPieces(outline.Point{}, b.R, b.BallW, b.Alpha+2*math.Pi)
-	return join(in, ball, chain{curveSeg(b.Blend)}, arcPieces(b.C, b.Ro, b.PhiT, b.PhiS))
+// partsInFrame returns the part in its own frame in three chains: the inner
+// edge from the section to the tip of the wedge, the circle of the ball, cut at
+// the directions phase plus a multiple of a quarter turn (circleArc), and the
+// outer edge back to the section.
+func (b ballPart) partsInFrame(phase float64) (in, ball, rest chain) {
+	in = arcPieces(b.C, b.Ri, b.PhiS, b.PhiW)
+	ball = circleArc(outline.Point{}, b.R, b.BallW, b.Alpha+2*math.Pi, phase)
+	rest = join(chain{curveSeg(b.Blend)}, arcPieces(b.C, b.Ro, b.PhiT, b.PhiS))
+	return in, ball, rest
+}
+
+// circleArc returns the arc of the circle about c of the radius r from the
+// direction a0 counter-clockwise to the direction a1 > a0 (radians), cut at the
+// directions phase + k/4 turn for integers k.  A cut whose arc to an end of the
+// arc is shorter than arcMinPiece and which lies less than arcMaxOvershoot
+// beyond that end is left out.  Each piece has the handles of a circular arc.
+func circleArc(c outline.Point, r, a0, a1, phase float64) chain {
+	keep := func(a, end float64) bool {
+		d := math.Abs(a - end)
+		return r*d >= arcMinPiece || r*(1-math.Cos(d)) >= arcMaxOvershoot
+	}
+	cuts := []float64{a0}
+	for k := math.Floor((a0-phase)/(math.Pi/2)) + 1; ; k++ {
+		a := phase + k*math.Pi/2
+		if a >= a1-1e-9 {
+			break
+		}
+		if a > a0+1e-9 && keep(a, a0) && keep(a, a1) {
+			cuts = append(cuts, a)
+		}
+	}
+	cuts = append(cuts, a1)
+	var ch chain
+	for i := 1; i < len(cuts); i++ {
+		ch = append(ch, curveSeg(arcCubic(c, r, cuts[i-1], cuts[i])))
+	}
+	return ch
+}
+
+// arcCubic returns the arc of the circle about c of the radius r from the
+// direction a0 to the direction a1 (radians) as one cubic curve.
+func arcCubic(c outline.Point, r, a0, a1 float64) cubic {
+	on := func(a float64) outline.Point { return outline.Point{X: c.X + r*math.Cos(a), Y: c.Y + r*math.Sin(a)} }
+	k := 4.0 / 3 * math.Tan((a1-a0)/4) * r
+	pa, pe := on(a0), on(a1)
+	return cubic{pa,
+		outline.Point{X: pa.X - k*math.Sin(a0), Y: pa.Y + k*math.Cos(a0)},
+		outline.Point{X: pe.X + k*math.Sin(a1), Y: pe.Y - k*math.Cos(a1)},
+		pe}
 }
 
 // A ballPlace says where a letter puts the part: the centre of the ball, the angle
@@ -435,19 +479,28 @@ type placedBall struct {
 	Tangent outline.Point // the point A, where the outer edge runs into the circle
 }
 
-// place puts the part into a letter.  The chain is cut at its extremes, which
-// are on-curve points, and the piece of the ball which starts at the tip of the
-// wedge is cut by splitPart.
+// place puts the part into a letter.  The edges of the stalk are cut at their
+// extremes, which are on-curve points, and the circle of the ball is cut at the
+// extremes of the glyph (circleArc).
 func (b ballPart) place(pl ballPlace) placedBall {
-	raw := pl.mapChain(b.chainInFrame())
-	var ch chain
-	for _, pc := range raw {
-		if isTip(pc.P0, pl.point(b.W)) {
-			ch = append(ch, splitPart(pc.cubic)...)
-		} else {
-			ch = append(ch, splitAtExtrema(pc.cubic)...)
-		}
+	phase := -pl.Angle
+	if pl.Mirror {
+		phase = pl.Angle
 	}
+	in, ball, rest := b.partsInFrame(phase)
+	split := func(c chain) chain {
+		var out chain
+		for _, pc := range pl.mapChain(c) {
+			out = append(out, splitAtExtrema(pc.cubic)...)
+		}
+		return out
+	}
+	parts := []chain{split(in), pl.mapChain(ball), split(rest)}
+	if pl.Mirror {
+		parts[0], parts[2] = parts[2], parts[0]
+	}
+	ch := join(parts...)
+	raw := pl.mapChain(join(in, ball, rest))
 	first, last := raw[0].cubic, raw[len(raw)-1].cubic
 	return placedBall{
 		Part: b, Place: pl, Chain: ch,
@@ -781,52 +834,11 @@ func oneWay(c cubic, sign float64) bool {
 	return math.Abs(turn) < math.Pi
 }
 
-// splitPart returns the curve cut at its extremes in x and y, as splitAtExtrema
-// does, except at an extreme which lies less than splitMinPiece from an end of the
-// curve and beyond that end by less than splitMaxOvershoot: that extreme stays
-// between the nodes.
-func splitPart(c cubic) chain {
-	var ts []float64
-	for axis := 0; axis < 2; axis++ {
-		get := func(q outline.Point) float64 {
-			if axis == 0 {
-				return q.X
-			}
-			return q.Y
-		}
-		for _, t := range outline.CubicExtrema(get(c.P0), get(c.P1), get(c.P2), get(c.P3)) {
-			if t <= 1e-6 || t >= 1-1e-6 {
-				continue
-			}
-			q := c.at(t)
-			d0, d1 := math.Hypot(q.X-c.P0.X, q.Y-c.P0.Y), math.Hypot(q.X-c.P3.X, q.Y-c.P3.Y)
-			over := math.Min(math.Abs(get(q)-get(c.P0)), math.Abs(get(q)-get(c.P3)))
-			if math.Min(d0, d1) < splitMinPiece && over < splitMaxOvershoot {
-				continue
-			}
-			if d0 >= 1 && d1 >= 1 {
-				ts = append(ts, t)
-			}
-		}
-	}
-	sort.Float64s(ts)
-	var ch chain
-	prev := 0.0
-	for _, t := range append(ts, 1) {
-		if t-prev < 1e-6 {
-			continue
-		}
-		ch = append(ch, curveSeg(c.sub(prev, t)))
-		prev = t
-	}
-	return ch
-}
-
 // isTip reports whether q is the tip of the wedge w.
 func isTip(q, w outline.Point) bool { return math.Hypot(q.X-w.X, q.Y-w.Y) < 1e-6 }
 
-// splitMinPiece and splitMaxOvershoot are the limits of splitPart.
+// arcMinPiece and arcMaxOvershoot are the limits of circleArc.
 const (
-	splitMinPiece     = 8.0
-	splitMaxOvershoot = 0.3
+	arcMinPiece     = 8.0
+	arcMaxOvershoot = 0.3
 )

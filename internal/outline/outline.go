@@ -189,21 +189,6 @@ func (p Path) BBox() (x0, y0, x1, y1 float64) {
 	return
 }
 
-// Round returns a copy of the path with all coordinates rounded to integers.
-// Halves are rounded away from zero.
-func (p Path) Round() Path {
-	r := func(q Point) Point { return Point{math.Round(q.X), math.Round(q.Y)} }
-	out := make(Path, len(p))
-	for i, c := range p {
-		out[i].Start = r(c.Start)
-		out[i].Segs = make([]Segment, len(c.Segs))
-		for j, s := range c.Segs {
-			out[i].Segs[j] = Segment{IsCurve: s.IsCurve, P1: r(s.P1), P2: r(s.P2), P3: r(s.P3)}
-		}
-	}
-	return out
-}
-
 // segEps is the distance below which SelfIntersections treats a point as
 // lying on a line.
 const segEps = 1e-9

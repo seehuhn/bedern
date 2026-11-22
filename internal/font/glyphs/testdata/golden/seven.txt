@@ -23,7 +23,7 @@ v-w-y-up seven 490 9c59a230130d
 v-w-y-down seven 490 9c59a230130d
 x-z-k-up seven 490 9c59a230130d
 x-z-k-down seven 490 9c59a230130d
-caps-up seven 515 c3abf346d2e2
-caps-down seven 470 2d969dada935
+caps-up seven 515 ff771df86bad
+caps-down seven 470 9b44b9313b88
 punct-up seven 490 9c59a230130d
 punct-down seven 490 9c59a230130d
