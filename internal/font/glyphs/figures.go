@@ -56,6 +56,89 @@ func figBall(p design.Params) ballPart {
 // figures: the stalk of the lowercase scaled with the ball.
 func figStalk(p design.Params) float64 { return p.BallStalk * p.Figures.Ball / p.BallDiameter }
 
+// curlBall returns the ball terminal of the curled end of 6 and 9: the
+// part of the lowercase, Figures.Ball across on the stalk Figures.CurlStalk.
+func curlBall(p design.Params) ballPart {
+	b, err := makeBallPart(p.Figures.Ball/2, p.Figures.CurlStalk, ballCurl, ballSection, ballBlend)
+	if err != nil {
+		panic(fmt.Sprintf("glyphs: figures: %v; glyphs.Check reports such parameters", err))
+	}
+	return b
+}
+
+// curlTerminal returns, in the frame of c, the curled end of a round stroke in
+// the ball terminal of 6 and 9.  The curves outer and inner are as for
+// roundTerminal.  The ball has its centre at centre.  The outer edge is the
+// spiral (windSpiral) from the top of the round, or from the point of the hook
+// which how names, into the circle of the ball, and the part is turned so that
+// the tip of its wedge lies Figures.CurlNeck from the outer edge (curlTip).  The
+// inner edge runs as how says to the tip.  The chain runs as that of roundTerminal.
+func curlTerminal(name string, p design.Params, outer, inner cubic, centre outline.Point, how figStroke) chain {
+	b := curlBall(p)
+	start := 1.0
+	if how.Hook {
+		start = tAtFall(outer, how.Fall)
+	}
+	t0 := outer.tangent(start)
+	q0, phi0, k0 := outer.at(start), math.Atan2(-t0.Y, -t0.X), outer.curvature(start)
+	w, err := newWindSpiral(q0, phi0, k0, centre, b.R)
+	if err != nil {
+		panic(fmt.Sprintf("glyphs: glyph %s: %v; glyphs.Check reports such parameters", name, err))
+	}
+	tip := curlTip(name, w, centre, b.R, p.Figures.CurlNeck)
+	tb := b.place(ballPlace{Centre: centre, Angle: tip - b.BallW})
+
+	var in chain
+	switch {
+	case how.Arch:
+		in = archToTip(name, inner.P0, inner.tangent(0), tb)
+	case how.Tip:
+		in = stalkToTip(name, inner, tb)
+	default:
+		in = stalkInner(name, inner, tb)
+	}
+	c := join(in, windBall(name, tb, q0, phi0, k0))
+	if how.Hook {
+		c = join(c, chain{curveSeg(outer.sub(start, 1))})
+	}
+	return c
+}
+
+// curlTip returns the direction (radians) from the centre of the ball in which
+// the tip of the wedge lies: of the points of the circle of the radius r about
+// centre counter-clockwise from the point where the spiral w runs into it, the
+// first whose distance from the spiral is neck, found by bisection between 10
+// and 200 degrees from that point.
+func curlTip(name string, w windSpiral, centre outline.Point, r, neck float64) float64 {
+	n := int(math.Ceil(w.L))
+	pts := make([]outline.Point, n+1)
+	for i := range pts {
+		pts[i] = w.point(w.L * float64(i) / float64(n))
+	}
+	aA := w.heading(w.L) + math.Pi/2
+	gap := func(a float64) float64 {
+		q := outline.Point{X: centre.X + r*math.Cos(a), Y: centre.Y + r*math.Sin(a)}
+		d := math.Inf(1)
+		for _, pt := range pts {
+			d = math.Min(d, math.Hypot(pt.X-q.X, pt.Y-q.Y))
+		}
+		return d
+	}
+	lo, hi := aA+degrees(10), aA+degrees(200)
+	if !(gap(lo) < neck && gap(hi) > neck) {
+		panic(fmt.Sprintf("glyphs: glyph %s: no tip of the wedge lies %v from the outer edge; glyphs.Check reports such parameters", name, neck))
+	}
+	for i := 0; i < 50; i++ {
+		mid := (lo + hi) / 2
+		if gap(mid) < neck {
+			lo = mid
+		} else {
+			hi = mid
+		}
+	}
+	return (lo + hi) / 2
+}
+
 // figTop and figBottom return the height of the round tops and the depth of the
 // round bottoms of the figures.
 func figTop(p design.Params) float64    { return p.Figures.Height + p.Figures.OverTop }

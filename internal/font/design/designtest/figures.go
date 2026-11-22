@@ -6,7 +6,8 @@ package designtest
 import "seehuhn.de/go/bedern/internal/font/design"
 
 // figuresUp moves the parameters of the figures of the set caps-up: taller
-// figures, heavier strokes, a larger ball, longer serifs and wider ink.
+// figures, heavier strokes, a larger ball set higher and further in on 6 and 9,
+// longer serifs and wider ink.
 func figuresUp(p *design.Params) {
 	f := &p.Figures
 	f.Height, f.OverTop, f.Advance = 700, 10, 515
@@ -24,6 +25,7 @@ func figuresUp(p *design.Params) {
 	f.FourBarLow, f.FourFoot = 180, 104
 	f.FiveFlag, f.FiveBowlTop, f.FiveStroke = 330, 434, 50
 	f.SixBowlTop, f.SixLeftY, f.SixArcWidth = 455, 316, 432
+	f.CurlHeight, f.SixBallIn = 139, 44
 	f.SevenDrop, f.SevenFootX, f.SevenFoot = 100, 186, 92
 	f.EightWaist, f.EightUpperWidth = 378, 374
 }

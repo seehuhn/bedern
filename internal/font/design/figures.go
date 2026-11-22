@@ -109,6 +109,14 @@ type Figures struct {
 	ThreeUpperBall  float64
 	ThreeLowerBall  float64
 
+	// The curled terminal of 6 and 9 is the part Ball across on a stalk
+	// CurlStalk thick, turned so that the tip of its wedge lies CurlNeck from
+	// the outer edge of the stroke; the centre of the ball stands CurlHeight
+	// above the round bottom of 9 (on 6 below the round top).
+	CurlHeight float64
+	CurlStalk  float64
+	CurlNeck   float64
+
 	// 4.  The diagonal leans FourAngle (degrees) from the vertical and is
 	// FourDiag thick; its outer edge runs from the left end of the bar, the ink
 	// left, up to the top, where a flat FourTopFlat wide joins it to the
@@ -147,8 +155,8 @@ type Figures struct {
 	// reaches the round top; its inner edge lies SixStemThick inside it at the
 	// left extreme and SixTopThin at the top.  From the top the edges open
 	// into a hook whose outer edge ends with the radius SixHookRadius after a
-	// turn of SixHookAngle (degrees); the ball sits on it where the outer edge
-	// falls at SixArrival degrees below the horizontal.
+	// turn of SixHookAngle (degrees); the outer extreme of the ball lies
+	// SixBallIn inside the ink right.
 	SixBowlTop     float64
 	SixBowlTopThin float64
 	SixCounterLeft float64
@@ -156,7 +164,7 @@ type Figures struct {
 	SixArcWidth    float64
 	SixStemThick   float64
 	SixTopThin     float64
-	SixArrival     float64
+	SixBallIn      float64
 	SixHookRadius  float64
 	SixHookAngle   float64
 
@@ -242,6 +250,10 @@ func regularFigures() Figures {
 		ThreeUpperBall:  18,
 		ThreeLowerBall:  0,
 
+		CurlHeight: 132,
+		CurlStalk:  31,
+		CurlNeck:   35,
+
 		FourAngle:   31,
 		FourDiag:    36,
 		FourTopFlat: 62,
@@ -264,7 +276,7 @@ func regularFigures() Figures {
 		SixArcWidth:    412,
 		SixStemThick:   86,
 		SixTopThin:     46,
-		SixArrival:     50,
+		SixBallIn:      41,
 		SixHookRadius:  260,
 		SixHookAngle:   75,
 

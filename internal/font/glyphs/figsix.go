@@ -29,11 +29,11 @@ import (
 // right as a hook.  Its outer edge leaves the stem's oval at the top with the
 // curvature there and opens evenly, the curvature falling with the fourth power
 // of the length still to run (hookFall) towards that of a circle of
-// SixHookRadius, which it would reach after a turn of SixHookAngle; the ball is
-// placed as the part would sit on this curve where it falls at SixArrival below
-// the horizontal (roundTerminal), and the edge winds into the ball from where it
-// falls at sixWindFall.  The inner edge is one arch from the top of the counter
-// to the tip of the wedge (archToTip), and the inner edge of the stem runs from
+// SixHookRadius, which it would reach after a turn of SixHookAngle, and winds
+// from where it falls at sixWindFall into the ball, which is the curled
+// terminal of 9 (curlTerminal) with its outer extreme SixBallIn inside
+// the ink right.  The inner edge is one arch from the top of the counter to the
+// tip of the wedge (archToTip), and the inner edge of the stem runs from
 // the stem's oval at its left extreme into the top with the curvature of the
 // arch there.  The hook opens and carries the ball out to the right and up,
 // with the white between ball and bowl open at 8 pt.
@@ -63,8 +63,8 @@ func sixChains(p design.Params, x0 float64) (chain, chain) {
 	outTop := so.cubic(1, true)
 	ho := openingCurve("six", outTop.P0, outTop.curvature(0), 1/f.SixHookRadius, turnTo).reversed()
 	hi := si.cubic(3, false) // of which the arch takes the top and the direction there
-	b := figBall(p)
-	ball := roundTerminal("six", b, ho, hi, arrivalRight(b, ho, f.SixArrival), figStroke{Arch: true, Hook: true, Fall: sixWindFall})
+	centre := outline.Point{X: math.Round(x1 - f.SixBallIn - f.Ball/2), Y: math.Round(top - f.CurlHeight)}
+	ball := curlTerminal("six", p, ho, hi, centre, figStroke{Arch: true, Hook: true, Fall: sixWindFall})
 
 	upLeft := so.cubic(1, true) // top to the left extreme
 	k1 := upLeft.curvature(1)
@@ -97,23 +97,11 @@ func sixChains(p design.Params, x0 float64) (chain, chain) {
 	return outer, ellipseChain(bi[0], bi[1], bi[2], bi[3], p.SupernessInner, false)
 }
 
-// arrivalRight returns the rightmost ink of the ball terminal placed on the
-// outer edge outer (walked up towards the top, as roundTerminal takes it) where
-// the edge falls at the angle arrival (degrees below the horizontal, walked
-// towards the ball).
-func arrivalRight(b ballPart, outer cubic, arrival float64) float64 {
-	d := b.place(ballPlace{}).Out.Dir
-	angle := (180-arrival)*math.Pi/180 - math.Atan2(d.Y, d.X)
-	tb, _ := roundTerminalAt(b, outer, angle)
-	_, _, x1, _ := chainBBox(tb.Chain)
-	return x1
-}
-
 // sixWindFall is the angle below the horizontal (degrees) at which the outer
 // edge of the hook of 6 stops opening and winds into the ball (windSpiral):
 // the spiral leaves it with a curvature which rises as the square of the
 // length run.
-const sixWindFall = 35.0
+const sixWindFall = 30.0
 
 // hookFall is the power of the length still to run by which the curvature of
 // the hook of 6 falls (openingCurve).
