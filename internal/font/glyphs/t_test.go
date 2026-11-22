@@ -242,8 +242,8 @@ func TestTFoot(t *testing.T) {
 }
 
 // TestTFootEdges checks that the left edge of the stem is the outer edge of the
-// curve: it leaves the straight edge vertically, and the low point has horizontal
-// handles.
+// curve: it leaves the straight edge vertically, and the curves from there
+// reach the low point, which has horizontal handles.
 func TestTFootEdges(t *testing.T) {
 	t.Parallel()
 	p := design.Regular()
@@ -262,9 +262,15 @@ func TestTFootEdges(t *testing.T) {
 		}
 		if a.X == xl && a.Y < p.XHeight-p.Hair && s.P1.X == xl && s.P1.Y < a.Y {
 			found = true
-			// This curve ends at the low point, whose handle is horizontal.
-			if s.P3.Y != -p.OvershootLower || s.P2.Y != s.P3.Y {
-				t.Errorf("the outer curve of the foot ends at %v with the handle %v, want a horizontal tangent at the low point", s.P3, s.P2)
+			// The curves from here on reach the low point, whose handle is
+			// horizontal.
+			j := i
+			for j < len(ct.Segs)-1 && ct.Segs[j].IsCurve && ct.Segs[j].P3.Y > -p.OvershootLower {
+				j++
+			}
+			e := ct.Segs[j]
+			if !e.IsCurve || e.P3.Y != -p.OvershootLower || e.P2.Y != e.P3.Y {
+				t.Errorf("the outer curve of the foot ends at %v with the handle %v, want a horizontal tangent at the low point", e.P3, e.P2)
 			}
 		}
 	}

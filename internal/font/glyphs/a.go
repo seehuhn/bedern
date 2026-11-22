@@ -56,7 +56,11 @@ import (
 // to the upper join and the outer edge by 15 to the upper notch, which lies 34
 // above the join.  The lower stroke is one curve on each edge from the extreme
 // at the bottom up into the stem (aBowlOuter, aBowlCounter): it bends one way
-// only and goes on from the free side at the extreme with its curvature.
+// only and goes on from the free side at the extreme with its curvature.  The
+// two halves of each edge meet at the free extreme with the same curvature,
+// aFreeMeet of the way from that of the upper half to that of the lower, and
+// the counter leaves the extreme at the top into the connection with the
+// curvature of the free side there.
 //
 // The left side space is that of the bowl: ASideLeft is measured to the free
 // extreme of the bowl, and the ball stands AArcReach further in.  The right
@@ -67,9 +71,10 @@ import (
 // outer edge of the curve of the tail and leaves the notch vertically, round
 // the low point (OvershootLower below the baseline) and up to the tip of the
 // tail, and back along the upper edge and the inner curve to the right-hand
-// edge of the stem, which it meets 65 above the baseline.  It is the foot of
-// t (footChain) with the values ATailReach, ATailTipHeight and ATailTipThick,
-// and its low point lies 42 beyond the stem (sideTailA).
+// edge of the stem, which it meets 75 above the baseline.  It is the foot of
+// t (footChain) with the values ATailReach, ATailTipHeight and ATailTipThick
+// and the constants of aTailShape, and its low point lies 42 beyond the stem
+// (sideTailA).
 
 // aBowlUpper is the shape of the connection of the bowl of a with its stem.  The
 // lower half takes its curves for the free side and for the directions at the
@@ -86,7 +91,8 @@ var aBowlUpper = bowlShape{
 // half with the connection aBowlUpper, and the lower half with one curve from
 // the extreme at the bottom, which it leaves with the curvature of the free side
 // there, to the lower notch, which it reaches at the angle at which the stroke
-// meets the stem (leaveAngle): the fairest such curve (fairStart).
+// meets the stem (leaveAngle): the fairest such curve (fairStart).  The two
+// quarters of the free side meet with the curvature aFreeMeet (g2OrKeep).
 func aBowlOuter(b bowlSpec) chain {
 	up, low := bowlOuter(aBowlUpper, b), bowlOuter(aBowlUpper, aLowerHalf(b))
 	free := low[2].cubic
@@ -95,7 +101,19 @@ func aBowlOuter(b bowlSpec) chain {
 	if err != nil {
 		panic(fmt.Sprintf("glyphs: glyph a: the bottom of the bowl does not reach the lower notch: %v; glyphs.Check reports such parameters", err))
 	}
-	return chain{up[0], up[1], low[2], curveSeg(c)}
+	k := up[1].curvature(1) + aFreeMeet*(low[2].curvature(0)-up[1].curvature(1))
+	upper, lower := g2OrKeep(up[1].cubic, up[1].curvature(0), k), g2OrKeep(low[2].cubic, k, low[2].curvature(1))
+	return chain{up[0], curveSeg(upper), curveSeg(lower), curveSeg(c)}
+}
+
+// g2OrKeep returns the curve c redrawn with the curvatures k0 at its start and
+// k3 at its end, with its points and directions (g2Cubic), or c where there is
+// no such curve.
+func g2OrKeep(c cubic, k0, k3 float64) cubic {
+	if r, err := g2Cubic(c.P0, c.tangent(0), k0, c.P3, c.tangent(1), k3); err == nil {
+		return r
+	}
+	return c
 }
 
 // aBowlCounter returns the counter of the bowl of a, see bowlCounter: the upper
@@ -103,7 +121,10 @@ func aBowlOuter(b bowlSpec) chain {
 // which it leaves aJoinTurn more steeply than the outer edge meets the stem, to
 // the extreme at the bottom, which it reaches with the curvature of the free
 // side there: of the curvatures at the join, the one whose curve changes its
-// curvature least abruptly (curvatureRate).
+// curvature least abruptly (curvatureRate).  The two quarters of the free side
+// meet with the curvature aFreeMeet, and the connection to the upper join
+// leaves the extreme at the top with the curvature of the free side there and
+// keeps its handle at the join.
 func aBowlCounter(b bowlSpec) chain {
 	up, low := bowlCounter(aBowlUpper, b), bowlCounter(aBowlUpper, aLowerHalf(b))
 	join, free := low[1].cubic, low[2].cubic
@@ -124,7 +145,13 @@ func aBowlCounter(b bowlSpec) chain {
 	if math.IsInf(best, 1) {
 		panic("glyphs: glyph a: the bottom of the counter does not reach the lower join; glyphs.Check reports such parameters")
 	}
-	return chain{low[0], curveSeg(c), low[2], up[3], up[4]}
+	k := up[3].curvature(0) + aFreeMeet*(low[2].curvature(1)-up[3].curvature(0))
+	free, top := g2OrKeep(low[2].cubic, low[2].curvature(0), k), g2OrKeep(up[3].cubic, k, up[3].curvature(1))
+	conn := up[4].cubic
+	if cc, err := g2Start(conn.P0, conn.tangent(0), top.curvature(1), conn.P3, conn.tangent(1), math.Hypot(conn.P3.X-conn.P2.X, conn.P3.Y-conn.P2.Y)); err == nil {
+		conn = cc
+	}
+	return chain{low[0], curveSeg(c), curveSeg(free), curveSeg(top), curveSeg(conn)}
 }
 
 // aLowerHalf returns the bowl from which the lower half of the bowl of a is
@@ -136,6 +163,11 @@ func aLowerHalf(b bowlSpec) bowlSpec {
 	return b
 }
 
+// aFreeMeet is where the curvature at which the two halves of each edge of the
+// bowl of a meet at the free extreme lies between the curvatures of the
+// upper and of the lower half there, as a fraction of the way from the upper.
+const aFreeMeet = 0.4
+
 // aJoinTurn is the angle in degrees by which the counter of a leaves the
 // stem at the lower join more steeply than the outer edge leaves the notch.
 const aJoinTurn = 8.0
@@ -145,15 +177,21 @@ const aJoinTurn = 8.0
 const aLowerRun = 105.0
 
 // aTailShape is the shape of the tail of a, the foot of t with its constants
-// (tFoot) except for the two heights at which the edges leave the stem and the
-// place of the low point: the outer edge starts at the lower notch of the bowl,
-// which is filled in aTailChain, the inner curve meets the right-hand edge of
-// the stem 65 above the baseline and the low point lies 42 beyond the stem.
+// (tFoot) except for these: the outer edge starts at the lower notch of the
+// bowl, a corner, the inner guide meets the right-hand edge of the stem 65
+// above the baseline, the low point lies 42 beyond the stem and the inner low
+// point 12 to the left of it, the radii are 25 at the low point, 20 at the
+// inner low point and 15 at the highest point of the tip.
 func aTailShape(bowl bowlSpec) tFootShape {
 	sh := tFoot
 	sh.OuterStart = bowl.NotchLower
 	sh.InnerTop = 65
 	sh.LowRight = 42
+	sh.LowRadius = 25
+	sh.InnerShift = 12
+	sh.InnerRadius = 20
+	sh.OuterCorner = true
+	sh.TopRadius = 15
 	return sh
 }
 

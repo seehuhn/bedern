@@ -4,6 +4,7 @@
 package glyphs
 
 import (
+	"fmt"
 	"math"
 
 	"seehuhn.de/go/bedern/internal/font/design"
@@ -28,20 +29,19 @@ import (
 //	bar (barRight), and up the right-hand edge to the top right corner
 //
 // The foot.  The left-hand edge of the stem is the outer edge of the curve: it
-// leaves the straight edge vertically tFoot.OuterStart above the baseline, runs
-// round the low point, which lies OvershootLower below the baseline and has a
-// horizontal tangent, and goes on in a second curve to the tail, where it arrives
-// at the angle tFoot.TipAngle to the horizontal.  The tail ends in a blunt tip: a
-// straight cut at right angles to its direction, TTipThick long, whose two corners
-// are rounded with the radius tFoot.TipRound.  The rounded outer corner is the
-// rightmost ink, TReach beyond the right-hand edge of the stem, and the rounded
-// upper corner is the highest ink of the tail, TTipHeight above the baseline.
-// The upper edge returns from the tip to the inner low point, which lies ThinLower
-// above the outer one at the same x and is horizontal, and rises from there in a
-// curve to the right-hand edge of the stem, which it meets vertically at
-// tFoot.InnerTop.  The foot is ThinLower thick at its lowest point and TTipThick
-// thick at the tip.
-//
+// leaves the straight edge vertically, tFoot.OuterStart plus tFoot.StemLead
+// above the baseline, runs round the low point, which lies OvershootLower below
+// the baseline and has a horizontal tangent, and goes on to the tail.  The tail
+// ends in a blunt tip, whose rightmost point lies TReach beyond the right-hand
+// edge of the stem and whose highest point lies TTipHeight above the baseline,
+// where a straight cut at right angles to the direction tTail.TipAngle,
+// TTipThick long, with its corners rounded with the radius tFoot.TipRound, has
+// them.  The upper edge returns from the tip to the inner low point, which lies
+// ThinLower above the outer one at the same x and is horizontal, and rises from
+// there to the right-hand edge of the stem, which it meets vertically at
+// tFoot.InnerTop plus tFoot.StemLead.  The curves meet with continuous
+// direction and curvature (footChain).
+
 // The top of the stem is cut by one straight line, which runs from a point
 // TObliqueFlat short of the top right corner (TRise above the x-height) down to
 // the left-hand edge of the stem, TObliqueDrop below the top; a horizontal flat
@@ -55,39 +55,43 @@ import (
 
 // A tFootShape holds the constants which shape the foot of t.
 type tFootShape struct {
-	LowRight   float64 // the low point lies this far to the right of the right-hand edge of the stem
-	OuterStart float64 // height above the baseline at which the left-hand edge begins to curve
-	InnerTop   float64 // height above the baseline at which the inner curve meets the right-hand edge
-	TipAngle   float64 // direction of the tail at its tip, in degrees above the horizontal
-	TipRound   float64 // radius of the rounding of the two corners of the cut tip
-	OuterA     float64 // handles of the first outer curve: at the stem edge, as a fraction of the drop
-	OuterB     float64 // and at the low point, as a fraction of the run
-	TailA      float64 // handle of the second outer curve at the low point, as a fraction of the run to the tip
-	TailB      float64 // and at the tip, as a fraction of the chord
-	UpperA     float64 // handle of the upper edge at the tip, as a fraction of the chord to the inner low point
-	UpperB     float64 // and at the inner low point, as a fraction of the run from the tip
-	InnerA     float64 // handles of the inner curve at the inner low point, as a fraction of the run
-	InnerB     float64 // and at the stem edge, as a fraction of the rise
-	// Lean is the angle in radians by which the edges of the stem lean to the
-	// right going down where the foot leaves them: zero for the upright stems of
-	// t and a, the lean of the leg for R.
-	Lean float64
+	LowRight    float64 // the low point lies this far to the right of the right-hand edge of the stem
+	OuterStart  float64 // height above the baseline at which the guide of the outer curve leaves the left-hand edge
+	InnerTop    float64 // height above the baseline at which the guide of the inner curve meets the right-hand edge
+	TipAngle    float64 // direction of the tail at its tip, in degrees above the horizontal
+	TipRound    float64 // radius of the rounded corners of the cut which place the rightmost and the highest point of the tip
+	RightRadius float64 // radius of the edge at the rightmost point of the tip
+	TopRadius   float64 // radius of the edge at the highest point of the tip
+	LowRadius   float64 // radius of the outer edge at the low point
+	InnerRadius float64 // radius of the inner edge at the inner low point
+	InnerShift  float64 // the inner low point lies this far to the left of the low point
+	CornerRun   float64 // the upper edge is straight where it runs in the direction of the tail, this far beyond the rounded upper corner of the cut
+	StemBend    float64 // curvature of the two curves where they leave the stem
+	StemLead    float64 // the two curves leave the stem this far above their guides
+	OuterCorner bool    // the outer curve starts at a corner, where its guide starts, with the curvature of the guide
+	OuterA      float64 // handles of the guide of the outer curve: at the stem edge, as a fraction of the drop
+	OuterB      float64 // and at the low point, as a fraction of the run
+	InnerA      float64 // handles of the guide of the inner curve: at the inner low point, as a fraction of the run
+	InnerB      float64 // and at the stem edge, as a fraction of the rise
 }
 
 var tFoot = tFootShape{
-	LowRight:   55,
-	OuterStart: 110,
-	InnerTop:   80,
-	TipAngle:   72,
-	TipRound:   9,
-	OuterA:     0.55,
-	OuterB:     0.55,
-	TailA:      0.25,
-	TailB:      0.35,
-	UpperA:     0.35,
-	UpperB:     0.3,
-	InnerA:     0.55,
-	InnerB:     0.55,
+	LowRight:    55,
+	OuterStart:  110,
+	InnerTop:    80,
+	TipAngle:    72,
+	TipRound:    9,
+	RightRadius: 6,
+	TopRadius:   9,
+	LowRadius:   50,
+	InnerRadius: 35,
+	CornerRun:   10,
+	StemBend:    0.003,
+	StemLead:    10,
+	OuterA:      0.55,
+	OuterB:      0.55,
+	InnerA:      0.55,
+	InnerB:      0.55,
 }
 
 // tTail is the foot of t: the constants of tFoot with the tail angle 62.
@@ -116,8 +120,8 @@ func tBar(p design.Params) barSpec {
 }
 
 // tFootChain returns the foot of t as a chain which starts on the left-hand edge
-// of the stem, at the height tFoot.OuterStart, and ends on the right-hand edge, at
-// the height tFoot.InnerTop.
+// of the stem, at the height sh.OuterStart plus sh.StemLead, and ends on the
+// right-hand edge, at the height sh.InnerTop plus sh.StemLead.
 func tFootChain(p design.Params, sh tFootShape) chain {
 	s := tStem(p)
 	return footChain(p, s.Left, s.right(), p.TReach, p.TTipHeight, p.TTipThick, sh)
@@ -126,87 +130,121 @@ func tFootChain(p design.Params, sh tFootShape) chain {
 // footChain returns the foot of a stem with an upturned tail: the stem has the
 // edges xl and xr, the tail reaches reach beyond xr, its highest ink is tipHeight
 // above the baseline and it is tipThick thick at the blunt tip.  The foot of t
-// and the tail of the alternate a use it.  The chain is that of tFootChain.
+// and the tail of a use it.  The chain is that of tFootChain.  It consists of
+// cubic curves which meet with continuous direction and curvature (g2Cubic):
+//
+//	the outer curve, from the left-hand edge of the stem, which it leaves with
+//	the curvature sh.StemBend, through the point outerGuideAt of its guide, with
+//	the direction and the curvature of the guide there, to the low point, which
+//	it reaches with the radius sh.LowRadius; or, if sh.OuterCorner is set, one
+//	curve from the start of the guide, with its curvature, to the low point
+//	the outer edge of the tail, from the low point to the rightmost point of
+//	the tip, which it reaches vertically with the radius sh.RightRadius
+//	the end of the tail, from there to the highest point of the tip, which it
+//	reaches horizontally with the radius sh.TopRadius
+//	the upper corner, from the highest point to the point sh.CornerRun beyond
+//	the rounded upper corner of the cut, where the edge runs straight in the
+//	direction opposite to sh.TipAngle
+//	the upper edge, from there to the inner low point, which it reaches
+//	horizontally with the radius sh.InnerRadius
+//	the inner curve, from the inner low point through the point innerGuideAt of
+//	its guide to the right-hand edge of the stem, which it meets with the
+//	curvature sh.StemBend
+//
+// The rightmost and the highest point of the tip are those of a straight cut
+// at right angles to the direction sh.TipAngle, tipThick long, whose corners
+// are rounded with the radius sh.TipRound.  The guides are the cubic curves
+// from the stem edges, sh.OuterStart and sh.InnerTop above the baseline, to the
+// low points, with the handles sh.OuterA, sh.OuterB, sh.InnerA and sh.InnerB.
+// Where the upper edge or the inner curve cannot reach the inner low point
+// with the radius sh.InnerRadius, both take the nearest curvature with which
+// they can.
 func footChain(p design.Params, xl, xr, reach, tipHeight, tipThick float64, sh tFootShape) chain {
+	pt := func(x, y float64) outline.Point { return outline.Point{X: x, Y: y} }
 	low := -p.OvershootLower
 	xb := xr + sh.LowRight
 	ib := low + p.ThinLower
 
-	// The tip of the tail: a cut at right angles to the direction of the stroke,
-	// tipThick long, whose two corners are rounded with the radius sh.TipRound.  The
-	// rounded outer corner is the rightmost ink and the rounded upper corner the
-	// highest.
+	// The centres of the two rounded corners of the cut: the outer one, whose
+	// right extreme is the rightmost ink, and the upper one, tipThick less twice
+	// the radius further along the cut, whose top is the highest ink.
 	th := sh.TipAngle * math.Pi / 180
-	dir := outline.Point{X: math.Cos(th), Y: math.Sin(th)}
-	e := outline.Point{X: -dir.Y, Y: dir.X} // along the cut, from the outer corner to the upper one
+	dir := pt(math.Cos(th), math.Sin(th))
+	e := pt(-dir.Y, dir.X) // along the cut, from the outer corner to the upper one
 	rho := sh.TipRound
-	// The centre of the circle which rounds the outer corner lies at the corner less
-	// rho along the direction of the stroke plus rho along the cut; its right
-	// extreme is the rightmost ink, and the upper corner is higher than the outer one
-	// by what the cut rises.
-	cornerOuter := outline.Point{
-		X: xr + reach - rho + rho*(dir.X-e.X),
-		Y: tipHeight - rho - (tipThick-rho)*e.Y + rho*dir.Y,
-	}
-	cornerInner := outline.Point{X: cornerOuter.X + tipThick*e.X, Y: cornerOuter.Y + tipThick*e.Y}
-	tipOuter := outline.Point{X: cornerOuter.X - rho*dir.X, Y: cornerOuter.Y - rho*dir.Y}
-	tipInner := outline.Point{X: cornerInner.X - rho*dir.X, Y: cornerInner.Y - rho*dir.Y}
-	// The four points where the straight cut and the rounded corners meet.
-	outerEnd := outline.Point{X: cornerOuter.X + rho*e.X, Y: cornerOuter.Y + rho*e.Y}
-	innerStart := outline.Point{X: cornerInner.X - rho*e.X, Y: cornerInner.Y - rho*e.Y}
-	const kappa = 0.5522847498
-	round := func(p0, d0, d1 outline.Point) cubic {
-		// the quarter circle which turns from the direction d0 to d1, p0 to p0
-		// + rho(d0 + d1)
-		return cubic{p0,
-			outline.Point{X: p0.X + kappa*rho*d0.X, Y: p0.Y + kappa*rho*d0.Y},
-			outline.Point{X: p0.X + rho*(d0.X+d1.X) - kappa*rho*d1.X, Y: p0.Y + rho*(d0.Y+d1.Y) - kappa*rho*d1.Y},
-			outline.Point{X: p0.X + rho*(d0.X+d1.X), Y: p0.Y + rho*(d0.Y+d1.Y)}}
-	}
-	negDir := outline.Point{X: -dir.X, Y: -dir.Y}
-	roundOuter := round(tipOuter, dir, e)
-	roundInner := round(innerStart, e, negDir)
+	w := tipThick - 2*rho
+	cOuter := pt(xr+reach-rho, tipHeight-rho-w*e.Y)
+	cUpper := pt(cOuter.X+w*e.X, cOuter.Y+w*e.Y)
+	right := pt(cOuter.X+rho, cOuter.Y)
+	top := pt(cUpper.X, cUpper.Y+rho)
+	turn := pt(cUpper.X+rho*e.X-sh.CornerRun*dir.X, cUpper.Y+rho*e.Y-sh.CornerRun*dir.Y)
 
-	c1 := cubic{
-		P0: outline.Point{X: xl, Y: sh.OuterStart},
-		P1: outline.Point{X: xl + math.Sin(sh.Lean)*sh.OuterA*(sh.OuterStart-low), Y: sh.OuterStart - math.Cos(sh.Lean)*sh.OuterA*(sh.OuterStart-low)},
-		P2: outline.Point{X: xb - sh.OuterB*(xb-xl), Y: low},
-		P3: outline.Point{X: xb, Y: low},
+	up, down, east, west := pt(0, 1), pt(0, -1), pt(1, 0), pt(-1, 0)
+	lowOuter, lowInner := pt(xb, low), pt(xb-sh.InnerShift, ib)
+
+	// The guides of the two curves between the stem and the low points, and the
+	// points of the guides through which the curves pass.
+	og := cubic{pt(xl, sh.OuterStart), pt(xl, sh.OuterStart-sh.OuterA*(sh.OuterStart-low)), pt(xb-sh.OuterB*(xb-xl), low), lowOuter}
+	ig := cubic{pt(xr, sh.InnerTop), pt(xr, sh.InnerTop-sh.InnerB*(sh.InnerTop-ib)), pt(lowInner.X-sh.InnerA*(lowInner.X-xr), ib), lowInner}
+	om, ot, ok := og.at(outerGuideAt), og.tangent(outerGuideAt), og.curvature(outerGuideAt)
+	im, it, ik := ig.at(innerGuideAt), ig.tangent(innerGuideAt), ig.curvature(innerGuideAt)
+	innerStem := pt(xr, sh.InnerTop+sh.StemLead)
+
+	// The curvature at the inner low point is 1/sh.InnerRadius or, where the
+	// upper edge or the inner curve cannot take it, the nearest one which both
+	// can take.
+	kInner := 1 / sh.InnerRadius
+	var upper, inner cubic
+	found := false
+	for i := 0; i < 100 && !found; i++ {
+		for _, f := range []float64{1 + 0.01*float64(i), 1 - 0.01*float64(i)} {
+			var err1, err2 error
+			upper, err1 = g2Cubic(turn, neg(dir), 0, lowInner, west, -f*kInner)
+			inner, err2 = g2Cubic(im, it, ik, lowInner, east, f*kInner)
+			if err1 == nil && err2 == nil {
+				found = true
+				break
+			}
+		}
 	}
-	run := tipOuter.X - xb
-	chord := math.Hypot(tipOuter.X-xb, tipOuter.Y-low)
-	c2 := cubic{
-		P0: c1.P3,
-		P1: outline.Point{X: xb + sh.TailA*run, Y: low},
-		P2: outline.Point{X: tipOuter.X - sh.TailB*chord*dir.X, Y: tipOuter.Y - sh.TailB*chord*dir.Y},
-		P3: tipOuter,
+	if !found {
+		panic("glyphs: the foot of a stem: no upper edge of the tail reaches the inner low point; glyphs.Check reports such parameters")
 	}
-	chordU := math.Hypot(tipInner.X-xb, tipInner.Y-ib)
-	runU := tipInner.X - xb
-	c3 := cubic{
-		P0: tipInner,
-		P1: outline.Point{X: tipInner.X - sh.UpperA*chordU*dir.X, Y: tipInner.Y - sh.UpperA*chordU*dir.Y},
-		P2: outline.Point{X: xb + sh.UpperB*runU, Y: ib},
-		P3: outline.Point{X: xb, Y: ib},
+
+	curve := func(name string, p0, t0 outline.Point, k0 float64, p3, t3 outline.Point, k3 float64) chain {
+		c, err := g2Cubic(p0, t0, k0, p3, t3, k3)
+		if err != nil {
+			panic(fmt.Sprintf("glyphs: the foot of a stem: %s: %v; glyphs.Check reports such parameters", name, err))
+		}
+		return splitAtExtrema(c)
 	}
-	c4 := cubic{
-		P0: c3.P3,
-		P1: outline.Point{X: xb - sh.InnerA*(xb-xr), Y: ib},
-		P2: outline.Point{X: xr + math.Sin(sh.Lean)*sh.InnerB*(sh.InnerTop-ib), Y: sh.InnerTop - math.Cos(sh.Lean)*sh.InnerB*(sh.InnerTop-ib)},
-		P3: outline.Point{X: xr, Y: sh.InnerTop},
+	var outer chain
+	if sh.OuterCorner {
+		outer = curve("the outer edge of the foot", og.P0, down, og.curvature(0), lowOuter, east, 1/sh.LowRadius)
+	} else {
+		outer = join(
+			curve("the outer edge of the foot", pt(xl, sh.OuterStart+sh.StemLead), down, sh.StemBend, om, ot, ok),
+			curve("the outer edge of the foot", om, ot, ok, lowOuter, east, 1/sh.LowRadius),
+		)
 	}
-	var ch chain
-	for _, c := range []cubic{c1, c2} {
-		ch = append(ch, splitAtExtrema(c)...)
-	}
-	ch = append(ch, splitAtExtrema(roundOuter)...)
-	ch = append(ch, lineSeg(outerEnd, innerStart))
-	ch = append(ch, splitAtExtrema(roundInner)...)
-	for _, c := range []cubic{c3, c4} {
-		ch = append(ch, splitAtExtrema(c)...)
-	}
-	return join(ch)
+	ch := join(
+		outer,
+		curve("the outer edge of the tail", lowOuter, east, 1/sh.LowRadius, right, up, 1/sh.RightRadius),
+		curve("the end of the tail", right, up, 1/sh.RightRadius, top, west, 1/sh.TopRadius),
+		curve("the upper corner of the tail", turn, dir, 0, top, east, -1/sh.TopRadius).reversed(),
+		splitAtExtrema(upper),
+		splitAtExtrema(inner).reversed(),
+		curve("the inner edge of the foot", innerStem, down, sh.StemBend, im, it, ik).reversed(),
+	)
+	return ch
 }
+
+// outerGuideAt and innerGuideAt are the parameters of the points of the guides
+// of the outer and the inner curve of the foot through which the curves pass.
+const (
+	outerGuideAt = 0.3
+	innerGuideAt = 0.4
+)
 
 // t draws the lowercase letter t, see the comment above.
 func t(p design.Params) (outline.Path, float64) {
@@ -220,8 +258,9 @@ func t(p design.Params) (outline.Path, float64) {
 	path.LineTo(stem.Left, stem.Top-p.TObliqueDrop)
 	path.LineTo(stem.Left, bar.Top)
 	barLeft(&path, bar)
-	path.LineTo(stem.Left, tFoot.OuterStart)
-	tFootChain(p, tTail).appendTo(&path)
+	foot := tFootChain(p, tTail)
+	path.LineTo(foot.start().X, foot.start().Y)
+	foot.appendTo(&path)
 	path.LineTo(stem.right(), bar.Top-bar.Thick)
 	barRight(&path, bar)
 	path.LineTo(stem.right(), stem.Top)
