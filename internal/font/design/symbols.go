@@ -97,13 +97,15 @@ type Symbols struct {
 	// AtStem thick; AtSide on each side.
 	AtInk, AtTop, AtBottom, AtRing, AtBowlW, AtBowlBottom, AtBowlTop, AtBowlThick, AtStem, AtSide float64
 
-	// The ampersand: AmpInk wide from AmpBottom to AmpTop; the thick stroke
-	// (the left of the upper loop, the diagonal and the tail) AmpThick, the
-	// left side of the lower bowl AmpBowlThick, the thin strokes Figures.Thin; the
-	// arm, AmpArmThick at its foot, ends at AmpArm in the head serif of a
-	// diagonal of the capitals, which reaches AmpSerifLeft and AmpSerifRight
-	// beyond its edges; AmpSide on each side.
-	AmpInk, AmpTop, AmpBottom, AmpThick, AmpBowlThick, AmpArm, AmpArmThick, AmpSerifLeft, AmpSerifRight, AmpSide float64
+	// The ampersand: AmpInk wide from AmpBottom to AmpTop; the diagonal
+	// AmpThick where it is heaviest, the left side of the lower bowl
+	// AmpBowlThick, the thin strokes Caps.RoundThin; the tail ends in a cut
+	// AmpTail long; the arm, AmpArmThick at its top, ends under the head serif
+	// of a diagonal of the capitals, whose top lies at AmpArm and which reaches
+	// AmpSerifLeft and AmpSerifRight beyond its edges; AmpSideLeft and
+	// AmpSideRight beside the ink.
+	AmpInk, AmpTop, AmpBottom, AmpThick, AmpBowlThick, AmpTail, AmpArm, AmpArmThick float64
+	AmpSerifLeft, AmpSerifRight, AmpSideLeft, AmpSideRight                          float64
 }
 
 // regularSymbols returns the parameters of the symbols of Bedern Regular.
@@ -145,7 +147,7 @@ func regularSymbols() Symbols {
 		AtInk: 660, AtTop: 700, AtBottom: -20, AtRing: 40, AtBowlW: 300, AtBowlBottom: 130, AtBowlTop: 500,
 		AtBowlThick: 84, AtStem: 76, AtSide: 48,
 
-		AmpInk: 670, AmpTop: 697, AmpBottom: -14, AmpThick: 88, AmpBowlThick: 88,
-		AmpArm: 450, AmpArmThick: 50, AmpSerifLeft: 30, AmpSerifRight: 40, AmpSide: 40,
+		AmpInk: 680, AmpTop: 697, AmpBottom: -14, AmpThick: 96, AmpBowlThick: 100, AmpTail: 40,
+		AmpArm: 418, AmpArmThick: 44, AmpSerifLeft: 80, AmpSerifRight: 90, AmpSideLeft: 54, AmpSideRight: 40,
 	}
 }

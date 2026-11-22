@@ -10,7 +10,7 @@ import "seehuhn.de/go/bedern/internal/font/design"
 func symbolsUp(p *design.Params) {
 	s := &p.Sym
 	s.QTop, s.QInk, s.QStem = 715, 390, 56
-	s.AmpTop, s.AmpArm, s.AmpThick, s.AmpBowlThick = 730, 470, 104, 106
+	s.AmpTop, s.AmpArm, s.AmpThick, s.AmpBowlThick, s.AmpTail = 730, 440, 106, 108, 44
 	s.SectSpine, s.SectHookThick = 86, 76
 	s.AtRing, s.AtStem, s.AtBowlThick = 46, 86, 94
 	s.BraceArm, s.DegThick, s.TildeThick, s.CircThick = 82, 46, 68, 52
@@ -22,7 +22,7 @@ func symbolsUp(p *design.Params) {
 func symbolsDown(p *design.Params) {
 	s := &p.Sym
 	s.QTop, s.QInk, s.QStem = 670, 350, 44
-	s.AmpTop, s.AmpArm, s.AmpThick, s.AmpBowlThick = 670, 430, 82, 84
+	s.AmpTop, s.AmpArm, s.AmpThick, s.AmpBowlThick, s.AmpTail = 670, 400, 84, 92, 34
 	s.SectSpine, s.SectHookThick = 68, 58
 	s.AtRing, s.AtStem, s.AtBowlThick = 34, 68, 74
 	s.BraceArm, s.DegThick, s.TildeThick, s.CircThick = 64, 34, 52, 40

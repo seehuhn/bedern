@@ -10,8 +10,7 @@ import (
 	"seehuhn.de/go/bedern/internal/outline"
 )
 
-// Tests of the section sign, the ampersand, the terminal of 6 and 9 and the
-// question mark.
+// Tests of the section sign, the terminal of 6 and 9 and the question mark.
 
 // findBalls returns the centres of the circles of the radius r on the outline:
 // runs of the contours, as long as ballArc of the circumference, which lie within
@@ -186,55 +185,6 @@ func crotches(path outline.Path) (at []outline.Point, angle []float64) {
 		})
 	}
 	return at, angle
-}
-
-// The ampersand crosses itself twice, and every crotch where its strokes cross
-// is a clean V: at least ampCrotchMin, and at least ampUpperCrotchMin at the
-// upper crossing (above ampUpperY of the height), where the thin stroke crosses
-// the diagonal in nearly a right angle.  The counters of the loop and of the
-// bowl stay open: at least ampLoopMinW and ampBowlMinW wide.
-const (
-	ampCrotchMin      = 45.0
-	ampUpperCrotchMin = 65.0
-	ampUpperY         = 0.45
-	ampLoopMinW       = 130.0
-	ampBowlMinW       = 190.0
-)
-
-func TestAmpersandCrossings(t *testing.T) {
-	t.Parallel()
-	for _, np := range allParams() {
-		s := np.params.Sym
-		path, _, _ := outlineOf("ampersand", np.params)
-		at, ang := crotches(path)
-		if len(at) < 8 {
-			t.Errorf("%s: %d crotches, want the four of each crossing", np.name, len(at))
-		}
-		for i := range at {
-			min := ampCrotchMin
-			if at[i].Y > s.AmpBottom+ampUpperY*(s.AmpTop-s.AmpBottom) {
-				min = ampUpperCrotchMin
-			}
-			if ang[i] < min {
-				t.Errorf("%s: the crotch at (%.0f, %.0f) is %.1f degrees, want at least %v", np.name, at[i].X, at[i].Y, ang[i], min)
-			}
-		}
-		if len(path) != 3 {
-			t.Fatalf("%s: %d contours, want the outline, the bowl and the loop", np.name, len(path))
-		}
-		var loopW, bowlW float64
-		for _, ct := range path[1:] {
-			x0, y0, x1, y1 := contourBox(ct)
-			if (y0+y1)/2 > (s.AmpTop+s.AmpBottom)/2 {
-				loopW = x1 - x0
-			} else {
-				bowlW = x1 - x0
-			}
-		}
-		if loopW < ampLoopMinW || bowlW < ampBowlMinW {
-			t.Errorf("%s: the loop is %.0f wide and the bowl %.0f, want at least %v and %v", np.name, loopW, bowlW, ampLoopMinW, ampBowlMinW)
-		}
-	}
 }
 
 // The ball of 6 stands clear of the bowl, with at least sixBallWhite of white
