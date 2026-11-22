@@ -147,7 +147,7 @@ func regularSymbols() Symbols {
 		AtInk: 660, AtTop: 700, AtBottom: -20, AtRing: 40, AtBowlW: 300, AtBowlBottom: 130, AtBowlTop: 500,
 		AtBowlThick: 84, AtStem: 76, AtSide: 48,
 
-		AmpInk: 680, AmpTop: 697, AmpBottom: -14, AmpThick: 96, AmpBowlThick: 100, AmpTail: 40,
-		AmpArm: 418, AmpArmThick: 44, AmpSerifLeft: 80, AmpSerifRight: 90, AmpSideLeft: 54, AmpSideRight: 40,
+		AmpInk: 674, AmpTop: 697, AmpBottom: -14, AmpThick: 96, AmpBowlThick: 100, AmpTail: 48,
+		AmpArm: 418, AmpArmThick: 50, AmpSerifLeft: 100, AmpSerifRight: 95, AmpSideLeft: 54, AmpSideRight: 46,
 	}
 }
