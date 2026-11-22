@@ -19,7 +19,6 @@ import (
 type twoBowlSide struct {
 	inner, mid []outline.Point
 	thick      []float64
-	extreme    int // the index of the right extreme of the inner edge
 }
 
 const (
@@ -103,17 +102,15 @@ func bowlSide(np namedParams) twoBowlSide {
 		s.inner = append(s.inner, q)
 		s.thick = append(s.thick, best)
 		s.mid = append(s.mid, outline.Point{X: (q.X + at.X) / 2, Y: (q.Y + at.Y) / 2})
-		if q.X > s.inner[s.extreme].X {
-			s.extreme = len(s.inner) - 1
-		}
 	}
 	return s
 }
 
 // The thickness of the stroke of the bowl of 2 rises without falling back
-// from the top of the counter to its right extreme, where the stroke is
-// thickest, and falls without rising below it down to the neck, each within
-// half a unit.
+// from the top of the counter to one greatest value, which lies at the height
+// of the right extreme of the outer edge, of that of the inner edge or between
+// them, and falls without rising below it down to the neck, each within half a
+// unit.
 func TestFigureTwoBowlSwells(t *testing.T) {
 	t.Parallel()
 	forCaps(t, func(t *testing.T, np namedParams) {
@@ -127,8 +124,10 @@ func TestFigureTwoBowlSwells(t *testing.T) {
 				peak = i
 			}
 		}
-		if dy := math.Abs(s.inner[peak].Y - s.inner[s.extreme].Y); dy > 0.05*np.params.Figures.TwoShoulder {
-			t.Errorf("%s: the stroke of the bowl of 2 is thickest at %.0f, the right extreme of its counter is at %.0f", np.name, s.inner[peak].Y, s.inner[s.extreme].Y)
+		f := np.params.Figures
+		slack := 0.03 * f.TwoShoulder
+		if y := s.inner[peak].Y; y < f.TwoShoulder-f.TwoOuterDrop-slack || y > f.TwoShoulder+slack {
+			t.Errorf("%s: the stroke of the bowl of 2 is thickest at %.0f, the right extremes of its edges are at %.0f and %.0f", np.name, y, f.TwoShoulder-f.TwoOuterDrop, f.TwoShoulder)
 		}
 		for i := 1; i < len(s.thick); i++ {
 			d := s.thick[i] - s.thick[i-1]
@@ -167,12 +166,14 @@ func TestFigureTwoBowlStretch(t *testing.T) {
 }
 
 // The middle of the stroke of the bowl of 2 moves only to the right and only
-// down from the top of the counter to the right extreme, within a unit.
+// down from the top of the counter to the height of the lower of the two right
+// extremes, within a unit.
 func TestFigureTwoBowlMiddle(t *testing.T) {
 	t.Parallel()
 	forCaps(t, func(t *testing.T, np namedParams) {
 		s := bowlSide(np)
-		for i := 1; i <= s.extreme; i++ {
+		f := np.params.Figures
+		for i := 1; i < len(s.mid) && s.inner[i].Y >= f.TwoShoulder-f.TwoOuterDrop; i++ {
 			a, b := s.mid[i-1], s.mid[i]
 			if b.X < a.X-1 || b.Y > a.Y+1 {
 				t.Errorf("%s: the middle of the bowl of 2 turns back from (%.1f, %.1f) to (%.1f, %.1f)", np.name, a.X, a.Y, b.X, b.Y)

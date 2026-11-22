@@ -24,9 +24,9 @@ import (
 // quarter as on c, mirrored, with the leftmost ink of the part TwoBallLeft from
 // the ink left; the outer edge winds from the top into the ball (windSpiral),
 // and the inner edge runs from the tip of the wedge over the top of the counter
-// in one arch (archToTip).  The right extreme of both edges, the outer at the
-// ink right and the inner TwoNeckThick to its left, is TwoShoulder above the
-// baseline.  The outer edge runs from the top to its right extreme in one curve
+// in one arch (archToTip).  The right extreme of the outer edge is at the ink
+// right, TwoOuterDrop below TwoShoulder above the baseline; that of the inner
+// edge is TwoNeckThick to its left, TwoShoulder above the baseline.  The outer edge runs from the top to its right extreme in one curve
 // with the curvature of the other side at the top and the handle of the oval,
 // for the height of this quarter, at the extreme (superHandle); the inner edge
 // runs from the top of the counter to its right extreme in one curve whose
@@ -54,7 +54,7 @@ func figTwo(p design.Params) (outline.Path, float64) {
 	inner := newSuperShape(x0+f.TwoBowlLeft+f.TwoNeckThick, ob+f.Thin, right-f.TwoNeckThick, top-f.Thin, p.SupernessInner)
 
 	ball := upperLeftBall("two", figBall(p), outer.cubic(1, true), inner.cubic(2, false), x0+f.TwoBallLeft, figStroke{Arch: true})
-	rx := outline.Point{X: right, Y: f.TwoShoulder}
+	rx := outline.Point{X: right, Y: f.TwoShoulder - f.TwoOuterDrop}
 	ri := outline.Point{X: right - f.TwoNeckThick, Y: f.TwoShoulder}
 
 	// The outer edge from the right extreme up to the top: the handle at the
