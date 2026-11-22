@@ -67,10 +67,11 @@ type Symbols struct {
 	DollarSideThick, DollarUpperDrop, DollarLowerDrop, DollarTip float64
 	DollarStroke, DollarTop, DollarBottom                        float64
 
-	// The sterling: SterInk wide; a stem SterStem thick which rises from the
-	// base into a hook over the top that ends in the ball terminal at the
-	// upper right; a bar SterBar thick at SterBarY, from the left of the ink
-	// SterBarLen long; a base SterBase thick on the baseline.
+	// The sterling: a stem SterStem thick in a frame SterInk wide, which rises
+	// into a hook over the top that ends in the ball terminal at the upper
+	// right and turns at its foot into a loop and a base SterBase thick at the
+	// baseline; a bar SterBar thick at SterBarY, from the left of the frame
+	// SterBarLen long.
 	SterInk, SterStem, SterBar, SterBarY, SterBarLen, SterBase float64
 
 	// The euro: EuroInk wide, of which the bars reach EuroReach left of the
@@ -137,7 +138,7 @@ func regularSymbols() Symbols {
 		DollarSideThick: 70, DollarUpperDrop: 215, DollarLowerDrop: 245, DollarTip: 38,
 		DollarStroke: 42, DollarTop: 748, DollarBottom: -90,
 
-		SterInk: 440, SterStem: 86, SterBar: 40, SterBarY: 300, SterBarLen: 300, SterBase: 50,
+		SterInk: 440, SterStem: 86, SterBar: 40, SterBarY: 300, SterBarLen: 300, SterBase: 72,
 
 		EuroInk: 458, EuroReach: 56, EuroRoundW: 425, EuroBeakX: 402, EuroBeakEnd: 405, EuroThick: 96,
 		EuroBar: 38, EuroBarGap: 110, EuroBarEnd: 300,

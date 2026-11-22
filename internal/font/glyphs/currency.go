@@ -50,46 +50,187 @@ func dollar(p design.Params) (outline.Path, float64) {
 	return chainsPath(union(append(pathChains(path), bar)...)...), p.Figures.Advance
 }
 
-// sterling draws the pound sterling: a stem SterStem thick which rises from a
-// flat base, leaning a little to the right, into a hook over the top which is
-// thin at the top (Thin) and ends in the ball terminal of the lowercase at the
-// upper right (ball.go), not mirrored, as on r; a bar SterBar thick across the
-// stem at SterBarY; and a base across the whole ink, a stroke which is SterBase
-// thick at its thickest, thinner at its upturned ends, with a gentle wave.  The
-// outline is the union of the stroke, the bar and the base.
+// sterling draws the pound sterling: one stroke and a bar.  The stroke starts
+// in the ball terminal of the lowercase at the upper right (ball.go), not
+// mirrored, as on r, runs over the top in a hook which is thin at the top
+// (Thin), comes down as a straight stem SterStem thick, leaning a little to the
+// right, turns at its foot to the left into a loop at the lower left which goes
+// round a counter clockwise, crosses the stem above the foot and runs on to
+// the right as the base.  The base dips to the baseline, where it is SterBase
+// thick, and rises to a thin end cut across the stroke, below the right of the
+// hook.  The bar is SterBar thick at SterBarY, SterBarLen long from the left
+// of the frame of the stem.
+//
+// The two edges of the stroke are drawn node by node (sterlingEdges, edgeOf).
+// The outline is the union of the stroke, which crosses itself where the loop
+// meets the stem, and the bar (symunion.go).
 //
 // Side kinds: open; the ink is centred on the advance of the figures.
 func sterling(p design.Params) (outline.Path, float64) {
 	s := p.Sym
 	w := s.SterInk
 	x0 := math.Round((p.Figures.Advance - w) / 2)
-	x1 := x0 + w
 	top := p.Figures.Height + p.OvershootLower
-	sts := []station{
-		{X: x0 + 0.60*w, Y: top - p.Figures.Thin/2, Dir: 180, W: p.Figures.Thin},
-		{X: x0 + 0.33*w, Y: 0.68 * top, Dir: -90, W: s.SterStem},
-		{X: x0 + 0.30*w, Y: s.SterBarY, Dir: -95, W: s.SterStem},
-		{X: x0 + 0.24*w, Y: s.SterBase / 2, Dir: -102, W: 0.92 * s.SterStem},
-	}
-	right, left := strokeOpen(sts)
+	right, left := sterlingEdges(p, x0, top)
+	re, le := edgeOf(right), edgeOf(left).reversed()
 	r := p.BallDiameter / 2
-	ball := ballStart("sterling", p, right, left, x1-0.10*w-r, span(0.70*top, 0.82*top, 0.01*top), span(-40, 60, 2), false)
-	stroke := join(right, lineChain(right.end(), left.start()), left, ball)
+	x1 := x0 + w
+	ball := ballStart("sterling", p, re, le, x1-0.10*w-r, span(0.70*top, 0.82*top, 0.01*top), span(-40, 60, 2), false)
+	stroke := join(re, lineChain(re.end(), le.start()), le, ball)
 	bx := x0 + 0.04*w
 	bar := rectChain(bx, s.SterBarY-s.SterBar/2, bx+s.SterBarLen, s.SterBarY+s.SterBar/2)
-	// The base is a stroke with a gentle wave: it leaves the foot of the
-	// stem as a thin upturned end, dips to its full thickness SterBase, which
-	// touches the baseline, a third of the way along, and rises again to the right
-	// to a thin end which turns up a little.  Both edges are curved.
-	bt := s.SterBase
-	bsts := []station{
-		{X: x0 + 0.40*bt, Y: 0.95 * bt, Dir: -32, W: 0.70 * bt},
-		{X: x0 + 0.30*w, Y: bt / 2, Dir: 0, W: bt},
-		{X: x0 + 0.68*w, Y: 0.72 * bt, Dir: 10, W: 0.80 * bt},
-		{X: x1 - 0.45*bt, Y: 1.25 * bt, Dir: 36, W: 0.62 * bt},
+	cs := union(stroke, bar)
+	lo, hi := math.Inf(1), math.Inf(-1)
+	for _, c := range cs {
+		for _, q := range c {
+			lo, hi = math.Min(lo, math.Min(q.P0.X, q.P3.X)), math.Max(hi, math.Max(q.P0.X, q.P3.X))
+		}
 	}
-	base := strokeChain(bsts)
-	return chainsPath(union(stroke, bar, base)...), p.Figures.Advance
+	dx := math.Round((p.Figures.Advance - lo - hi) / 2)
+	for i := range cs {
+		cs[i] = cs[i].shifted(dx, 0)
+	}
+	return chainsPath(cs...), p.Figures.Advance
+}
+
+// sterlingEdges returns the nodes of the right-hand and the left-hand edge of
+// the stroke of the sterling, both from the top of the hook to the end of the
+// base, in a frame SterInk wide from x0.
+//
+// The stem is the band SterStem thick about the line through the points at 0.33
+// and 0.30 of the frame at 0.68 of the height and at the bar; its edges are
+// straight from the hook down to the bar.  The hook runs from the top, where its
+// outer edge has the radius 110 and its inner edge the radius 70, to the stem.
+// Below the bar the right-hand edge bends into the counter of the loop, an oval
+// 68 wide and 80 high whose extremes have the radii 29 (bottom and top) and 47
+// (left), turns at the top of the counter into the base and has its
+// inflection inside the stem; the left-hand edge bends into the outer edge of
+// the loop, 72 and 75 from the centre of the counter with the radii 69 and 78,
+// and has its inflection inside the stem too.  The lower edge of the base
+// runs on a circle of the radius 185 which touches the baseline less the
+// overshoot, the upper edge on a circle of the radius 260 whose lowest point is
+// SterBase above it, and both bend more tightly towards the end of the base,
+// where the stroke is cut.
+func sterlingEdges(p design.Params, x0, top float64) (right, left []edgeNode) {
+	s := p.Sym
+	w := s.SterInk
+	c1 := outline.Point{X: x0 + 0.33*w, Y: 0.68 * top}
+	c2 := outline.Point{X: x0 + 0.30*w, Y: s.SterBarY}
+	sd := unit(c1, c2)
+	sdeg := math.Atan2(sd.Y, sd.X) * 180 / math.Pi
+	nx := s.SterStem / 2 / math.Abs(sd.Y)
+	stem := func(y, side float64) edgeNode {
+		return edgeNode{At: outline.Point{X: c1.X + (y-c1.Y)*sd.X/sd.Y + side*nx, Y: y}, Dir: sdeg, Fix: true}
+	}
+	hx := x0 + 0.60*w
+	b := -p.OvershootLower
+	t := b + s.SterBase
+	// at returns a node at x0+x, y with the direction dir and the radius of
+	// curvature r (negative where the edge turns clockwise; zero leaves the
+	// curvature to edgeOf).
+	at := func(x, y, dir, r float64) edgeNode {
+		n := edgeNode{At: outline.Point{X: x0 + x, Y: y}, Dir: dir}
+		if r != 0 {
+			n.K = 1 / r
+		}
+		return n
+	}
+	// auto returns a node at x0+x, y whose direction and curvature edgeOf
+	// takes from its neighbours.
+	auto := func(x, y float64) edgeNode {
+		return edgeNode{At: outline.Point{X: x0 + x, Y: y}, Auto: true}
+	}
+	// flat returns an inflection at x0+x, y with the direction dir.
+	flat := func(x, y, dir float64) edgeNode {
+		return edgeNode{At: outline.Point{X: x0 + x, Y: y}, Dir: dir, Fix: true}
+	}
+	lineStart := func(n edgeNode) edgeNode { n.Line = true; return n }
+	right = []edgeNode{
+		{At: outline.Point{X: hx, Y: top}, Dir: 180, K: 1.0 / 110},
+		{At: outline.Point{X: hx - 89, Y: top - 41}, Dir: -135},
+		lineStart(stem(420, -1)),
+		stem(s.SterBarY, -1),
+		auto(77.2, b+172),
+		at(66.4, b+57, -116, -42),
+		at(37, b+37, 180, -29),
+		at(3, b+77, 90, -47),
+		at(37, b+117, 0, -29),
+		flat(80, b+82, -60),
+		auto(105, b+52),
+		at(147.5, b+24.8, -30, 185),
+		at(240, b, 0, 185),
+		at(345, b+32.7, 34.6, 0),
+		at(407, b+112, 68, 160),
+	}
+	left = []edgeNode{
+		{At: outline.Point{X: hx, Y: top - p.Figures.Thin}, Dir: 180, K: 1.0 / 70},
+		{At: outline.Point{X: hx - 52.7, Y: top - p.Figures.Thin - 21.8}, Dir: -135},
+		lineStart(stem(440, 1)),
+		stem(s.SterBarY, 1),
+		auto(160, b+162),
+		at(88, b+22, -133.8, 0),
+		at(37, b, 180, -69),
+		at(-35, b+75, 90, -78),
+		at(37, b+150, 0, -69),
+		at(55.6, b+147.4, -15.6, -69.7),
+		flat(100, b+122, -38),
+		at(125, t+32, -30, 280),
+		at(235, t, 0, 260),
+		at(345, t+24.4, 25, 0),
+		at(380, t+50, 47, 70),
+	}
+	return right, left
+}
+
+// An edgeNode is a node of an edge of the sterling: its point and the
+// direction of the edge there in degrees.  A node with Auto set takes the
+// direction of the circle through the node and its two neighbours, or, if Fix
+// is set too, the direction from the node before it to the node after it.  Fix
+// marks a node where the edge is straight (an inflection, or the end of a
+// straight piece), Line a straight piece to the next node.
+type edgeNode struct {
+	At              outline.Point
+	Dir, K          float64
+	Auto, Fix, Line bool
+}
+
+// edgeOf returns the edge through the nodes, drawn as the edge of a stroke of
+// no thickness whose stations are the nodes (strokeEdge): between two nodes one
+// cubic curve with the direction and the curvature of the edge at its ends.
+func edgeOf(ns []edgeNode) chain {
+	sts := make([]station, len(ns))
+	for i, n := range ns {
+		d := n.Dir
+		if n.Auto {
+			a, b, c := ns[i-1].At, n.At, ns[i+1].At
+			d = circleDir(a, b, c, n.Fix)
+		}
+		sts[i] = station{X: n.At.X, Y: n.At.Y, Dir: d, K: n.K, Flat: n.Line}
+		if n.Fix && !n.Line && !(i > 0 && ns[i-1].Line) {
+			sts[i].K = 1e-12
+		}
+	}
+	return strokeEdge(sts, 1)
+}
+
+// circleDir returns the direction in degrees, from a towards c, of the circle
+// through a, b and c at b, or of the line from a to c if chord is set or the
+// points lie on a line.
+func circleDir(a, b, c outline.Point, chord bool) float64 {
+	ax, ay := a.X-b.X, a.Y-b.Y
+	cx, cy := c.X-b.X, c.Y-b.Y
+	den := 2 * (ax*cy - ay*cx)
+	if chord || math.Abs(den) < 1e-9 {
+		return math.Atan2(c.Y-a.Y, c.X-a.X) * 180 / math.Pi
+	}
+	// the centre of the circle, relative to b
+	ox := (cy*(ax*ax+ay*ay) - ay*(cx*cx+cy*cy)) / den
+	oy := (ax*(cx*cx+cy*cy) - cx*(ax*ax+ay*ay)) / den
+	t := outline.Point{X: -oy, Y: ox}
+	if t.X*(c.X-a.X)+t.Y*(c.Y-a.Y) < 0 {
+		t = outline.Point{X: oy, Y: -ox}
+	}
+	return math.Atan2(t.Y, t.X) * 180 / math.Pi
 }
 
 // euro draws the euro: the capital C (capc.go) drawn at the figure height,

@@ -15,7 +15,7 @@ func symbolsUp(p *design.Params) {
 	s.AtRing, s.AtStem, s.AtBowlThick = 46, 86, 94
 	s.BraceArm, s.DegThick, s.TildeThick, s.CircThick = 82, 46, 68, 52
 	s.NumStroke, s.NumBar, s.PctZeroThick = 56, 60, 66
-	s.DollarSpine, s.DollarStroke, s.SterStem, s.SterBase, s.EuroThick = 104, 44, 96, 66, 108
+	s.DollarSpine, s.DollarStroke, s.SterStem, s.SterBase, s.EuroThick = 104, 44, 96, 80, 108
 }
 
 // symbolsDown is the opposite of symbolsUp, for the set caps-down.
@@ -27,5 +27,5 @@ func symbolsDown(p *design.Params) {
 	s.AtRing, s.AtStem, s.AtBowlThick = 34, 68, 74
 	s.BraceArm, s.DegThick, s.TildeThick, s.CircThick = 64, 34, 52, 40
 	s.NumStroke, s.NumBar, s.PctZeroThick = 44, 48, 50
-	s.DollarSpine, s.DollarStroke, s.SterStem, s.SterBase, s.EuroThick = 82, 32, 78, 54, 86
+	s.DollarSpine, s.DollarStroke, s.SterStem, s.SterBase, s.EuroThick = 82, 32, 78, 64, 86
 }
