@@ -178,9 +178,9 @@ func TestCClearance(t *testing.T) {
 	}
 }
 
-// The curvature of the inner edge of the upper stroke of c does not change
-// faster than cKneeMax per unit of arc length: 0.0012 for the regular
-// parameters and 0.003 for the other sets.
+// The curvature of the inner edge of the upper stroke of c, from the o to the
+// tip of the wedge, does not change faster than cKneeMax per unit of arc
+// length: 0.0012 for the regular parameters and 0.003 for the other sets.
 func TestCInnerEdgeHasNoKnee(t *testing.T) {
 	t.Parallel()
 	for _, np := range allParams() {
@@ -191,10 +191,15 @@ func TestCInnerEdgeHasNoKnee(t *testing.T) {
 				cKneeMax = 0.0012
 			}
 			f := newCFrame(np.params)
-			tb, _ := cTerminal(np.params, f)
-			in, _ := cInner(f, tb)
-			if r := curvatureRate(in); r > cKneeMax {
-				t.Errorf("the curvature of the inner edge changes by %.5f per unit, want at most %v", r, cKneeMax)
+			tb := cTerminal(np.params, f)
+			ch := cStalk(np.params, f)
+			for _, pc := range ch[1:] {
+				if r := curvatureRate(pc.cubic); r > cKneeMax {
+					t.Errorf("the curvature of the inner edge changes by %.5f per unit, want at most %v", r, cKneeMax)
+				}
+				if isTip(pc.P3, tb.Tip) {
+					break
+				}
 			}
 		})
 	}

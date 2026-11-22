@@ -104,9 +104,12 @@ func roundTerminal(name string, b ballPart, outer, inner cubic, right float64, h
 
 	// The inner edge, from its top to the tip of the wedge.
 	var in chain
-	if how.Arch {
+	switch {
+	case how.Arch:
 		in = archToTip(name, inner.P0, inner.tangent(0), tb)
-	} else {
+	case how.Tip:
+		in = stalkToTip(name, inner, tb)
+	default:
 		in = stalkInner(name, inner, tb)
 	}
 
@@ -116,29 +119,9 @@ func roundTerminal(name string, b ballPart, outer, inner cubic, right float64, h
 		start = tAtFall(outer, how.Fall)
 	}
 	t0 := outer.tangent(start)
-	w, err := newWindSpiral(outer.at(start), math.Atan2(-t0.Y, -t0.X), outer.curvature(start), tb.Centre, b.R)
-	if err != nil {
-		panic(fmt.Sprintf("glyphs: glyph %s: %v; glyphs.Check reports such parameters", name, err))
-	}
-	wind, err := w.cubics()
-	if err != nil {
-		panic(fmt.Sprintf("glyphs: glyph %s: the spiral into the ball: %v; glyphs.Check reports such parameters", name, err))
-	}
+	wound := windBall(name, tb, outer.at(start), math.Atan2(-t0.Y, -t0.X), outer.curvature(start))
 
-	// The ball, counter-clockwise from the tip of the wedge to the end of the
-	// spiral.
-	aW := math.Atan2(tb.Tip.Y-tb.Centre.Y, tb.Tip.X-tb.Centre.X)
-	aA := w.heading(w.L) + math.Pi/2
-	for aA <= aW {
-		aA += 2 * math.Pi
-	}
-	for aA > aW+2*math.Pi {
-		aA -= 2 * math.Pi
-	}
-	ball := circleArc(tb.Centre, b.R, aW, aA, 0)
-	ball[len(ball)-1].P3 = wind.start()
-
-	c := join(in, ball, wind)
+	c := join(in, wound)
 	if how.Hook {
 		c = join(c, chain{curveSeg(outer.sub(start, 1))})
 	}
@@ -149,11 +132,13 @@ func roundTerminal(name string, b ballPart, outer, inner cubic, right float64, h
 // The outer edge is a spiral (windSpiral) from the top of the round, or, if Hook
 // is set, from the point where the outer edge, walked towards the ball, falls
 // Fall degrees below the horizontal.  If Arch is set the inner edge runs from
-// its top to the tip of the wedge in one arch (archToTip); otherwise it is the
-// inner edge of the stalk of the part (stalkInner).
+// its top to the tip of the wedge in one arch (archToTip); if Tip is set it
+// leaves the inner edge of the round and runs to the tip in one curve
+// (stalkToTip); otherwise it is the inner edge of the stalk of the part
+// (stalkInner).
 type figStroke struct {
-	Arch, Hook bool
-	Fall       float64
+	Arch, Hook, Tip bool
+	Fall            float64
 }
 
 // tAtFall returns the parameter of the point where the curve c, walked from its
@@ -232,6 +217,37 @@ func stalkInner(name string, inner cubic, tb placedBall) chain {
 		}
 	}
 	return c
+}
+
+// stalkToTip returns the inner edge from the top of inner to the tip of the
+// wedge of tb: the inner edge of the round to a cut, and one cubic curve from
+// there to the tip, which leaves the round with its direction and its curvature
+// and arrives with the direction and the curvature of the inner edge of the part
+// (tipEnd), at the cut where its curvature changes least abruptly
+// (curvatureRate).
+func stalkToTip(name string, inner cubic, tb placedBall) chain {
+	tip := tipEnd(tb)
+	best, in, tI := math.Inf(1), cubic{}, 0.0
+	for _, free := range []bool{false, true} {
+		for _, u := range cCuts() {
+			fi := stalkFoot{At: inner.at(u), Dir: inner.tangent(u), Kappa: inner.curvature(u)}
+			if free {
+				fi.Kappa = math.NaN()
+			}
+			if c, err := edgeIn(fi, tip); err == nil {
+				if e := curvatureRate(c); e < best {
+					best, in, tI = e, c, u
+				}
+			}
+		}
+		if !math.IsInf(best, 1) {
+			break
+		}
+	}
+	if math.IsInf(best, 1) {
+		panic(fmt.Sprintf("glyphs: glyph %s: no inner edge of the stalk reaches the tip of the wedge; glyphs.Check reports such parameters", name))
+	}
+	return join(chain{curveSeg(inner.sub(0, tI))}, splitAtExtrema(in))
 }
 
 // figBallPlace returns the part placed as on c (roundTerminalAt), turned so that

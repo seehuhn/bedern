@@ -119,25 +119,23 @@ func TestFCrossbar(t *testing.T) {
 }
 
 // The left edge of the stem becomes the outer edge of the hook and the right edge
-// its underside, each in one curve which leaves the straight edge vertically,
-// without a corner.
+// its underside, each in a curve which leaves the straight edge vertically,
+// without a corner, above the crossbar.
 func TestFEdgesLeaveTheStemSmoothly(t *testing.T) {
 	t.Parallel()
 	p := design.Regular()
 	path, _ := fGlyph(t, p)
 	ct := path[0]
 	xl, xr := design.FStemLeft(p), design.FStemLeft(p)+p.AscenderStem
-	apex := design.FApex(p)
 	for _, c := range []struct {
 		name string
-		node outline.Point
 		up   bool // the contour runs up into the curve
 		vert float64
 	}{
-		{"left edge", outline.Point{X: xl, Y: apex - p.FOuterDrop}, false, xl},
-		{"right edge", outline.Point{X: xr, Y: apex - p.FInnerDrop}, true, xr},
+		{"left edge", false, xl},
+		{"right edge", true, xr},
 	} {
-		i := nodeNear(t, ct, c.node)
+		i := stemCurveNode(t, ct, c.vert, p.XHeight, design.FApex(p))
 		before, after := segCubic(ct, i+len(ct.Segs)-1), segCubic(ct, i)
 		near(t, c.name+": the node is on the edge of the stem", ct.Segs[(i+len(ct.Segs)-1)%len(ct.Segs)].P3.X, c.vert)
 		// The straight edge runs into the curve, and both are vertical there.
@@ -149,6 +147,31 @@ func TestFEdgesLeaveTheStemSmoothly(t *testing.T) {
 			t.Errorf("%s: the handle of the curve before the node is %v, the edge after it %v, want both vertical", c.name, before.P2, after)
 		}
 	}
+}
+
+// stemCurveNode returns the index of the node of the contour on the vertical x
+// between the heights y0 and y1 at which a straight segment and a curve meet.
+func stemCurveNode(t *testing.T, ct outline.Contour, x, y0, y1 float64) int {
+	t.Helper()
+	n := len(ct.Segs)
+	nodes := contourNodes(ct)
+	found := -1
+	for i := 0; i < n; i++ {
+		q := nodes[i]
+		if math.Abs(q.X-x) > 1e-9 || q.Y <= y0 || q.Y >= y1 {
+			continue
+		}
+		if ct.Segs[(i+n-1)%n].IsCurve != ct.Segs[i].IsCurve {
+			if found >= 0 {
+				t.Fatalf("two nodes on the edge x = %v where a line meets a curve", x)
+			}
+			found = i
+		}
+	}
+	if found < 0 {
+		t.Fatalf("no node on the edge x = %v where a line meets a curve", x)
+	}
+	return found
 }
 
 // The outer edge of the hook is smooth through its highest point, with

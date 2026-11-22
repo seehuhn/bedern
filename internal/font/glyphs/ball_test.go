@@ -29,8 +29,7 @@ func terminalOf(p design.Params, letter string) placedBall {
 	case "a":
 		return aTerminal(p)
 	case "c":
-		tb, _ := cTerminal(p, newCFrame(p))
-		return tb
+		return cTerminal(p, newCFrame(p))
 	case "f":
 		return fTerminal(p)
 	case "j":
@@ -43,6 +42,48 @@ func terminalOf(p design.Params, letter string) placedBall {
 		return gFrameOf(p).ear.part
 	}
 	panic("terminalOf: " + letter)
+}
+
+// woundLetters are the letters whose outer edge winds into the ball on a spiral
+// (windSpiral) in place of the curl of the part.
+var woundLetters = map[string]bool{"c": true, "f": true, "r": true}
+
+// stalkOf returns the stalk and the ball of a wound letter as its construction
+// draws them, from the foot of the inner edge round the ball to the foot of the
+// outer edge.
+func stalkOf(p design.Params, letter string) chain {
+	switch letter {
+	case "c":
+		return cStalk(p, newCFrame(p))
+	case "f":
+		return fHookChain(p, fTerminal(p))
+	case "r":
+		return rArmChain(p, rTerminal(p))
+	}
+	panic("stalkOf: " + letter)
+}
+
+// ballEntry returns the point where the outer edge of the stalk runs into the
+// circle of the ball: on a wound letter the last node of the chain, walked from
+// the tip of the wedge round the ball, which lies on the circle, and otherwise
+// the point A of the part.
+func ballEntry(p design.Params, letter string) outline.Point {
+	tb := terminalOf(p, letter)
+	if !woundLetters[letter] {
+		return tb.Tangent
+	}
+	ch := stalkOf(p, letter)
+	on := func(q outline.Point) bool {
+		return math.Abs(math.Hypot(q.X-tb.Centre.X, q.Y-tb.Centre.Y)-tb.Part.R) < 1e-6
+	}
+	i := 0
+	for !isTip(ch[i].P3, tb.Tip) {
+		i++
+	}
+	for i+1 < len(ch) && on(ch[i+1].P3) {
+		i++
+	}
+	return ch[i].P3
 }
 
 // turn returns the angle from a to b, in (-pi, pi].
@@ -281,11 +322,18 @@ func (s terminalSample) measures() terminalMeasures {
 // degrees.
 var ballTolerances = map[bool][4]float64{false: {0.3, 0.5, 1.5, 0.3}, true: {0.6, 4, 4, 1}}
 
+// woundStalk is the largest difference, in units, between the thickness of the
+// stalk at the tip of the wedge on a wound letter and BallStalk.
+const woundStalk = 2.0
+
 // TestBallTerminalIsOnePart measures the terminal on the six letters and requires
-// that it is the same object: the same diameter, the same attachment angle, the
-// same opening of the wedge and the same thickness of the stalk at the tip, and
-// that the outlines near the ball coincide after the turn, mirror and shift which
-// map the measured centre and tip onto each other.
+// that it is the same object: the same diameter and the same opening of the
+// wedge on all six.  The letters which draw the curl of the part (a, j, y) also
+// have the same attachment angle and the same thickness of the stalk at the tip,
+// and their outlines near the ball coincide after the turn, mirror and shift
+// which map the measured centre and tip onto each other.  On the letters whose
+// outer edge winds into the ball (woundLetters) the attachment follows from the
+// spiral, and the stalk at the tip lies within woundStalk of BallStalk.
 func TestBallTerminalIsOnePart(t *testing.T) {
 	t.Parallel()
 	p := design.Regular()
@@ -313,8 +361,14 @@ func TestBallTerminalIsOnePart(t *testing.T) {
 			// 0.7 units and the smooth nodes and the handles by up to 1.5.
 			tol := ballTolerances[round]
 			check("diameter", m.diameter, ref.diameter, tol[0])
-			check("attachment angle", m.attach, ref.attach, tol[1])
 			check("opening of the wedge", m.wedge, ref.wedge, tol[2])
+			if woundLetters[letter] {
+				if math.Abs(m.stalk-p.BallStalk) > woundStalk {
+					t.Errorf("rounded %v, %s: thickness of the stalk at the tip %.2f, want %v within %v", round, letter, m.stalk, p.BallStalk, woundStalk)
+				}
+				continue
+			}
+			check("attachment angle", m.attach, ref.attach, tol[1])
 			check("thickness of the stalk at the tip", m.stalk, ref.stalk, tol[3])
 			// The outline from a third of the way back along the section to the far
 			// side of the ball coincides with that of the first letter.
@@ -464,16 +518,12 @@ func stalkEdges(p design.Params, letter string) (inner, outer [2]outline.Point) 
 	tb := terminalOf(p, letter)
 	pt := func(x, y float64) outline.Point { return outline.Point{X: x, Y: y} }
 	switch letter {
-	case "r":
-		x1 := rStem(p).right()
-		return [2]outline.Point{pt(x1, p.RJoin), tb.Tip}, [2]outline.Point{tb.Tangent, pt(x1, p.RNotch)}
-	case "f":
-		h := fHook(p)
-		return [2]outline.Point{pt(h.XR, h.InnerJoin), tb.Tip}, [2]outline.Point{tb.Tangent, pt(h.XL, h.OuterJoin)}
+	case "r", "f":
+		ch := stalkOf(p, letter)
+		return [2]outline.Point{ch.start(), tb.Tip}, [2]outline.Point{ballEntry(p, letter), ch.end()}
 	case "c":
-		f := newCFrame(p)
-		_, tI := cInner(f, tb)
-		return [2]outline.Point{f.innerU.cubic(3, false).at(tI), tb.Tip}, [2]outline.Point{tb.Tangent, pt(f.cx, p.XHeight+p.OvershootLower)}
+		ch := stalkOf(p, letter)
+		return [2]outline.Point{ch[0].P3, tb.Tip}, [2]outline.Point{ballEntry(p, letter), ch.end()}
 	case "a":
 		left := design.AStemLeft(p)
 		return [2]outline.Point{tb.Tip, pt(left, p.ShoulderStartInner+aInnerRaise)}, [2]outline.Point{pt(left+p.Stem, p.ShoulderStart-aOuterDrop), tb.Tangent}
@@ -756,9 +806,8 @@ func TestOuterEdgeRunsIntoTheBall(t *testing.T) {
 	p := design.Regular()
 	for _, letter := range ballLetters {
 		path, _, _ := outlineOf(letter, p)
-		tb := terminalOf(p, letter)
 		ct := path[0]
-		i := nodeNear(t, ct, tb.Tangent)
+		i := nodeNear(t, ct, ballEntry(p, letter))
 		n := len(ct.Segs)
 		before, after := segCubic(ct, i+n-1), segCubic(ct, i)
 		a, b := before.tangent(1), after.tangent(0)

@@ -48,6 +48,14 @@ import (
 // arriving in the directions JoinOuterDir and JoinInnerDir: the outer edge at a
 // crotch, the inner edge at the corner of the counter under the link.
 //
+// The joins.  From the curl of the link round the loop, the edges of the counter
+// (a2 to a6) and the outer edge (b2 to b6) are redrawn so that their curves share
+// the curvature where they join (gFittedEdges): each curve is cut in the middle,
+// the two short ends on either side of the station, where the stroke turns from
+// the curl of the link into the round of the loop, are one curve, and the lengths
+// of the handles are fitted while the points and the directions stay.  The
+// straight parts of the link, a1 and b1, are kept as they are.
+//
 // The ear (gEarFrame).  A thin stalk with the shared ball terminal of ball.go at
 // the size of the ear: a ball GEarBall across with its centre GEarDrop below the
 // x-height and its right extreme GEarReach beyond the bowl, on a stalk GEarThick
@@ -190,8 +198,8 @@ var (
 type gFrame struct {
 	outerB, innerB superShape
 
-	a1, a2, a3, a4, a5, a6 cubic
-	b1, b2, b3, b4, b5, b6 cubic
+	a1, a2, a3, a4, a5, a6 gEdge
+	b1, b2, b3, b4, b5, b6 gEdge
 
 	tJa, tJb float64 // the outer edge of the left end (b6, from its extreme) meets a2: the parameters on a2 and on b6
 	tKa, tKb float64 // the inner edge of the left end (a6) meets a2: the parameters on a2 and on a6
@@ -228,20 +236,21 @@ func newGFrame(p design.Params) (gFrame, error) {
 	lIn := outline.Point{X: ll + p.GLoopLeftThick, Y: lOut.Y}
 
 	q2 := f.outerB.cubic(2, true)
+	var a1, a2, a3, a4, a5, a6, b1, b2, b3, b4, b5, b6 cubic
 	f.tQ = q2.tAtY(bottom + sh.NotchUp)
 	{
 		q := q2.at(f.tQ)
 		chord := math.Hypot(neckA.X-q.X, neckA.Y-q.Y)
-		f.a1 = gHandled(q, gDeg(sh.LeaveDir), sh.LeaveStart*chord, neckA, gDown, sh.LeaveEnd*chord)
+		a1 = gHandled(q, gDeg(sh.LeaveDir), sh.LeaveStart*chord, neckA, gDown, sh.LeaveEnd*chord)
 	}
-	f.a2 = gSweep(neckA, stA, slope)
-	f.a3 = gQuarter(stA, slope, rIn, gDown, sh.Ring)
-	f.a4 = gQuarter(rIn, gDown, bIn, gLeft, sh.Ring)
-	f.a5 = gQuarter(bIn, gLeft, lIn, gUp, sh.Ring)
+	a2 = gSweep(neckA, stA, slope)
+	a3 = gQuarter(stA, slope, rIn, gDown, sh.Ring)
+	a4 = gQuarter(rIn, gDown, bIn, gLeft, sh.Ring)
+	a5 = gQuarter(bIn, gLeft, lIn, gUp, sh.Ring)
 	{
 		u := gDeg(sh.JoinInnerDir)
-		end := gBeyond(f.a2.at(sh.JoinInnerAt), u, sh.JoinExtra)
-		f.a6 = gHandled(lIn, gUp, sh.JoinRise*(end.Y-lIn.Y), end, u, sh.JoinEnd*math.Hypot(end.X-lIn.X, end.Y-lIn.Y))
+		end := gBeyond(a2.at(sh.JoinInnerAt), u, sh.JoinExtra)
+		a6 = gHandled(lIn, gUp, sh.JoinRise*(end.Y-lIn.Y), end, u, sh.JoinEnd*math.Hypot(end.X-lIn.X, end.Y-lIn.Y))
 	}
 
 	// The outer edge of the loop, in the direction of the outer contour: from the
@@ -250,32 +259,40 @@ func newGFrame(p design.Params) (gFrame, error) {
 	// the join.
 	{
 		u := gDeg(sh.JoinOuterDir)
-		end := gBeyond(f.a2.at(sh.JoinOuterAt), u, sh.JoinExtra)
-		f.b6 = gHandled(lOut, gUp, sh.JoinRise*(end.Y-lOut.Y), end, u, sh.JoinEnd*math.Hypot(end.X-lOut.X, end.Y-lOut.Y))
+		end := gBeyond(a2.at(sh.JoinOuterAt), u, sh.JoinExtra)
+		b6 = gHandled(lOut, gUp, sh.JoinRise*(end.Y-lOut.Y), end, u, sh.JoinEnd*math.Hypot(end.X-lOut.X, end.Y-lOut.Y))
 	}
-	f.b5 = gQuarter(lOut, gDown, bOut, gRight, sh.Ring)
-	f.b4 = gQuarter(bOut, gRight, rOut, gUp, sh.Ring)
-	f.b3 = gQuarter(rOut, gUp, stB, back, sh.Ring)
-	f.b2 = gSweep(neckB, stB, slope).reversed()
+	b5 = gQuarter(lOut, gDown, bOut, gRight, sh.Ring)
+	b4 = gQuarter(bOut, gRight, rOut, gUp, sh.Ring)
+	b3 = gQuarter(rOut, gUp, stB, back, sh.Ring)
+	b2 = gSweep(neckB, stB, slope).reversed()
 	{
 		u := gDeg(sh.PocketDir)
-		aim := q2.at(q2.tAtX(f.a1.P0.X + p.GLinkThick + sh.PocketIn))
+		aim := q2.at(q2.tAtX(a1.P0.X + p.GLinkThick + sh.PocketIn))
 		end := gBeyond(aim, u, sh.PocketExtra)
 		chord := math.Hypot(end.X-neckB.X, end.Y-neckB.Y)
-		f.b1 = gHandled(neckB, gUp, sh.PocketStart*chord, end, u, sh.PocketEnd*chord)
+		b1 = gHandled(neckB, gUp, sh.PocketStart*chord, end, u, sh.PocketEnd*chord)
 	}
 
+	// The joins of the edges from the curl of the link round the loop are made
+	// smooth (gFittedEdges), each edge in the direction of the pen; the straight
+	// parts of the link, a1 and b1, keep their form.
+	as := gFittedEdges([]cubic{a2, a3, a4, a5, a6})
+	f.a1, f.a2, f.a3, f.a4, f.a5, f.a6 = gEdge{a1}, as[0], as[1], as[2], as[3], as[4]
+	bs := gFittedEdges([]cubic{b2.reversed(), b3.reversed(), b4.reversed(), b5.reversed(), b6})
+	f.b1, f.b2, f.b3, f.b4, f.b5, f.b6 = gEdge{b1}, bs[0].reversed(), bs[1].reversed(), bs[2].reversed(), bs[3].reversed(), bs[4]
+
 	var ok bool
-	if f.tJa, f.tJb, ok = crossing(f.a2, f.b6); !ok {
+	if f.tJa, f.tJb, ok = f.a2.crossing(f.b6); !ok {
 		return f, fmt.Errorf("the outer edge of the left end of the loop does not meet the link")
 	}
-	if f.tKa, f.tKb, ok = crossing(f.a2, f.a6); !ok {
+	if f.tKa, f.tKb, ok = f.a2.crossing(f.a6); !ok {
 		return f, fmt.Errorf("the inner edge of the left end of the loop does not meet the link")
 	}
 	if !(f.tJa < f.tKa) {
 		return f, fmt.Errorf("the left end of the loop meets the link the wrong way round")
 	}
-	if f.tPb, f.tPq, ok = crossing(f.b1, q2); !ok {
+	if f.tPb, f.tPq, ok = f.b1.crossing(gEdge{q2}); !ok {
 		return f, fmt.Errorf("the right edge of the link does not meet the bowl")
 	}
 
@@ -284,6 +301,288 @@ func newGFrame(p design.Params) (gFrame, error) {
 		return f, err
 	}
 	return f, nil
+}
+
+// gFitted returns the curves, which join end to end with a common direction,
+// with the lengths of their handles changed so that they also share the
+// curvature where they join: of all such handles, none shorter than
+// gFitMinHandle unless it was, those closest in the least squares sense to the
+// given ones and, where curve i-1 meets curve i, to the curvature target[i] if
+// there is one, and at the start of the first curve and the end of the last to
+// target[0] and target[n] (Levenberg and Marquardt's method, with the joins
+// weighted by gFitWeight and the curvatures by gFitMid).  The points and the directions
+// stay.
+func gFitted(cs []cubic, target map[int]float64) []cubic {
+	n := len(cs)
+	h0 := make([]float64, 2*n)
+	for i, c := range cs {
+		h0[2*i] = math.Hypot(c.P1.X-c.P0.X, c.P1.Y-c.P0.Y)
+		h0[2*i+1] = math.Hypot(c.P3.X-c.P2.X, c.P3.Y-c.P2.Y)
+	}
+	build := func(h []float64) []cubic {
+		out := make([]cubic, n)
+		for i, c := range cs {
+			out[i] = gHandled(c.P0, c.tangent(0), h[2*i], c.P3, c.tangent(1), h[2*i+1])
+		}
+		return out
+	}
+	resid := func(h []float64) []float64 {
+		r := make([]float64, 0, 3*n)
+		for i := range h {
+			r = append(r, h[i]-h0[i])
+		}
+		b := build(h)
+		for i := 1; i < n; i++ {
+			r = append(r, gFitWeight*(b[i-1].curvature(1)-b[i].curvature(0)))
+		}
+		for i := 1; i < n; i++ {
+			if k, ok := target[i]; ok {
+				r = append(r, gFitMid*(b[i-1].curvature(1)-k))
+			}
+		}
+		if k, ok := target[0]; ok {
+			r = append(r, gFitMid*(b[0].curvature(0)-k))
+		}
+		if k, ok := target[n]; ok {
+			r = append(r, gFitMid*(b[n-1].curvature(1)-k))
+		}
+		return r
+	}
+	sq := func(r []float64) float64 {
+		var s float64
+		for _, v := range r {
+			s += v * v
+		}
+		return s
+	}
+	h := append([]float64(nil), h0...)
+	r := resid(h)
+	lambda := 1e-3
+	m := len(h)
+	for iter := 0; iter < 200; iter++ {
+		// The Jacobian, by forward differences.
+		jac := make([][]float64, len(r))
+		for k := range jac {
+			jac[k] = make([]float64, m)
+		}
+		for j := 0; j < m; j++ {
+			hh := append([]float64(nil), h...)
+			hh[j] += 1e-5
+			rr := resid(hh)
+			for k := range r {
+				jac[k][j] = (rr[k] - r[k]) / 1e-5
+			}
+		}
+		a := make([][]float64, m)
+		g := make([]float64, m)
+		for i := 0; i < m; i++ {
+			a[i] = make([]float64, m)
+			for j := 0; j < m; j++ {
+				for k := range r {
+					a[i][j] += jac[k][i] * jac[k][j]
+				}
+			}
+			for k := range r {
+				g[i] -= jac[k][i] * r[k]
+			}
+		}
+		improved := false
+		for tries := 0; tries < 20; tries++ {
+			aa := make([][]float64, m)
+			for i := range a {
+				aa[i] = append([]float64(nil), a[i]...)
+				aa[i][i] += lambda * (1 + a[i][i])
+			}
+			d := gSolve(aa, append([]float64(nil), g...))
+			hn := make([]float64, m)
+			ok := true
+			for i := range h {
+				hn[i] = math.Max(h[i]+d[i], math.Min(h0[i], gFitMinHandle))
+				if math.IsNaN(hn[i]) {
+					ok = false
+				}
+			}
+			if ok {
+				if rn := resid(hn); sq(rn) < sq(r) {
+					h, r = hn, rn
+					lambda /= 3
+					improved = true
+					break
+				}
+			}
+			lambda *= 4
+		}
+		if !improved {
+			break
+		}
+	}
+	return build(h)
+}
+
+// gFittedEdges returns the curves, which join end to end with a common
+// direction, as edges whose pieces also share the curvature where they join.
+// Each curve is cut in the middle.  Where two curves which bend different ways
+// join, each is also cut 0.15 of its parameter from that join, and the two
+// short ends next to the join are one piece, an arc which turns from the one way
+// to the other and belongs to the edge of the second curve.  The lengths of the
+// handles of the pieces are fitted (gFitted) to keep the curvature of the given
+// curves where they are cut and at the two ends, and at a join of two curves
+// which bend the same way the curvature of the one which bends less there.
+func gFittedEdges(cs []cubic) []gEdge {
+	n := len(cs)
+	turns := func(i int) bool { return i > 0 && i < n && cs[i-1].curvature(1)*cs[i].curvature(0) < 0 }
+	var hs []cubic
+	var owner []int
+	target := map[int]float64{}
+	target[0] = cs[0].curvature(0)
+	handle := func(q, r outline.Point) float64 { return math.Hypot(r.X-q.X, r.Y-q.Y) }
+	for i, c := range cs {
+		if i > 0 && !turns(i) {
+			ka, kb := cs[i-1].curvature(1), c.curvature(0)
+			target[len(hs)] = ka
+			if math.Abs(kb) < math.Abs(ka) {
+				target[len(hs)] = kb
+			}
+		}
+		cuts := []float64{0}
+		if turns(i) {
+			cuts = append(cuts, 0.15)
+		}
+		cuts = append(cuts, 0.5)
+		if turns(i + 1) {
+			cuts = append(cuts, 0.85)
+		}
+		cuts = append(cuts, 1)
+		for j := 1; j < len(cuts); j++ {
+			h := c.sub(cuts[j-1], cuts[j])
+			if j == 1 && turns(i) {
+				last := hs[len(hs)-1]
+				hs[len(hs)-1] = gHandled(last.P0, last.tangent(0), handle(last.P0, last.P1), h.P3, h.tangent(1), handle(h.P2, h.P3))
+				owner[len(hs)-1] = i
+			} else {
+				hs, owner = append(hs, h), append(owner, i)
+			}
+			if j < len(cuts)-1 {
+				target[len(hs)] = c.curvature(cuts[j])
+			}
+		}
+	}
+	target[len(hs)] = cs[n-1].curvature(1)
+	f := gFitted(hs, target)
+	out := make([]gEdge, n)
+	for j, c := range f {
+		out[owner[j]] = append(out[owner[j]], c)
+	}
+	return out
+}
+
+// gFitWeight is the weight of a difference of curvature at a join against a
+// unit of the length of a handle in gFitted.
+const gFitWeight = 1e7
+
+// gFitMinHandle is the shortest handle which gFitted gives a curve whose
+// handle is at least as long, in units: a handle shorter than that loses its
+// direction when the outline is rounded to integers.
+const gFitMinHandle = 15.0
+
+// gFitMid is the weight of a difference of curvature from a target against a
+// unit of the length of a handle in gFitted.
+const gFitMid = 30000.0
+
+// gSolve solves the linear system a x = b by Gaussian elimination with partial
+// pivoting; a and b are overwritten.
+func gSolve(a [][]float64, b []float64) []float64 {
+	n := len(b)
+	for c := 0; c < n; c++ {
+		p := c
+		for r := c + 1; r < n; r++ {
+			if math.Abs(a[r][c]) > math.Abs(a[p][c]) {
+				p = r
+			}
+		}
+		a[c], a[p] = a[p], a[c]
+		b[c], b[p] = b[p], b[c]
+		for r := c + 1; r < n; r++ {
+			f := a[r][c] / a[c][c]
+			for k := c; k < n; k++ {
+				a[r][k] -= f * a[c][k]
+			}
+			b[r] -= f * b[c]
+		}
+	}
+	x := make([]float64, n)
+	for r := n - 1; r >= 0; r-- {
+		s := b[r]
+		for k := r + 1; k < n; k++ {
+			s -= a[r][k] * x[k]
+		}
+		x[r] = s / a[r][r]
+	}
+	return x
+}
+
+// A gEdge is an edge of g drawn as cubic curves end to end, which it walks
+// with one parameter from 0 to 1, each curve taking an equal share.
+type gEdge []cubic
+
+// split returns the curve and the parameter on it of the point t of the edge.
+func (e gEdge) split(t float64) (int, float64) {
+	n := float64(len(e))
+	i := int(math.Min(math.Floor(t*n), n-1))
+	return i, t*n - float64(i)
+}
+
+// at returns the point of the edge at the parameter t.
+func (e gEdge) at(t float64) outline.Point {
+	i, u := e.split(t)
+	return e[i].at(u)
+}
+
+// start and end return the ends of the edge.
+func (e gEdge) start() outline.Point { return e[0].P0 }
+func (e gEdge) end() outline.Point   { return e[len(e)-1].P3 }
+
+// reversed returns the edge walked the other way.
+func (e gEdge) reversed() gEdge {
+	out := make(gEdge, len(e))
+	for i, c := range e {
+		out[len(e)-1-i] = c.reversed()
+	}
+	return out
+}
+
+// sub returns the part of the edge from the parameter t0 to t1 > t0 as a
+// chain, cut at the extremes.
+func (e gEdge) sub(t0, t1 float64) chain {
+	i0, u0 := e.split(t0)
+	i1, u1 := e.split(t1)
+	if u1 == 0 && i1 > i0 {
+		i1, u1 = i1-1, 1
+	}
+	var ch chain
+	for i := i0; i <= i1; i++ {
+		a, b := 0.0, 1.0
+		if i == i0 {
+			a = u0
+		}
+		if i == i1 {
+			b = u1
+		}
+		ch = append(ch, splitAtExtrema(e[i].sub(a, b))...)
+	}
+	return ch
+}
+
+// crossing returns the parameters at which the edges e and o cross.
+func (e gEdge) crossing(o gEdge) (float64, float64, bool) {
+	for i, c := range e {
+		for j, d := range o {
+			if ta, tb, ok := crossing(c, d); ok {
+				return (float64(i) + ta) / float64(len(e)), (float64(j) + tb) / float64(len(o)), true
+			}
+		}
+	}
+	return 0, 0, false
 }
 
 // gFrameOf returns the frame of g, which panics if the parameters do not allow the
@@ -425,13 +724,13 @@ func (f gFrame) outer(ear gEarFrame) chain {
 	return weld(
 		one(q1),
 		one(q2.sub(0, f.tQ)),
-		splitAtExtrema(f.a1),
-		splitAtExtrema(f.a2.sub(0, f.tJa)),
-		splitAtExtrema(f.b6.sub(0, f.tJb)).reversed(),
-		one(f.b5), one(f.b4),
-		splitAtExtrema(f.b3),
-		splitAtExtrema(f.b2),
-		splitAtExtrema(f.b1.sub(0, f.tPb)),
+		f.a1.sub(0, 1),
+		f.a2.sub(0, f.tJa),
+		f.b6.sub(0, f.tJb).reversed(),
+		f.b5.sub(0, 1), f.b4.sub(0, 1),
+		f.b3.sub(0, 1),
+		f.b2.sub(0, 1),
+		f.b1.sub(0, f.tPb),
 		one(q2.sub(f.tPq, 1)),
 		one(q3),
 		one(q0.sub(0, ear.tLq)),
@@ -445,11 +744,11 @@ func (f gFrame) outer(ear gEarFrame) chain {
 func (f gFrame) counter() chain {
 	// The contour closes: the end of the last piece is the start of the first.
 	ch := weld(
-		splitAtExtrema(f.a2.sub(f.tKa, 1)),
-		splitAtExtrema(f.a3),
-		splitAtExtrema(f.a4),
-		splitAtExtrema(f.a5),
-		splitAtExtrema(f.a6.sub(0, f.tKb)),
+		f.a2.sub(f.tKa, 1),
+		f.a3.sub(0, 1),
+		f.a4.sub(0, 1),
+		f.a5.sub(0, 1),
+		f.a6.sub(0, f.tKb),
 	)
 	ch[len(ch)-1].P3 = ch[0].P0
 	return ch

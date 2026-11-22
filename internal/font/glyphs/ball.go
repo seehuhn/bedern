@@ -18,7 +18,9 @@ import (
 // between the stalk and the ball.  The terminal is one part, the same on every
 // letter which has one (a, c, f, j, r, y): the letters place it, turned and
 // perhaps mirrored, and draw the stalk from their stems or strokes to its
-// section.  The part is made in its own frame, in which the centre O of the ball
+// section.  The letters c, f and r, like the figures, draw only the circle of the
+// ball and the tip of the wedge of the part, and wind the outer edge of the
+// stalk into the ball on a spiral (windSpiral, windHook).  The part is made in its own frame, in which the centre O of the ball
 // is the origin and the stalk comes in from the upper left, as on r: it runs
 // over the top to the right and curls down into the ball, and the wedge lies at
 // the upper left of the ball.
@@ -176,8 +178,8 @@ func (b ballPart) blend(blend float64) (ballPart, error) {
 	return b, nil
 }
 
-// A windSpiral is the outer edge by which the figures lead a round stroke into
-// the ball, in place of the curl and the blend of the part: a spiral which leaves
+// A windSpiral is the outer edge by which the figures and c, f and r lead a
+// stroke into the ball, in place of the curl and the blend of the part: a spiral which leaves
 // P0 in the direction Phi0 (radians), turns clockwise, and whose curvature rises
 // from K0 to K1, the curvature of the ball, with the power M of the length run,
 //
@@ -314,6 +316,33 @@ func (w windSpiral) cubics() (chain, error) {
 		ch = append(ch, curveSeg(c))
 	}
 	return ch, nil
+}
+
+// windBall returns the circle of the ball of tb, counter-clockwise from the tip
+// of the wedge, and the outer edge which winds into it, walked back out to q0:
+// the spiral (windSpiral) which leaves q0 in the direction phi0 (radians) with
+// the curvature k0 and ends on the circle of the ball with its direction and its
+// curvature.
+func windBall(name string, tb placedBall, q0 outline.Point, phi0, k0 float64) chain {
+	w, err := newWindSpiral(q0, phi0, k0, tb.Centre, tb.Part.R)
+	if err != nil {
+		panic(fmt.Sprintf("glyphs: glyph %s: %v; glyphs.Check reports such parameters", name, err))
+	}
+	wind, err := w.cubics()
+	if err != nil {
+		panic(fmt.Sprintf("glyphs: glyph %s: the spiral into the ball: %v; glyphs.Check reports such parameters", name, err))
+	}
+	aW := math.Atan2(tb.Tip.Y-tb.Centre.Y, tb.Tip.X-tb.Centre.X)
+	aA := w.heading(w.L) + math.Pi/2
+	for aA <= aW {
+		aA += 2 * math.Pi
+	}
+	for aA > aW+2*math.Pi {
+		aA -= 2 * math.Pi
+	}
+	ball := circleArc(tb.Centre, tb.Part.R, aW, aA, 0)
+	ball[len(ball)-1].P3 = wind.start()
+	return join(ball, wind)
 }
 
 // windMinPiece is the shortest arc of the spiral from P0 which is drawn as a
@@ -762,6 +791,143 @@ func stalkChain(letter string, in stalkFoot, tb placedBall, out stalkFoot) chain
 	return join(splitAtExtrema(a), tb.Chain, splitAtExtrema(b))
 }
 
+// windHook returns the stalk and the ball of a letter whose stroke leaves a stem
+// (f, r) as one chain, from the foot in round the ball to the foot out.  The
+// inner edge is one cubic curve from the foot in to the tip of the wedge, which
+// arrives with the direction and the curvature of the inner edge of the part
+// (tipEnd); where the inner circle of the part has an extreme within
+// windMinPiece of the tip, the curve ends at the extreme and the circle runs on
+// to the tip.  The outer edge is the curve which stalkChain draws from the part
+// to the foot out, from the foot as far as the point where, walked towards the
+// ball, it rises by an angle within rises (degrees) above the horizontal; from
+// there it winds into the ball (windBall).  The angle is the largest in the range
+// for which the spiral meets the circle of the ball at one of its extremes, a
+// node which the circle has anyway.  A foot whose curvature is zero, on a
+// straight stem, is reached by a transition curve (straightFoot) over the last
+// stemRamp degrees of the turn of the edge.
+func windHook(letter string, in stalkFoot, tb placedBall, out stalkFoot, rises [2]float64) chain {
+	tip, arc := tipEnd(tb), chain(nil)
+	cg := tb.Place.point(tb.Part.C)
+	aW := math.Atan2(tb.Tip.Y-cg.Y, tb.Tip.X-cg.X)
+	if e := math.Ceil(aW/(math.Pi/2)) * math.Pi / 2; (e-aW)*tb.Part.Ri < windMinPiece {
+		// The inner circle of the part has an extreme just before the tip: the
+		// edge runs to the extreme and on along the circle.
+		arc = chain{curveSeg(arcCubic(cg, tb.Part.Ri, e, aW))}
+		tip = stalkEnd{At: arc.start(), Dir: dirOf(e - math.Pi/2), Kappa: -1 / tb.Part.Ri}
+	}
+	free := func(f stalkFoot) stalkFoot { return stalkFoot{At: f.At, Dir: f.Dir, Kappa: math.NaN()} }
+	a, err := edgeIn(free(in), tip)
+	if err != nil {
+		panic(fmt.Sprintf("glyphs: glyph %s: the edge into the ball terminal: %v", letter, err))
+	}
+	inner := splitAtExtrema(a)
+	if in.Kappa == 0 {
+		u := tTurned(a, 0, stemRamp)
+		ramp := straightFoot(a.at(u), neg(a.tangent(u)), -a.curvature(u), in.At, neg(in.Dir)).reversed()
+		inner = join(chain{curveSeg(ramp)}, splitAtExtrema(a.sub(u, 1)))
+	}
+	inner = join(inner, arc)
+	outer, err := edgeOut(tb.Out, free(out))
+	if err != nil {
+		panic(fmt.Sprintf("glyphs: glyph %s: the edge out of the ball terminal: %v", letter, err))
+	}
+	spiral := func(rise float64) (windSpiral, float64, error) {
+		t := tAtFall(outer, -rise)
+		q := outer.tangent(t)
+		w, err := newWindSpiral(outer.at(t), math.Atan2(-q.Y, -q.X), outer.curvature(t), tb.Centre, tb.Part.R)
+		return w, t, err
+	}
+	// The direction from the centre of the ball in which the spiral meets it,
+	// less the nearest multiple of a quarter turn, in degrees.
+	miss := func(rise float64) float64 {
+		w, _, err := spiral(rise)
+		if err != nil {
+			return math.NaN()
+		}
+		d := (w.heading(w.L) + math.Pi/2) * 180 / math.Pi
+		return d - 90*math.Round(d/90)
+	}
+	lo, hi, found := 0.0, 0.0, false
+	b := miss(rises[1])
+	for r := rises[1]; r > rises[0]; r-- {
+		a := miss(r - 1)
+		if math.Abs(a) < 30 && math.Abs(b) < 30 && (a <= 0) != (b <= 0) {
+			lo, hi, found = r-1, r, true
+			break
+		}
+		b = a
+	}
+	if !found {
+		panic(fmt.Sprintf("glyphs: glyph %s: the spiral into the ball does not meet it at an extreme; glyphs.Check reports such parameters", letter))
+	}
+	mlo := miss(lo)
+	for i := 0; i < 30; i++ {
+		m := (lo + hi) / 2
+		if mm := miss(m); (mm <= 0) == (mlo <= 0) {
+			lo, mlo = m, mm
+		} else {
+			hi = m
+		}
+	}
+	_, t, _ := spiral((lo + hi) / 2)
+	q := outer.tangent(t)
+	wound := windBall(letter, tb, outer.at(t), math.Atan2(-q.Y, -q.X), outer.curvature(t))
+	rest := outer.sub(t, 1)
+	tail := splitAtExtrema(rest)
+	if out.Kappa == 0 {
+		u := tTurned(rest, 1, stemRamp)
+		ramp := straightFoot(rest.at(u), rest.tangent(u), rest.curvature(u), out.At, out.Dir)
+		tail = join(splitAtExtrema(rest.sub(0, u)), chain{curveSeg(ramp)})
+	}
+	return join(inner, wound, tail)
+}
+
+// stemRamp is the turn (degrees) over which the edge of a hook which leaves a
+// straight stem without curvature (windHook) is a transition curve
+// (straightFoot).
+const stemRamp = 20.0
+
+// tTurned returns the parameter of the point of c whose direction differs by
+// turn degrees from the direction at the parameter end (0 or 1); c turns one way.
+func tTurned(c cubic, end, turn float64) float64 {
+	t0 := c.tangent(end)
+	diff := func(t float64) float64 {
+		q := c.tangent(t)
+		return math.Abs(math.Atan2(t0.X*q.Y-t0.Y*q.X, t0.X*q.X+t0.Y*q.Y)) * 180 / math.Pi
+	}
+	lo, hi := 0.0, 1.0
+	for i := 0; i < 60; i++ {
+		mid := (lo + hi) / 2
+		if (diff(mid) < turn) == (end == 0) {
+			lo = mid
+		} else {
+			hi = mid
+		}
+	}
+	return (lo + hi) / 2
+}
+
+// straightFoot returns the cubic curve from p0, leaving in the direction t0
+// with the signed curvature k0, to a point on the line through p3 in the
+// direction t3, a straight stem, where it arrives in the direction t3 without
+// curvature, and has handles of equal length.  The point is p3 + h t3, with h
+// chosen so that the two handles are equal.
+func straightFoot(p0, t0 outline.Point, k0 float64, p3, t3 outline.Point) cubic {
+	cr := func(u, v outline.Point) float64 { return u.X*v.Y - u.Y*v.X }
+	s := cr(t0, t3)
+	// The curvature 0 at the end fixes the handle at the start, a = (d x t3)/s,
+	// which does not depend on h, and the handle at the end is
+	// b = (t0 x d - 3/2 k0 a^2)/s.
+	d := outline.Point{X: p3.X - p0.X, Y: p3.Y - p0.Y}
+	a := cr(d, t3) / s
+	h := (a*s + 1.5*k0*a*a - cr(t0, d)) / s
+	q := outline.Point{X: p3.X + h*t3.X, Y: p3.Y + h*t3.Y}
+	return cubic{p0,
+		outline.Point{X: p0.X + a*t0.X, Y: p0.Y + a*t0.Y},
+		outline.Point{X: q.X - a*t3.X, Y: q.Y - a*t3.Y},
+		q}
+}
+
 // chainBBox returns the bounding box of the chain, from its curves.
 func chainBBox(c chain) (x0, y0, x1, y1 float64) {
 	var path outline.Path
@@ -832,6 +998,17 @@ func oneWay(c cubic, sign float64) bool {
 		}
 	}
 	return math.Abs(turn) < math.Pi
+}
+
+// tipEnd returns the end of the inner edge of the part at the tip of the wedge
+// of tb: the tip, and the direction and the curvature of the inner edge there.
+func tipEnd(tb placedBall) stalkEnd {
+	for _, pc := range tb.Chain {
+		if isTip(pc.P3, tb.Tip) {
+			return stalkEnd{At: tb.Tip, Dir: pc.tangent(1), Kappa: pc.curvature(1)}
+		}
+	}
+	panic("glyphs: the ball terminal has no tip of the wedge")
 }
 
 // isTip reports whether q is the tip of the wedge w.

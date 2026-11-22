@@ -97,15 +97,16 @@ func TestGStrokeFlows(t *testing.T) {
 			t.Parallel()
 			f := gTestFrame(t, np)
 			gRunChecks(t, np.name, "left edge of the link", weld(
-				splitAtExtrema(f.a1),
-				splitAtExtrema(f.a2.sub(0, f.tJa)),
+				f.a1.sub(0, 1),
+				f.a2.sub(0, f.tJa),
 			))
 			gRunChecks(t, np.name, "edge from the pocket round the loop", weld(
-				splitAtExtrema(f.b1.sub(0, f.tPb)).reversed(),
-				splitAtExtrema(f.b2.reversed()),
-				splitAtExtrema(f.b3.reversed()),
-				chain{curveSeg(f.b4.reversed()), curveSeg(f.b5.reversed())},
-				splitAtExtrema(f.b6.sub(0, f.tJb)),
+				f.b1.sub(0, f.tPb).reversed(),
+				f.b2.reversed().sub(0, 1),
+				f.b3.reversed().sub(0, 1),
+				f.b4.reversed().sub(0, 1),
+				f.b5.reversed().sub(0, 1),
+				f.b6.sub(0, f.tJb),
 			))
 			ct := f.counter()
 			gRunChecks(t, np.name, "counter of the loop", ct)
@@ -146,10 +147,10 @@ func TestGLinkSwells(t *testing.T) {
 		t.Run(np.name, func(t *testing.T) {
 			t.Parallel()
 			f := gTestFrame(t, np)
-			other := gPolyline(weld(splitAtExtrema(f.a1), splitAtExtrema(f.a2)))
+			other := gPolyline(weld(f.a1.sub(0, 1), f.a2.sub(0, 1)))
 			edge := gPolyline(weld(
-				splitAtExtrema(f.b1.sub(0, f.tPb)).reversed(),
-				splitAtExtrema(f.b2.reversed()),
+				f.b1.sub(0, f.tPb).reversed(),
+				f.b2.reversed().sub(0, 1),
 			))
 			// The thickness is taken from gLinkSkip below the corner of the pocket,
 			// where the edges have left the bowl.
@@ -167,7 +168,7 @@ func TestGLinkSwells(t *testing.T) {
 			peak := th[0]
 			for i, d := range th {
 				if d < peak-gLinkDip {
-					t.Errorf("%s: the link thins from %.1f to %.1f at (%.0f, %.0f)", np.name, peak, d, at[i].X, at[i].Y)
+					t.Errorf("%s: the link thins from %.3f to %.3f at (%.0f, %.0f)", np.name, peak, d, at[i].X, at[i].Y)
 					break
 				}
 				peak = math.Max(peak, d)
@@ -215,7 +216,7 @@ func TestGEar(t *testing.T) {
 				}
 				right = math.Max(right, q.X)
 			}
-			if lr := f.b4.P3.X; right > lr {
+			if lr := f.b4.end().X; right > lr {
 				t.Errorf("%s: the ball reaches to %.1f, right of the right extreme of the loop at %.1f", np.name, right, lr)
 			}
 			q0 := f.outerB.cubic(0, true)
@@ -264,7 +265,7 @@ func TestGPocketAndWedge(t *testing.T) {
 			f := gTestFrame(t, np)
 			q2, q3 := f.outerB.cubic(2, true), f.outerB.cubic(3, true)
 			under := gPolyline(chain{curveSeg(q2.sub(f.tPq, 1)), curveSeg(q3)})
-			top := gPolyline(chain{curveSeg(f.b2), curveSeg(f.b3)})
+			top := gPolyline(append(f.b2.sub(0, 1), f.b3.sub(0, 1)...))
 			gap, where := math.Inf(1), outline.Point{}
 			corner := q2.at(f.tPq)
 			for _, q := range under {
@@ -306,9 +307,9 @@ func TestGBalance(t *testing.T) {
 			t.Parallel()
 			f := gTestFrame(t, np)
 			path, adv := cachedOutline(np, "g")
-			loopMid := (f.b5.P0.X + f.b4.P3.X) / 2
+			loopMid := (f.b5.start().X + f.b4.end().X) / 2
 			bowlMid := (f.outerB.ex[0][0] + f.outerB.ex[2][0]) / 2
-			w := f.b4.P3.X - f.b5.P0.X
+			w := f.b4.end().X - f.b5.start().X
 			if s := loopMid - bowlMid; s < 0 || s > gLoopShiftMax*w {
 				t.Errorf("%s: the middle of the loop is %.1f right of that of the bowl, want 0 to %.0f", np.name, s, gLoopShiftMax*w)
 			}
