@@ -9,6 +9,9 @@ import (
 	"math"
 	"sort"
 	"sync"
+
+	geompath "seehuhn.de/go/geom/path"
+	"seehuhn.de/go/geom/vec"
 )
 
 // Point is a point in font units.
@@ -170,23 +173,37 @@ func (p Path) CrossingsY(x float64) []float64 {
 	return ys
 }
 
-// BBox returns the bounding box of the path, computed from the flattened
-// contours.  An empty path gives infinite values: +Inf for the minima and
-// -Inf for the maxima.
+// BBox returns the tight bounding box of the path.  An empty path gives
+// infinite values: +Inf for the minima and -Inf for the maxima.
 func (p Path) BBox() (x0, y0, x1, y1 float64) {
-	x0, y0 = math.Inf(1), math.Inf(1)
-	x1, y1 = math.Inf(-1), math.Inf(-1)
-	buf := scratch.Get().(*[]Point)
-	defer scratch.Put(buf)
-	for _, c := range p {
-		pts := c.appendFlat((*buf)[:0])
-		*buf = pts
-		for _, q := range pts {
-			x0, x1 = min(x0, q.X), max(x1, q.X)
-			y0, y1 = min(y0, q.Y), max(y1, q.Y)
+	r, ok := p.geom().TightBBox()
+	if !ok {
+		return math.Inf(1), math.Inf(1), math.Inf(-1), math.Inf(-1)
+	}
+	return r.LLx, r.LLy, r.URx, r.URy
+}
+
+// geom returns the path as a go-geom path.
+func (p Path) geom() geompath.Path {
+	return func(yield func(geompath.Command, []vec.Vec2) bool) {
+		for _, c := range p {
+			if !yield(geompath.CmdMoveTo, []vec.Vec2{{X: c.Start.X, Y: c.Start.Y}}) {
+				return
+			}
+			for _, s := range c.Segs {
+				if s.IsCurve {
+					if !yield(geompath.CmdCubeTo, []vec.Vec2{{X: s.P1.X, Y: s.P1.Y}, {X: s.P2.X, Y: s.P2.Y}, {X: s.P3.X, Y: s.P3.Y}}) {
+						return
+					}
+				} else if !yield(geompath.CmdLineTo, []vec.Vec2{{X: s.P3.X, Y: s.P3.Y}}) {
+					return
+				}
+			}
+			if !yield(geompath.CmdClose, nil) {
+				return
+			}
 		}
 	}
-	return
 }
 
 // segEps is the distance below which SelfIntersections treats a point as
@@ -399,36 +416,7 @@ func meet(s, o *flatSeg) []Point {
 // leading coefficient is tiny.  A double root, where the coordinate has no
 // extreme, is not returned.
 func CubicExtrema(p0, p1, p2, p3 float64) []float64 {
-	// The derivative is 3 (a t^2 + b t + c).
-	a := -p0 + 3*p1 - 3*p2 + p3
-	b := 2 * (p0 - 2*p1 + p2)
-	c := p1 - p0
-	var ts []float64
-	switch {
-	case a == 0:
-		if b != 0 {
-			ts = append(ts, -c/b)
-		}
-	default:
-		disc := b*b - 4*a*c
-		if disc <= 0 {
-			break
-		}
-		// q has the sign of -b; the roots are q/a and c/q.
-		q := -(b + math.Copysign(math.Sqrt(disc), b)) / 2
-		ts = append(ts, q/a)
-		if q != 0 {
-			ts = append(ts, c/q)
-		}
-	}
-	var out []float64
-	for _, t := range ts {
-		if t > 0 && t < 1 {
-			out = append(out, t)
-		}
-	}
-	sort.Float64s(out)
-	return out
+	return geompath.Cubic{{X: p0}, {X: p1}, {X: p2}, {X: p3}}.Extrema()
 }
 
 // pieceLength is the length to which MinDistance cuts the sides of the

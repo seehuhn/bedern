@@ -12,6 +12,7 @@ import (
 
 	"seehuhn.de/go/bedern/internal/font/design"
 	"seehuhn.de/go/bedern/internal/outline"
+	"seehuhn.de/go/geom/path"
 )
 
 // The structural checks do not depend on the shape of a letter.  Check applies
@@ -438,11 +439,6 @@ func checkClearance(c structureCase) []string {
 	return nil
 }
 
-func cubicAt(p0, p1, p2, p3, t float64) float64 {
-	u := 1 - t
-	return u*u*u*p0 + 3*u*u*t*p1 + 3*u*t*t*p2 + t*t*t*p3
-}
-
 // extremeTolerance is the distance by which a curve may run beyond both of
 // its end points before an on-curve point is required there.
 const extremeTolerance = 0.5
@@ -466,7 +462,7 @@ func checkExtremes(c structureCase) []string {
 					v0, v1, v2, v3 := get(cur), get(s.P1), get(s.P2), get(s.P3)
 					lo, hi := math.Min(v0, v3), math.Max(v0, v3)
 					for _, t := range outline.CubicExtrema(v0, v1, v2, v3) {
-						v := cubicAt(v0, v1, v2, v3, t)
+						v := path.Cubic{{X: v0}, {X: v1}, {X: v2}, {X: v3}}.At(t).X
 						if v > hi+extremeTolerance {
 							problems = append(problems, fmt.Sprintf("contour %d, segment %d from %v to %v runs %.2f beyond its end points in the %s direction (maximum %.2f at t=%.2f)", i, j, cur, s.P3, v-hi, name, v, t))
 						} else if v < lo-extremeTolerance {

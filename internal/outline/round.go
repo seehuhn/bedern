@@ -3,7 +3,11 @@
 
 package outline
 
-import "math"
+import (
+	"math"
+
+	"seehuhn.de/go/geom/path"
+)
 
 // SmoothAngle is the angle, in degrees, below which a node is smooth: the
 // directions in which the outline arrives at the node and leaves it differ by
@@ -432,9 +436,8 @@ func asCubic(s Segment, p0 Point) [4]Point {
 }
 
 func bez(c [4]Point, t float64) Point {
-	u := 1 - t
-	a, b, cc, d := u*u*u, 3*u*u*t, 3*u*t*t, t*t*t
-	return Point{a*c[0].X + b*c[1].X + cc*c[2].X + d*c[3].X, a*c[0].Y + b*c[1].Y + cc*c[2].Y + d*c[3].Y}
+	q := path.Cubic{{X: c[0].X, Y: c[0].Y}, {X: c[1].X, Y: c[1].Y}, {X: c[2].X, Y: c[2].Y}, {X: c[3].X, Y: c[3].Y}}.At(t)
+	return Point{q.X, q.Y}
 }
 
 func bezD(c [4]Point, t float64) Point {
