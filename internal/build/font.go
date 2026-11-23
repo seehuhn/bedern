@@ -25,12 +25,12 @@ import (
 	"seehuhn.de/go/bedern/internal/kern"
 )
 
-// privateDict returns the CFF Private dict, which holds the alignment zones
+// PrivateDict returns the CFF Private dict, which holds the alignment zones
 // used for hinting.  BlueValues has the baseline, x-height and cap-height
 // zones.  OtherBlues has the bottom zone of the descender line: the line
 // itself and, below it, the overshoot of a round descender.  BlueShift and
 // BlueFuzz are set explicitly.
-func privateDict(p design.Params) *type1.PrivateDict {
+func PrivateDict(p design.Params) *type1.PrivateDict {
 	return &type1.PrivateDict{
 		BlueValues: []float64{
 			-p.OvershootLower, 0,
@@ -90,7 +90,7 @@ func FontWith(p design.Params, style design.Style, gs []glyphs.Glyph, now time.T
 			cm[uint16(g.Rune)] = glyph.ID(i)
 		}
 	}
-	outlines.Private = []*type1.PrivateDict{privateDict(p)}
+	outlines.Private = []*type1.PrivateDict{PrivateDict(p)}
 	outlines.FDSelect = func(glyph.ID) int { return 0 }
 
 	// The glyph outlines are drawn in font units, 1000 per em.

@@ -34,7 +34,7 @@ import (
 func TestPrivateDict(t *testing.T) {
 	t.Parallel()
 	p := design.Regular()
-	d := privateDict(p)
+	d := PrivateDict(p)
 
 	bv := d.BlueValues
 	if len(bv) == 0 || len(bv)%2 != 0 {
@@ -77,7 +77,7 @@ func TestPrivateDict(t *testing.T) {
 		t.Errorf("descender zone (%v, %v) is too wide for BlueScale %v", ob[0], ob[1], scale)
 	}
 
-	// BlueShift and BlueFuzz have the values set in privateDict.
+	// BlueShift and BlueFuzz have the values set in PrivateDict.
 	if d.BlueShift != 7 {
 		t.Errorf("BlueShift %v, want 7", d.BlueShift)
 	}
