@@ -66,7 +66,12 @@ type Glyph struct {
 	// sample points of its marks, by height.
 	Like  int
 	marks []outline.Point
-	mys   []float64
+
+	// First and Last are, for a ligature, the indices of its first and its
+	// last letter, whose left and right sides it takes for kerning
+	// (ligatures.go), or -1.
+	First, Last int
+	mys         []float64
 
 	mx0, mx1, my0, my1 float64 // the box of the marks
 	xMin, xMax         float64 // the least and the greatest abscissa of the ink
@@ -97,8 +102,10 @@ func Analyse(p design.Params, gs []glyphs.Glyph) *Font {
 		punct[r] = true
 	}
 	for i, g := range gs {
-		kg := &Glyph{Index: i, Name: g.Name, Rune: g.Rune, Advance: g.Advance, Like: -1}
+		kg := &Glyph{Index: i, Name: g.Name, Rune: g.Rune, Advance: g.Advance, Like: -1, First: -1, Last: -1}
 		switch {
+		case len(g.Parts) > 0:
+			kg.Kind = Lower
 		case g.Rune == 0 || len(g.Path) == 0:
 		case unicode.In(g.Rune, unicode.Lm, unicode.Mn):
 			// Modifier letters and combining marks are not kerned.
@@ -127,7 +134,15 @@ func Analyse(p design.Params, gs []glyphs.Glyph) *Font {
 			f.byRune[kg.Rune] = kg
 		}
 	}
+	index := make(map[string]int, len(gs))
 	for i, g := range gs {
+		index[g.Name] = i
+	}
+	for i, g := range gs {
+		if len(g.Parts) > 0 {
+			f.Glyphs[i].First = index[g.Parts[0]]
+			f.Glyphs[i].Last = index[g.Parts[len(g.Parts)-1]]
+		}
 		if g.Like == "" || f.Glyphs[i].Kind == Skip {
 			continue
 		}

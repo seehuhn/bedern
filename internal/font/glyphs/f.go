@@ -43,8 +43,8 @@ import (
 // to the left and FBarRight to the right of the stem; its ends are plain cuts.
 //
 // Side kinds: the left side is measured to the end of the bar or the foot serif
-// (design.FInkLeft); the right side is FSideRight (3) inside the end of the hook, and
-// the hook may reach beyond the advance by MaxOverhang if FSideRight is negative.
+// (design.FInkLeft); the right side is FSideRight from the end of the hook, which
+// overhangs the advance by -FSideRight (55), at most MaxOverhang.
 
 // fBallAngle is the angle by which the ball terminal of f is turned from its own
 // frame (radians).
@@ -127,7 +127,7 @@ func fOutline(p design.Params) outline.Path {
 	path.MoveTo(stem.start())
 	stemUp(&path, p, stem, bar.Top-bar.Thick)
 	barRight(&path, bar)
-	h := fHookChain(p, fTerminal(p))
+	h := newFHookParts(p).chain
 	path.LineTo(h.start().X, h.start().Y)
 	h.appendTo(&path)
 	path.LineTo(stem.Left, bar.Top)

@@ -37,7 +37,8 @@ func (t *Table) inherit() {
 			followers[g.Like] = append(followers[g.Like], g.Index)
 		}
 	}
-	if len(derived) == 0 {
+	ligs := t.ligatures()
+	if len(derived) == 0 && len(ligs) == 0 {
 		return
 	}
 	for _, g := range derived {
@@ -48,11 +49,19 @@ func (t *Table) inherit() {
 			t.Class2[g.Index] = c
 		}
 	}
-	with := func(i int) []int { return append([]int{i}, followers[i]...) }
+	firsts, seconds := map[int][]int{}, map[int][]int{}
+	for i, l := range followers {
+		firsts[i] = append(firsts[i], l...)
+		seconds[i] = append(seconds[i], l...)
+	}
+	for _, g := range ligs {
+		firsts[g.Last] = append(firsts[g.Last], g.Index)
+		seconds[g.First] = append(seconds[g.First], g.Index)
+	}
 	single := make(map[[2]int]int, len(t.Single))
 	for key, v := range t.Single {
-		for _, a := range with(key[0]) {
-			for _, b := range with(key[1]) {
+		for _, a := range append([]int{key[0]}, firsts[key[0]]...) {
+			for _, b := range append([]int{key[1]}, seconds[key[1]]...) {
 				single[[2]int{a, b}] = v
 			}
 		}
@@ -100,6 +109,7 @@ func (t *Table) inherit() {
 			}
 		}
 	}
+	t.ligatureFloor(ligs)
 	sort.Slice(t.Marked, func(i, j int) bool {
 		a, b := t.Marked[i], t.Marked[j]
 		if a.Left.Index != b.Left.Index {

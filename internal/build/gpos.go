@@ -18,6 +18,7 @@ import (
 	"seehuhn.de/go/sfnt/opentype/gtab"
 	"seehuhn.de/go/sfnt/opentype/markarray"
 
+	"seehuhn.de/go/bedern/internal/font/design"
 	"seehuhn.de/go/bedern/internal/font/glyphs"
 	"seehuhn.de/go/bedern/internal/kern"
 )
@@ -154,9 +155,10 @@ func markLookup(gs []glyphs.Glyph) *gtab.LookupTable {
 // with one anchor.
 func isMark(g glyphs.Glyph) bool { return g.Advance == 0 && len(g.Anchors) == 1 }
 
-// gdefInfo returns the GDEF table which says which glyphs are combining marks
-// and which are base glyphs, or nil if the font has no combining marks.
-func gdefInfo(gs []glyphs.Glyph) *gdef.Table {
+// gdefInfo returns the GDEF table which says which glyphs are combining marks,
+// which are ligatures and which are base glyphs, with the carets of the
+// ligatures, or nil if the font has neither combining marks nor ligatures.
+func gdefInfo(p design.Params, gs []glyphs.Glyph) *gdef.Table {
 	cls := classdef.Table{}
 	marks := false
 	for i, g := range gs {
@@ -164,12 +166,15 @@ func gdefInfo(gs []glyphs.Glyph) *gdef.Table {
 		case isMark(g):
 			cls[glyph.ID(i)] = gdef.GlyphClassMark
 			marks = true
+		case len(g.Parts) > 0:
+			cls[glyph.ID(i)] = gdef.GlyphClassLigature
 		case len(g.Path) > 0:
 			cls[glyph.ID(i)] = gdef.GlyphClassBase
 		}
 	}
-	if !marks {
+	carets := ligatureCarets(p, gs)
+	if !marks && carets == nil {
 		return nil
 	}
-	return &gdef.Table{GlyphClass: cls}
+	return &gdef.Table{GlyphClass: cls, LigCaretList: carets}
 }

@@ -52,7 +52,8 @@ type Table struct {
 	NClass1, NClass2 int
 
 	// Marked holds the pairs with a glyph which takes the kerning of another
-	// glyph whose kern the marks change, see marks.go.
+	// glyph whose kern the marks change, see marks.go, and the pairs with a
+	// ligature whose kern the floor changes, see ligatures.go.
 	Marked []*Pair
 }
 
@@ -69,7 +70,7 @@ func Compute(p design.Params, gs []glyphs.Glyph) *Table {
 	}
 	var kernable []*Glyph
 	for _, g := range f.Glyphs {
-		if g.Kind != Skip && g.Like < 0 {
+		if g.Kind != Skip && g.Like < 0 && g.First < 0 {
 			kernable = append(kernable, g)
 		}
 	}

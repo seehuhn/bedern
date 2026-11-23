@@ -167,7 +167,8 @@ func FontWith(p design.Params, style design.Style, gs []glyphs.Glyph, now time.T
 	if has('ˆ') {
 		font.UnicodeRange.Set(os2.URSpacingModifierLetters)
 	}
-	font.Gdef = gdefInfo(gs)
+	font.Gdef = gdefInfo(p, gs)
+	font.Gsub = gsubInfo(gs)
 	if !opts.NoKern {
 		font.Gpos = gposInfo(kern.Compute(p, gs), gs)
 	} else {

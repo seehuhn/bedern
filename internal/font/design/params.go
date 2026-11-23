@@ -673,10 +673,10 @@ func Regular() Params {
 		FOvershoot: 10,
 		FOuterDrop: 120,
 		FInnerDrop: 100,
-		FReach:     160,
+		FReach:     180,
 		FBarLeft:   75,
 		FBarRight:  112,
-		FSideRight: 3,
+		FSideRight: -55,
 
 		TRise:      178,
 		TBarLeft:   88,

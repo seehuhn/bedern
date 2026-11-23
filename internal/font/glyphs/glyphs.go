@@ -28,6 +28,10 @@ type Glyph struct {
 	// Anchors are the anchors of a base letter for the combining marks, and
 	// the single anchor of a combining mark.
 	Anchors []Anchor
+
+	// Parts names, for a ligature, the letters for which it stands, in order
+	// (liga.go); it is nil for the other glyphs.
+	Parts []string
 }
 
 // An Anchor is a point at which a combining mark is attached to a letter:
@@ -392,7 +396,7 @@ func Set(p design.Params) []Glyph {
 			continue
 		}
 		path, adv := e.draw(p)
-		gs[i] = Glyph{Name: e.name, Rune: e.r, Advance: adv, Path: path.Round()}
+		gs[i] = Glyph{Name: e.name, Rune: e.r, Advance: adv, Path: path.Round(), Parts: LigatureParts(e.name)}
 		raws[i] = path
 	}
 	finishSet(p, gs, raws)

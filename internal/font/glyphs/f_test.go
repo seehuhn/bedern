@@ -209,16 +209,16 @@ func TestFCrestIsSmooth(t *testing.T) {
 	}
 }
 
-// The hook of f overhangs the advance by 60 at most, and in the regular parameters
-// it has no overhang: it ends at most fSideMax inside the advance.
+// The hook of f overhangs the advance by 60 at most, and in the regular
+// parameters by at least fOverhangMin.
 func TestFOverhang(t *testing.T) {
 	t.Parallel()
 	p := design.Regular()
 	path, advance := fGlyph(t, p)
 	_, _, x1, _ := path.BBox()
-	const fSideMax = 8.0
-	if over := x1 - advance; over < -fSideMax-0.5 || over > p.MaxOverhang+0.5 {
-		t.Errorf("the hook overhangs the advance by %.1f, want from -%v to %v", over, fSideMax, p.MaxOverhang)
+	const fOverhangMin = 40.0
+	if over := x1 - advance; over < fOverhangMin-0.5 || over > p.MaxOverhang+0.5 {
+		t.Errorf("the hook overhangs the advance by %.1f, want from %v to %v", over, fOverhangMin, p.MaxOverhang)
 	}
 }
 
@@ -296,19 +296,25 @@ func shiftedPath(p outline.Path, dx float64) outline.Path {
 }
 
 // The nearest approach of f to what may follow it, measured between outlines
-// with the advance of f as the only space: f keeps fClearance from every
-// following letter.
+// with the advance of f as the only space: the hook overhangs the advance and
+// stands level with the head serifs of the letters with ascenders, which it
+// meets, and f keeps fClearance from every other lowercase letter.  The kerning
+// keeps the floor where the hook meets a letter, and fl is a ligature.
 
 // fClearance is the least distance which f keeps from every lowercase letter
-// that may follow it.
-const fClearance = 30.0
+// that may follow it without a kern, the floor of the kerning.
+const fClearance = 20.0
 
 // followers lists every lowercase letter.
 var followers = []string{"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"}
 
+// fMeets lists the letters whose head serifs the hook of f meets.
+var fMeets = map[string]bool{"b": true, "h": true, "k": true, "l": true}
+
 // f keeps its nearest approach of at least fClearance to every lowercase letter
-// which exists, in the regular parameters and in every variant.  The distance is measured
-// between the outlines with the advance of f as the only space.
+// which exists except those of fMeets, which come closer, in the regular
+// parameters and in every variant.  The distance is measured between the
+// outlines with the advance of f as the only space.
 func TestFClearsEveryFollowingLetter(t *testing.T) {
 	t.Parallel()
 	for _, v := range design.Variants() {
@@ -323,7 +329,10 @@ func TestFClearsEveryFollowingLetter(t *testing.T) {
 			if np.name == "regular" {
 				t.Logf("f followed by %s: nearest approach %.1f, at (%.0f, %.0f) and (%.0f, %.0f)", name, d, a.X, a.Y, b.X, b.Y)
 			}
-			if d < fClearance {
+			switch {
+			case fMeets[name] && d >= fClearance:
+				t.Errorf("%s: f followed by %s: nearest approach %.1f, want the hook to come closer than %v", np.name, name, d, fClearance)
+			case !fMeets[name] && d < fClearance:
 				t.Errorf("%s: f followed by %s: nearest approach %.1f, want at least %v", np.name, name, d, fClearance)
 			}
 		}

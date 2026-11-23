@@ -16,7 +16,7 @@ import (
 )
 
 // TestKernFeatureInFile: the font as written carries the feature kern, and a
-// shaping engine applies it: the first glyph of "AV", "To" and "ry" is
+// shaping engine applies it: the first glyph of "AV", "To" and "Yo" is
 // narrower than in the font without kerning.
 func TestKernFeatureInFile(t *testing.T) {
 	t.Parallel()
@@ -59,7 +59,7 @@ func TestKernFeatureInFile(t *testing.T) {
 		}
 		return res
 	}
-	for _, s := range []string{"AV", "To", "fv"} {
+	for _, s := range []string{"AV", "To", "Yo"} {
 		k, u := shape(kf, s), shape(pf, s)
 		if len(k) != 2 || len(u) != 2 {
 			t.Fatalf("%s: %v %v", s, k, u)
