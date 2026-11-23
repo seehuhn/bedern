@@ -579,7 +579,8 @@ func (f *Font) straight(p []float64, lo, hi int) bool {
 // bands within design.Kern.Serif of its ends.  The second applies only if one
 // of the two sides is a straight stem.  A pair already under the limit gets no
 // negative kern.  A capital before a lowercase letter is also kept from having
-// less mean white over the x-height than nn has.
+// less mean white over the x-height than nn has, and a capital before a hyphen
+// or a dash is kept design.Kern.DashClear from it.
 func (f *Font) limitApproach(a, b *Glyph, z Zone, ref string, kk int) int {
 	k := f.P.Kern
 	limit := func(lo, hi int) {
@@ -601,6 +602,11 @@ func (f *Font) limitApproach(a, b *Glyph, z Zone, ref string, kk int) int {
 		m := int(k.Serif / k.Band)
 		if lo, hi := z.Lo+m, z.Hi-m; f.straight(a.Right, lo, hi) || f.straight(b.Left, lo, hi) {
 			limit(lo, hi)
+		}
+	}
+	if a.Kind == Upper && isDash(b) {
+		for kk < 0 && f.Distance(a, b, float64(kk)) < k.DashClear {
+			kk++
 		}
 	}
 	if a.Kind == Upper && b.Kind == Lower {

@@ -68,6 +68,11 @@ type Kern struct {
 	// height.
 	Approach float64
 
+	// DashClear is the smallest distance between the outlines of a capital
+	// and a hyphen or dash which a negative kern leaves; a pair closer than
+	// that without a kern gets none.
+	DashClear float64
+
 	// Serif is the height at the two ends of the zone of a pair which the
 	// second measure of the closest approach leaves out.
 	Serif float64
@@ -115,6 +120,7 @@ func regularKern() Kern {
 		MaxNegative:    135,
 		Floor:          20,
 		Approach:       0.85,
+		DashClear:      50,
 		Serif:          40,
 		StraightTol:    12,
 		StraightFrac:   0.8,

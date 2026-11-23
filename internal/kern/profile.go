@@ -106,7 +106,11 @@ func Analyse(p design.Params, gs []glyphs.Glyph) *Font {
 		switch {
 		case len(g.Parts) > 0:
 			kg.Kind = Lower
+		case g.Rune == 0 && len(g.Path) > 0 && figureForm(g.Name) != Skip:
+			kg.Kind = figureForm(g.Name)
 		case g.Rune == 0 || len(g.Path) == 0:
+		case signKind[g.Rune] != Skip:
+			kg.Kind = signKind[g.Rune]
 		case unicode.In(g.Rune, unicode.Lm, unicode.Mn):
 			// Modifier letters and combining marks are not kerned.
 		case unicode.IsUpper(g.Rune):
@@ -192,6 +196,31 @@ func samplePoints(path outline.Path) ([]outline.Point, []float64) {
 // the apostrophe, the hyphens and dashes with the dashes of two thirds and of
 // three quarters of an em, and the brackets, which keep only the floor.
 const KernPunct = ".,:;!?¡¿‽⸘'\"‘’‚“”„«»‹›-‐‑‒–—―()[]{}〈〉⟦⟧⁅⁆"
+
+// figureNames lists the glyph names of the figures, without a suffix.
+var figureNames = []string{"zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"}
+
+// figureForm returns the kind of a proportional figure, by its glyph name: the
+// lining form (.prop) is kerned as a capital and the old-style form
+// (.oldstyle) as a lowercase letter.  The tabular forms keep their advance and
+// are not kerned, and the result for every other name is Skip.
+func figureForm(name string) Kind {
+	for _, d := range figureNames {
+		switch name {
+		case d + ".prop":
+			return Upper
+		case d + ".oldstyle":
+			return Lower
+		}
+	}
+	return Skip
+}
+
+// signKind holds the signs which are kerned as capitals: the ampersand, the
+// at sign and the currency signs.
+var signKind = map[rune]Kind{
+	'&': Upper, '@': Upper, '€': Upper, '£': Upper,
+}
 
 // profile fills in the profiles and the sample points of one glyph.
 func (f *Font) profile(g *Glyph, path outline.Path) {
