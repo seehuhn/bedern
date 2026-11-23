@@ -86,6 +86,9 @@ type Accents struct {
 	// CommaGap above the x-height.
 	CommaScale, CommaGap float64
 
+	// The dot below: the dot above, its top DotBelowGap below the baseline.
+	DotBelowGap float64
+
 	// The caron of d, l, t and L: the right single quotation mark scaled by
 	// ApoScale, its leftmost ink ApoGap to the right of the stem, with its top
 	// at the top of the stem.
@@ -175,6 +178,8 @@ func regularAccents() Accents {
 
 		CommaScale: 0.92,
 		CommaGap:   56,
+
+		DotBelowGap: 84,
 
 		ApoScale: 0.9,
 		ApoGap:   36,

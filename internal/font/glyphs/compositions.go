@@ -49,6 +49,7 @@ var markNames = map[markKind]string{
 	markCommaBelow: "commabelow",
 	markCommaAbove: "commaabove",
 	markApostrophe: "apostrophe",
+	markDotBelow:   "dotbelow",
 }
 
 // formNames are the names of the forms of a mark for MarkOutline.

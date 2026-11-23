@@ -6,6 +6,7 @@
 // Usage:
 //
 //	bedern [-o DIR]
+//	bedern -private-use
 //
 // The command writes the font files Bedern-Regular.otf and Bedern-Bold.otf and
 // the licence OFL.txt into the directory DIR, which is the current directory
@@ -13,6 +14,11 @@
 // seconds since 1970, the fonts carry that time instead of the time of the
 // run, and the unique identifier of each font ends in the date of that time;
 // otherwise the unique identifier is the full name and the version.
+//
+// With -private-use the command writes no files and prints the table of the
+// glyphs in the Private Use Area: one line for each glyph with the code
+// point, the glyph name, the TeX command which selects the glyph and a
+// description, separated by tabs.
 package main
 
 import (
@@ -47,12 +53,13 @@ var fonts = []fontSpec{
 }
 
 func usage() {
-	fmt.Fprintf(flag.CommandLine.Output(), "usage: bedern [-o DIR]\n")
+	fmt.Fprintf(flag.CommandLine.Output(), "usage: bedern [-o DIR]\n       bedern -private-use\n")
 	flag.PrintDefaults()
 }
 
 func main() {
 	dir := flag.String("o", ".", "write the font files into `DIR`")
+	table := flag.Bool("private-use", false, "print the table of the glyphs in the Private Use Area and write no files")
 	flag.Usage = usage
 	flag.Parse()
 	log.SetFlags(0)
@@ -60,6 +67,12 @@ func main() {
 	if flag.NArg() > 0 {
 		usage()
 		os.Exit(2)
+	}
+	if *table {
+		if err := glyphs.WritePrivateUse(os.Stdout); err != nil {
+			log.Fatal(err)
+		}
+		return
 	}
 	epoch := os.Getenv("SOURCE_DATE_EPOCH")
 	now, err := build.SourceDate(epoch, time.Now())
@@ -115,7 +128,7 @@ func renderFont(w io.Writer, f fontSpec, now time.Time, dated bool) error {
 		return err
 	}
 	var buf bytes.Buffer
-	if _, err := font.Write(&buf); err != nil {
+	if _, err := build.Write(&buf, font); err != nil {
 		return err
 	}
 	data := buf.Bytes()

@@ -20,7 +20,7 @@ type Kind int
 
 const (
 	// Skip glyphs are not kerned: figures, symbols, the space and glyphs
-	// without a code point.
+	// without a code point which do not take the kerning of another glyph.
 	Skip Kind = iota
 	Lower
 	Upper
@@ -143,13 +143,20 @@ func Analyse(p design.Params, gs []glyphs.Glyph) *Font {
 			f.Glyphs[i].First = index[g.Parts[0]]
 			f.Glyphs[i].Last = index[g.Parts[len(g.Parts)-1]]
 		}
-		if g.Like == "" || f.Glyphs[i].Kind == Skip {
+		if g.Like == "" {
 			continue
 		}
-		for j, h := range gs {
-			if h.Name == g.Like {
-				f.Glyphs[i].Like = j
-			}
+		j, ok := index[g.Like]
+		if !ok {
+			continue
+		}
+		if g.Rune == 0 && len(g.Path) > 0 {
+			// A glyph without a code point has the kind of the glyph whose
+			// kerning it takes.
+			f.Glyphs[i].Kind = f.Glyphs[j].Kind
+		}
+		if f.Glyphs[i].Kind != Skip {
+			f.Glyphs[i].Like = j
 		}
 	}
 	return f
@@ -182,8 +189,8 @@ func samplePoints(path outline.Path) ([]outline.Point, []float64) {
 // KernPunct lists the punctuation which is kerned against letters: the full
 // stop, comma, colon and semicolon, the question and exclamation marks and the
 // inverted ones, the quotation marks, the guillemets and the apostrophe, the
-// hyphen and dashes, and the brackets, which keep only the floor.
-const KernPunct = ".,:;!?¡¿'\"‘’‚“”„«»‹›-–—()[]{}"
+// hyphens and dashes, and the brackets, which keep only the floor.
+const KernPunct = ".,:;!?¡¿'\"‘’‚“”„«»‹›-‐‑‒–—―()[]{}"
 
 // profile fills in the profiles and the sample points of one glyph.
 func (f *Font) profile(g *Glyph, path outline.Path) {

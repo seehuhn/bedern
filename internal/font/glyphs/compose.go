@@ -31,7 +31,7 @@ import (
 // the stem below the head serif, moved by design.DotOffset as the dot of i, for
 // the letters whose top is a stem (i, j and l, and h), the upper part of a and
 // the bowl of g.  The bottom anchor stands at the middle of the ink of the
-// base, or of its stem (t, l, r and the capitals T, L), at the lowest ink of
+// base, of its stem (t, l, r and the capitals T, L) or of its foot (D), at the lowest ink of
 // the base there for the cedilla and on the baseline for the comma below; the
 // cedilla of t stands at the lowest point of t instead.  The ogonek anchor
 // stands at the lowest ink of the base where ogonekX puts it: under the stem
@@ -222,6 +222,10 @@ var composedList = []struct {
 	{"scommaaccent", 'ș', composite{"s", markCommaBelow}},
 	{"uni021A", 'Ț', composite{"T", markCommaBelow}},
 	{"uni021B", 'ț', composite{"t", markCommaBelow}},
+
+	// Latin Extended Additional: the dot below.
+	{"uni1E0C", 'Ḍ', composite{"D", markDotBelow}},
+	{"uni1E0D", 'ḍ', composite{"d", markDotBelow}},
 }
 
 // spacingList lists the spacing accents, which are the marks standing alone,
@@ -261,6 +265,7 @@ var combiningList = []struct {
 	{"uni030A", '̊', markRing},
 	{"uni030B", '̋', markDblAcute},
 	{"uni030C", '̌', markCaron},
+	{"dotbelowcomb", '̣', markDotBelow},
 	{"uni0326", '̦', markCommaBelow},
 	{"uni0327", '̧', markCedilla},
 	{"uni0328", '̨', markOgonek},
@@ -270,14 +275,24 @@ var combiningList = []struct {
 var composites = map[string]*composite{}
 
 // like names, for the glyphs which take the kerning of another glyph, that
-// glyph: the base of a composed letter (or the base of the base), and i and j
-// for the dotless letters.
+// glyph: the base of a composed letter (or the base of the base), i and j
+// for the dotless letters, i for its form of the feature locl, S for the two
+// letters S, and the hyphen and the dashes for the glyphs which are drawn as
+// they are.
 func like(name string) string {
 	switch name {
-	case "dotlessi":
+	case "dotlessi", "i.loclTRK":
 		return "i"
 	case "uni0237":
 		return "j"
+	case "S_S":
+		return "S"
+	case "uni2010", "uni2011":
+		return "hyphen"
+	case "figuredash":
+		return "endash"
+	case "uni2015":
+		return "emdash"
 	}
 	if c := composites[name]; c != nil {
 		if l := like(c.base); l != "" {
@@ -402,7 +417,7 @@ func (c *composite) place(p design.Params, base outline.Path) (dx, dy float64, f
 			x = lowestX(base)
 		}
 		return math.Round(x), math.Round(lowestInk(base, x)), formLower
-	case markCommaBelow:
+	case markCommaBelow, markDotBelow:
 		return math.Round(bottomX(p, c.base, base)), 0, formLower
 	}
 	x := topX(p, c.base, base)
@@ -569,6 +584,11 @@ func bottomX(p design.Params, name string, base outline.Path) float64 {
 	if isCapital(name) {
 		h = p.CapHeight
 	}
+	if name == "D" {
+		// The foot of D: its ink in the lowest fifth of its height.
+		lo, hi := inkSpan(base, 0, 0.2*h)
+		return (lo + hi) / 2
+	}
 	lo, hi := inkSpan(base, 0, h)
 	return (lo + hi) / 2
 }
@@ -704,7 +724,7 @@ func combiningKind(name string) (markKind, bool) {
 // anchorClass returns the anchor of the base to which a mark is attached.
 func anchorClass(k markKind) string {
 	switch k {
-	case markCedilla, markCommaBelow:
+	case markCedilla, markCommaBelow, markDotBelow:
 		return "bottom"
 	case markOgonek:
 		return "ogonek"
@@ -724,11 +744,14 @@ func markAnchor(p design.Params, k markKind) Anchor {
 }
 
 // baseAnchors returns the anchors of a letter for the combining marks: the
-// top, bottom and ogonek anchors of the letters a to z, A to Z and the
-// dotless i and j, from the unrounded outline.  A combining mark is set on
+// top, bottom and ogonek anchors of the letters a to z, A to Z, the dotless
+// i and j and the form of i of the feature locl, from the unrounded outline.  A combining mark is set on
 // the top anchor with its lowest ink Acc.Gap above it, so that the top anchor
 // of a capital stands Acc.GapCap - Acc.Gap above the cap height.
 func baseAnchors(p design.Params, name string, path outline.Path) []Anchor {
+	if name == "i.loclTRK" {
+		name = "i"
+	}
 	letter := len(name) == 1 && (isCapital(name) || name[0] >= 'a' && name[0] <= 'z')
 	if !letter && name != "dotlessi" && name != "uni0237" {
 		return nil

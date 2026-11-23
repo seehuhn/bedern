@@ -450,6 +450,8 @@ func boldSigns(p *Params, reg Params, r BoldFactors) {
 		&a.BreveHeightCap, &a.RingDiam, &a.RingDiamCap, &a.DblWidth, &a.DblHeight,
 		&a.DblHeightCap, &a.DblPitch,
 		&a.CedReach, &a.CedTail, &a.CedDepth, &a.OgoReach, &a.OgoDepth, &a.OgoTail)
+	// The dot below grows about its centre.
+	a.DotBelowGap = math.Round(reg.Acc.DotBelowGap - a.DotAboveScale*(p.DotDiameter-reg.DotDiameter)/2)
 	// The reach of the hook of the ogonek grows by the weight added to its
 	// thick side as well.
 	add(a.OgoThick-reg.Acc.OgoThick, &a.OgoReach)

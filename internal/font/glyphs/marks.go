@@ -35,7 +35,8 @@ import (
 // is two wedges of the acute.  The cedilla and the ogonek are strokes which
 // hang from the base and are joined to it where they meet it.  The comma below
 // is the comma scaled, and the caron of d, l, t and L the right single
-// quotation mark scaled.
+// quotation mark scaled.  The dot below is the dot above, its top Acc.DotBelowGap
+// below the baseline.
 
 // A markKind names a mark.
 type markKind int
@@ -57,11 +58,12 @@ const (
 	markCommaBelow
 	markCommaAbove
 	markApostrophe
+	markDotBelow
 )
 
 // below says whether the mark hangs below its base.
 func (k markKind) below() bool {
-	return k == markCedilla || k == markOgonek || k == markCommaBelow
+	return k == markCedilla || k == markOgonek || k == markCommaBelow || k == markDotBelow
 }
 
 // joinable says whether the mark may be joined to the base it hangs from.
@@ -158,6 +160,9 @@ func markChains(p design.Params, k markKind, f markForm) []chain {
 		return []chain{scaledComma(p, a.CommaScale, true)}
 	case markApostrophe:
 		return []chain{scaledQuote(p, a.ApoScale)}
+	case markDotBelow:
+		d := a.DotAboveScale * p.DotDiameter
+		return []chain{markDotChain(p, 0, -a.DotBelowGap-d/2, d)}
 	}
 	panic(fmt.Sprintf("glyphs: no mark %d", k))
 }

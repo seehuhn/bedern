@@ -248,7 +248,7 @@ func writeFont(t *testing.T, font *sfnt.Font) string {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err := font.Write(out); err != nil {
+	if _, err := Write(out, font); err != nil {
 		t.Fatal(err)
 	}
 	if err := out.Close(); err != nil {

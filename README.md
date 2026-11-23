@@ -8,7 +8,7 @@ The command `bedern` writes the font files into a directory.  It is run with
 
     go run seehuhn.de/go/bedern/cmd/bedern@latest
 
-which writes Bedern Regular as `Bedern-Regular.otf`, Bedern Bold as `Bedern-Bold.otf` and the licence `OFL.txt` into the current directory.  The option `-o DIR` names another directory.  If the environment variable `SOURCE_DATE_EPOCH` holds a time in seconds since 1970, the fonts carry that time instead of the time of the run, and two runs give identical files.
+which writes Bedern Regular as `Bedern-Regular.otf`, Bedern Bold as `Bedern-Bold.otf` and the licence `OFL.txt` into the current directory.  The option `-o DIR` names another directory.  If the environment variable `SOURCE_DATE_EPOCH` holds a time in seconds since 1970, the fonts carry that time instead of the time of the run, and two runs give identical files.  With the option `-private-use` the command writes no files and prints the table of the glyphs in the Private Use Area: the code point, the glyph name, the TeX command and a description of each glyph.
 
 ## Licences
 

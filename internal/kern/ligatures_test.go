@@ -55,3 +55,49 @@ func TestLigaturesTakeTheSidesOfTheirLetters(t *testing.T) {
 		})
 	}
 }
+
+// TestGlyphsDrawnAsOthersTakeTheirKerning: the two letters S are kerned as S
+// on both sides, the form of i of the feature locl as i, the hyphen and the
+// non-breaking hyphen as the hyphen-minus, the figure dash as the en dash and
+// the horizontal bar as the em dash, against every glyph and in both orders;
+// and each of them is kerned at all.
+func TestGlyphsDrawnAsOthersTakeTheirKerning(t *testing.T) {
+	t.Parallel()
+	sets := allSets()
+	for _, s := range sets[:min(4, len(sets))] {
+		t.Run(s.name, func(t *testing.T) {
+			t.Parallel()
+			tb := computed(s.p)
+			index := map[string]int{}
+			for _, g := range tb.Font.Glyphs {
+				index[g.Name] = g.Index
+			}
+			for _, c := range [][2]string{
+				{"S_S", "S"}, {"i.loclTRK", "i"}, {"uni2010", "hyphen"}, {"uni2011", "hyphen"},
+				{"figuredash", "endash"}, {"uni2015", "emdash"},
+			} {
+				g, okG := index[c[0]]
+				like, okL := index[c[1]]
+				if !okG || !okL {
+					t.Fatalf("no glyph %s or %s", c[0], c[1])
+				}
+				kerned := 0
+				for _, o := range tb.Font.Glyphs {
+					if k, want := tb.Kern(g, o.Index), tb.Kern(like, o.Index); k != want {
+						t.Errorf("%s %s: kern %d, and %s %s has %d", c[0], o.Name, k, c[1], o.Name, want)
+					} else if k != 0 {
+						kerned++
+					}
+					if k, want := tb.Kern(o.Index, g), tb.Kern(o.Index, like); k != want {
+						t.Errorf("%s %s: kern %d, and %s %s has %d", o.Name, c[0], k, o.Name, c[1], want)
+					} else if k != 0 {
+						kerned++
+					}
+				}
+				if kerned == 0 {
+					t.Errorf("%s has no kern", c[0])
+				}
+			}
+		})
+	}
+}

@@ -8,7 +8,8 @@ import (
 	"seehuhn.de/go/bedern/internal/outline"
 )
 
-// The plain bars: hyphen, en dash, em dash, underscore, and the vertical bar.
+// The plain bars: hyphen, figure dash, en dash, em dash, underscore, and the
+// vertical bar.
 // A bar has flat ends and straight edges.
 
 // horizontalBar returns a bar of the given length and thickness whose left end
@@ -30,6 +31,14 @@ func hyphen(p design.Params) (outline.Path, float64) {
 func endash(p design.Params) (outline.Path, float64) {
 	q := p.Punct
 	return placeInk(horizontalBar(q.EnLength, q.DashThick, q.DashCentre), q.Dash)
+}
+
+// figuredash draws the figure dash: the bar of the en dash, as long as leaves
+// the side space of the en dash (Dash) in the advance of the figures.
+func figuredash(p design.Params) (outline.Path, float64) {
+	q := p.Punct
+	length := p.Figures.Advance - q.Dash.Left - q.Dash.Right
+	return placeInk(horizontalBar(length, q.DashThick, q.DashCentre), q.Dash)
 }
 
 // emdash draws the em dash: a bar which with its side space (EmDash) is twice

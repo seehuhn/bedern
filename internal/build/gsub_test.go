@@ -5,14 +5,20 @@ package build
 
 import (
 	"bytes"
+	"os"
 	"os/exec"
+	"reflect"
+	"regexp"
 	"slices"
 	"strings"
 	"testing"
 
+	"seehuhn.de/go/sfnt/header"
+	"seehuhn.de/go/sfnt/name"
 	"seehuhn.de/go/sfnt/opentype/gtab"
 
 	"seehuhn.de/go/bedern/internal/font/design"
+	"seehuhn.de/go/bedern/internal/font/glyphs"
 	"seehuhn.de/go/bedern/internal/font/glyphs/glyphstest"
 )
 
@@ -58,23 +64,7 @@ func TestLigaturesInFile(t *testing.T) {
 	t.Parallel()
 	path := needTool(t, "hb-shape")
 	fname := buildTestFont(t)
-	shape := func(text string, args ...string) string {
-		cmd := exec.Command(path, append(args, fname, text)...)
-		var out, errb bytes.Buffer
-		cmd.Stdout, cmd.Stderr = &out, &errb
-		if err := cmd.Run(); err != nil {
-			t.Fatalf("hb-shape: %v\n%s", err, errb.String())
-		}
-		res, err := parseHBShape(out.String())
-		if err != nil {
-			t.Fatal(err)
-		}
-		var names []string
-		for _, g := range res {
-			names = append(names, g.name)
-		}
-		return strings.Join(names, " ")
-	}
+	shape := func(text string, args ...string) string { return shapeNames(t, path, fname, text, args...) }
 	for _, c := range []struct{ text, want, plain string }{
 		{"fi", "fi", "f i"},
 		{"fl", "fl", "f l"},
@@ -96,4 +86,186 @@ func TestLigaturesInFile(t *testing.T) {
 			t.Errorf("%q without liga: %s, want %s", c.text, got, c.plain)
 		}
 	}
+}
+
+// glyphNumber matches the glyph number of an entry of the output of hb-shape.
+var glyphNumber = regexp.MustCompile(`(\[|\|)\d+`)
+
+// shapeNames returns the names of the glyphs which hb-shape (at path) sets
+// for the text in the font file, separated by spaces.
+func shapeNames(t *testing.T, path, fname, text string, args ...string) string {
+	t.Helper()
+	cmd := exec.Command(path, append(args, fname, text)...)
+	var out, errb bytes.Buffer
+	cmd.Stdout, cmd.Stderr = &out, &errb
+	if err := cmd.Run(); err != nil {
+		t.Fatalf("hb-shape: %v\n%s", err, errb.String())
+	}
+	res, err := parseHBShape(out.String())
+	if err != nil {
+		t.Fatal(err)
+	}
+	var names []string
+	for _, g := range res {
+		names = append(names, g.name)
+	}
+	return strings.Join(names, " ")
+}
+
+// TestNoDottedLigaturesInTurkish: in Turkish, Azerbaijani and Crimean Tatar a
+// shaping engine forms no ligature of f with i, sets the other ligatures, and
+// sets the dotless i under a mark above the letter; in the other languages
+// the ligatures are formed.  The form of i of these languages has the outline,
+// the advance, the kerning and the anchors of i.
+func TestNoDottedLigaturesInTurkish(t *testing.T) {
+	t.Parallel()
+	path := needTool(t, "hb-shape")
+	fname := buildTestFont(t)
+	for _, lang := range []string{"tr", "az", "crh"} {
+		for _, c := range []struct{ text, want string }{
+			{"fi", "f i.loclTRK"},
+			{"ffi", "ff i.loclTRK"},
+			{"fl", "fl"},
+			{"ffl", "ffl"},
+			{"fj", "f_j"},
+			{"fı", "f dotlessi"},
+			{"i\u030A", "dotlessi uni030A"},
+			{"i\u0323", "i.loclTRK dotbelowcomb"},
+		} {
+			if got := shapeNames(t, path, fname, c.text, "--language="+lang); got != c.want {
+				t.Errorf("%q in the language %s: %s, want %s", c.text, lang, got, c.want)
+			}
+		}
+	}
+	for _, lang := range []string{"en", "de", "ro", "nl"} {
+		if got := shapeNames(t, path, fname, "fi ffi", "--language="+lang); got != "fi space ffi" {
+			t.Errorf("\"fi ffi\" in the language %s: %s, want fi space ffi", lang, got)
+		}
+	}
+
+	// A text has the same advances and offsets with both forms of i: the
+	// kerns and the places of the marks are those of i.
+	positions := func(text string, args ...string) string {
+		args = append(args, "--no-glyph-names", "--no-clusters", fname, text)
+		out, err := exec.Command(path, args...).Output()
+		if err != nil {
+			t.Fatalf("hb-shape: %v", err)
+		}
+		return glyphNumber.ReplaceAllString(strings.TrimSpace(string(out)), "$1")
+	}
+	for _, text := range []string{"Tifi", "Vi", "fi\u0323", "f\u012F"} {
+		tr := positions(text, "--language=tr")
+		en := positions(text, "--language=en", "--features=-liga")
+		if tr != en {
+			t.Errorf("%q: positions %s in Turkish, %s with the plain i", text, tr, en)
+		}
+	}
+
+	gs := glyphstest.Set(design.Regular())
+	var plain, local *glyphs.Glyph
+	for i := range gs {
+		switch gs[i].Name {
+		case "i":
+			plain = &gs[i]
+		case "i.loclTRK":
+			local = &gs[i]
+		}
+	}
+	if plain == nil || local == nil {
+		t.Fatal("the font lacks i or i.loclTRK")
+	}
+	if !reflect.DeepEqual(plain.Path, local.Path) || plain.Advance != local.Advance || !reflect.DeepEqual(plain.Anchors, local.Anchors) {
+		t.Error("i.loclTRK differs from i in its outline, its advance or its anchors")
+	}
+}
+
+// TestStylisticSet: with the first stylistic set a shaping engine sets the
+// two letters S for the capital sharp s, and without it the capital sharp s;
+// the feature names its entry of the name table, which every name table of
+// the written file has.
+func TestStylisticSet(t *testing.T) {
+	t.Parallel()
+	path := needTool(t, "hb-shape")
+	fname := buildTestFont(t)
+	for _, c := range []struct{ args, want string }{
+		{"--features=ss01", "G R O S_S E"},
+		{"--features=-ss01", "G R O uni1E9E E"},
+		{"--language=de", "G R O uni1E9E E"},
+	} {
+		if got := shapeNames(t, path, fname, "GROẞE", c.args); got != c.want {
+			t.Errorf("GROẞE with %s: %s, want %s", c.args, got, c.want)
+		}
+	}
+	if got := shapeNames(t, path, fname, "Maß", "--features=ss01"); got != "M a germandbls" {
+		t.Errorf("Maß with ss01: %s, want M a germandbls", got)
+	}
+
+	font, err := regularFont()
+	if err != nil {
+		t.Fatal(err)
+	}
+	var id name.ID
+	for _, f := range font.Gsub.FeatureList {
+		if f.Tag != "ss01" {
+			continue
+		}
+		params, ok := f.Params.(*gtab.FeatureParamsStylisticSet)
+		if !ok {
+			t.Fatal("the feature ss01 has no parameters")
+		}
+		id = name.ID(params.UINameID)
+	}
+	if id < 256 {
+		t.Fatalf("the feature ss01 names the entry %d of the name table, want one from 256", id)
+	}
+	got := roundTrip(t, font)
+	found := false
+	for _, f := range got.Gsub.FeatureList {
+		if params, ok := f.Params.(*gtab.FeatureParamsStylisticSet); ok && f.Tag == "ss01" && name.ID(params.UINameID) == id {
+			found = true
+		}
+	}
+	if !found {
+		t.Error("the written file has no feature ss01 with the name of the set")
+	}
+	data, err := os.ReadFile(fname)
+	if err != nil {
+		t.Fatal(err)
+	}
+	tables := nameTables(t, data)
+	if len(tables) == 0 {
+		t.Fatal("the written file has no name table")
+	}
+	for key, tab := range tables {
+		if tab.Extra[id] != StylisticSetNames[id] || tab.Extra[id] == "" {
+			t.Errorf("the name table %s has %q for the stylistic set, want %q", key, tab.Extra[id], StylisticSetNames[id])
+		}
+	}
+}
+
+// nameTables returns the name tables of the font file data, by platform and
+// language.
+func nameTables(t *testing.T, data []byte) map[string]*name.Table {
+	t.Helper()
+	r := bytes.NewReader(data)
+	h, err := header.Read(r)
+	if err != nil {
+		t.Fatal(err)
+	}
+	b, err := h.ReadTableBytes(r, "name")
+	if err != nil {
+		t.Fatal(err)
+	}
+	info, err := name.Decode(b)
+	if err != nil {
+		t.Fatal(err)
+	}
+	out := map[string]*name.Table{}
+	for lang, tab := range info.Mac {
+		out["Mac "+lang] = tab
+	}
+	for lang, tab := range info.Windows {
+		out["Windows "+lang] = tab
+	}
+	return out
 }

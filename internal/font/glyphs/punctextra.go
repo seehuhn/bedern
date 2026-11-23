@@ -11,7 +11,8 @@ import (
 )
 
 // The further punctuation and typographic marks: ¡ ¿ « » ‹ › ‚ „ … • · † ‡ ¶
-// ′ ″ ‰, the spaces U+00A0, U+2009, U+200A and U+202F, and the soft hyphen.
+// ′ ″ ‴ ‰ ‱ and the zero of ‰, the spaces U+00A0, U+2009, U+200A and U+202F,
+// and the soft hyphen.
 //
 // They are made of the parts of the basic punctuation where one fits: the
 // inverted marks are the exclamation and the question mark turned through
@@ -209,14 +210,32 @@ func primes(p design.Params, n int) (outline.Path, float64) {
 
 func minute(p design.Params) (outline.Path, float64) { return primes(p, 1) }
 func second(p design.Params) (outline.Path, float64) { return primes(p, 2) }
+func third(p design.Params) (outline.Path, float64)  { return primes(p, 3) }
 
 // perthousand draws the per mille sign: the percent sign with a third zero,
 // the lower one repeated perMilleGap to its right.
-func perthousand(p design.Params) (outline.Path, float64) {
+func perthousand(p design.Params) (outline.Path, float64) { return perZeros(p, 1) }
+
+// permyriad draws the per ten thousand sign: the percent sign with its lower
+// zero repeated twice.
+func permyriad(p design.Params) (outline.Path, float64) { return perZeros(p, 2) }
+
+// perZeros returns the percent sign with its lower zero repeated n times,
+// each perMilleGap to the right of the one before.
+func perZeros(p design.Params, n int) (outline.Path, float64) {
 	path, adv, _ := Outline("percent", p)
-	var lower outline.Path
+	lower, dx := lowerZero(p, path)
+	for i := 1; i <= n; i++ {
+		path = append(path, shiftInk(lower, float64(i)*dx, 0)...)
+	}
+	return path, adv + float64(n)*dx
+}
+
+// lowerZero returns the lower zero of the percent sign and the distance by
+// which a repetition of it is moved to the right.
+func lowerZero(p design.Params, percent outline.Path) (lower outline.Path, dx float64) {
 	lx0, lx1 := math.Inf(1), math.Inf(-1)
-	for _, c := range path {
+	for _, c := range percent {
 		cp := outline.Path{c}
 		x0, y0, x1, y1 := cp.BBox()
 		if y0+y1 < p.Figures.Height && x1-x0 < p.Figures.Advance {
@@ -224,8 +243,17 @@ func perthousand(p design.Params) (outline.Path, float64) {
 			lx0, lx1 = math.Min(lx0, x0), math.Max(lx1, x1)
 		}
 	}
-	dx := math.Round(lx1 - lx0 + perMilleGap)
-	return append(path, shiftInk(lower, dx, 0)...), adv + dx
+	return lower, math.Round(lx1 - lx0 + perMilleGap)
+}
+
+// perthousandzero draws the zero which, set after the percent sign, makes the
+// per mille sign of it, and set after that the per ten thousand sign: the
+// lower zero of the percent sign, its leftmost ink at the origin, in an
+// advance of the distance between two zeros.
+func perthousandzero(p design.Params) (outline.Path, float64) {
+	path, adv, _ := Outline("percent", p)
+	lower, dx := lowerZero(p, path)
+	return shiftInk(lower, dx-adv, 0), dx
 }
 
 // The spaces have no outline.  The no-break space has the advance of the word
