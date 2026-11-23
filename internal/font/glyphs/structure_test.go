@@ -60,6 +60,9 @@ func TestStructure(t *testing.T) {
 				if len(np.glyphs) > 0 && !slices.Contains(np.glyphs, e.name) {
 					continue
 				}
+				if composites[e.name] != nil && !composedRoutine(np.name) {
+					continue
+				}
 				t.Run(e.name, func(t *testing.T) {
 					t.Parallel()
 					testStructureGlyph(t, np, e.name)
@@ -67,6 +70,25 @@ func TestStructure(t *testing.T) {
 			}
 		})
 	}
+}
+
+// composedRoutineSets is the number of perturbed parameter sets on which the
+// routine tier runs the structure test of the composed letters, besides the
+// regular parameters; the full tier runs it on all sets.
+const composedRoutineSets = 3
+
+// composedRoutine says whether the structure test of the composed letters runs
+// on the parameter set of the given name in this tier.
+func composedRoutine(set string) bool {
+	if !testing.Short() || set == "regular" {
+		return true
+	}
+	for _, s := range designtest.Sets(true, composedRoutineSets) {
+		if s.Name == set {
+			return true
+		}
+	}
+	return false
 }
 
 // testStructureGlyph runs the structural checks on one glyph in one parameter

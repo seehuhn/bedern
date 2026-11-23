@@ -9,6 +9,8 @@ import (
 	"strconv"
 	"testing"
 
+	"seehuhn.de/go/sfnt"
+
 	"seehuhn.de/go/bedern/internal/font/design"
 	"seehuhn.de/go/bedern/internal/font/glyphs/glyphstest"
 )
@@ -29,8 +31,19 @@ func TestKernFeatureInFile(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if kerned.Gpos == nil || plain.Gpos != nil {
-		t.Fatalf("GPOS: kerned %v, unkerned %v", kerned.Gpos != nil, plain.Gpos != nil)
+	hasKern := func(f *sfnt.Font) bool {
+		if f.Gpos == nil {
+			return false
+		}
+		for _, ft := range f.Gpos.FeatureList {
+			if ft.Tag == "kern" {
+				return true
+			}
+		}
+		return false
+	}
+	if !hasKern(kerned) || hasKern(plain) {
+		t.Fatalf("feature kern: kerned %v, unkerned %v", hasKern(kerned), hasKern(plain))
 	}
 	kf, pf := writeFont(t, kerned), writeFont(t, plain)
 	shape := func(fname, text string) []glyphAdvance {

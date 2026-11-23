@@ -353,6 +353,18 @@ func TestSetOrder(t *testing.T) {
 	want = append(want, strings.Fields("period comma colon semicolon exclam quotesingle quoteleft quoteright quotedbl quotedblleft quotedblright hyphen endash emdash parenleft parenright bracketleft bracketright slash backslash bar underscore asterisk plus minus equal less greater")...)
 	// The question mark, the ampersand and the symbols of the basic set follow.
 	want = append(want, symbolGlyphs...)
+	// The dotless i and j, the spacing accents, the combining marks and the
+	// composed letters follow.
+	want = append(want, "dotlessi", "uni0237")
+	for _, s := range spacingList {
+		want = append(want, s.name)
+	}
+	for _, s := range combiningList {
+		want = append(want, s.name)
+	}
+	for _, c := range composedList {
+		want = append(want, c.name)
+	}
 	if len(gs) != len(want) {
 		t.Fatalf("%d glyphs, want %d", len(gs), len(want))
 	}

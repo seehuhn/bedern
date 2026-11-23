@@ -61,6 +61,16 @@ type Glyph struct {
 	// Top and Bottom are the highest and lowest ink.
 	Top, Bottom float64
 
+	// Like is the index of the glyph whose kerning the glyph takes, or -1;
+	// such a glyph is not kerned on its own (see marks.go).  Marks holds the
+	// sample points of its marks, by height.
+	Like  int
+	marks []outline.Point
+	mys   []float64
+
+	mx0, mx1, my0, my1 float64 // the box of the marks
+	xMin, xMax         float64 // the least and the greatest abscissa of the ink
+
 	rpts, lpts []outline.Point // sample points near the edges, by height
 	rys, lys   []float64       // their heights
 }
@@ -87,9 +97,11 @@ func Analyse(p design.Params, gs []glyphs.Glyph) *Font {
 		punct[r] = true
 	}
 	for i, g := range gs {
-		kg := &Glyph{Index: i, Name: g.Name, Rune: g.Rune, Advance: g.Advance}
+		kg := &Glyph{Index: i, Name: g.Name, Rune: g.Rune, Advance: g.Advance, Like: -1}
 		switch {
 		case g.Rune == 0 || len(g.Path) == 0:
+		case unicode.In(g.Rune, unicode.Lm, unicode.Mn):
+			// Modifier letters and combining marks are not kerned.
 		case unicode.IsUpper(g.Rune):
 			kg.Kind = Upper
 		case unicode.IsLetter(g.Rune):
@@ -100,6 +112,13 @@ func Analyse(p design.Params, gs []glyphs.Glyph) *Font {
 		if len(g.Path) > 0 {
 			f.profile(kg, g.Path)
 		}
+		kg.marks, kg.mys = samplePoints(g.Marks)
+		if len(g.Marks) > 0 {
+			kg.mx0, kg.my0, kg.mx1, kg.my1 = g.Marks.BBox()
+		}
+		if len(g.Path) > 0 {
+			kg.xMin, _, kg.xMax, _ = g.Path.BBox()
+		}
 		f.Glyphs = append(f.Glyphs, kg)
 		if f.byRune == nil {
 			f.byRune = make(map[rune]*Glyph)
@@ -108,7 +127,41 @@ func Analyse(p design.Params, gs []glyphs.Glyph) *Font {
 			f.byRune[kg.Rune] = kg
 		}
 	}
+	for i, g := range gs {
+		if g.Like == "" || f.Glyphs[i].Kind == Skip {
+			continue
+		}
+		for j, h := range gs {
+			if h.Name == g.Like {
+				f.Glyphs[i].Like = j
+			}
+		}
+	}
 	return f
+}
+
+// samplePoints returns points of the outline at most ptSpacing apart, sorted by
+// height, and their heights.
+func samplePoints(path outline.Path) ([]outline.Point, []float64) {
+	var pts []outline.Point
+	for _, c := range path {
+		poly := c.Flatten()
+		n := len(poly)
+		for a := 0; a < n; a++ {
+			p, q := poly[a], poly[(a+1)%n]
+			steps := max(int(math.Ceil(math.Hypot(q.X-p.X, q.Y-p.Y)/ptSpacing)), 1)
+			for s := 0; s < steps; s++ {
+				t := float64(s) / float64(steps)
+				pts = append(pts, outline.Point{X: p.X + t*(q.X-p.X), Y: p.Y + t*(q.Y-p.Y)})
+			}
+		}
+	}
+	sort.Slice(pts, func(i, j int) bool { return pts[i].Y < pts[j].Y })
+	ys := make([]float64, len(pts))
+	for i, p := range pts {
+		ys[i] = p.Y
+	}
+	return pts, ys
 }
 
 // KernPunct lists the punctuation which is kerned against letters: the full

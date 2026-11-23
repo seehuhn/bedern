@@ -16,6 +16,25 @@ type Glyph struct {
 	Rune    rune         // Unicode code point, or 0 if the glyph has none
 	Advance float64      // advance width
 	Path    outline.Path // the outline, with integer coordinates
+
+	// Base is the name of the base letter of a composed letter, and Like the
+	// name of the glyph whose kerning the glyph takes (compose.go); both are
+	// empty for the other glyphs.  Marks is the outline of the mark of a
+	// composed letter as it stands in the letter, before it is joined to the
+	// base.
+	Base, Like string
+	Marks      outline.Path
+
+	// Anchors are the anchors of a base letter for the combining marks, and
+	// the single anchor of a combining mark.
+	Anchors []Anchor
+}
+
+// An Anchor is a point at which a combining mark is attached to a letter:
+// Class names the anchor (top, bottom or ogonek).
+type Anchor struct {
+	Class string
+	X, Y  float64
 }
 
 // A sideKind says what stands on one side of a glyph, which fixes the space
@@ -87,6 +106,10 @@ const (
 	// Figures.Advance and stand centred in it (design.FigureLeft): the ink keeps
 	// inside the advance and takes no part in the fit of the letters.
 	sideFigure
+
+	// The side kind of a combining mark, which has no advance: its ink may
+	// stand anywhere.
+	sideMark
 )
 
 // An entry describes how one glyph is made: the code which draws it and the
@@ -363,10 +386,16 @@ func lookup(name string) (entry, bool) {
 // outlines are rounded to integer coordinates.
 func Set(p design.Params) []Glyph {
 	gs := make([]Glyph, len(table))
+	raws := make([]outline.Path, len(table))
 	for i, e := range table {
+		if composites[e.name] != nil {
+			continue
+		}
 		path, adv := e.draw(p)
 		gs[i] = Glyph{Name: e.name, Rune: e.r, Advance: adv, Path: path.Round()}
+		raws[i] = path
 	}
+	finishSet(p, gs, raws)
 	return gs
 }
 

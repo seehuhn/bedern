@@ -53,7 +53,11 @@ func CheckGlyph(p design.Params, name string) (err error) {
 		}
 	}()
 	path, adv := e.draw(p)
-	if problems := checkStages(p, name, path, adv, path.Round()); len(problems) > 0 {
+	rounded := path.Round()
+	if c := composites[name]; c != nil {
+		rounded = c.roundedFromScratch(p)
+	}
+	if problems := checkStages(p, name, path, adv, rounded); len(problems) > 0 {
 		return fmt.Errorf("glyph %s: %s", name, problems[0])
 	}
 	return nil
@@ -63,6 +67,9 @@ func CheckGlyph(p design.Params, name string) (err error) {
 // glyph and returns the problems, each with the stage and the check.  Rounding
 // leaves the advance as it is.
 func checkStages(p design.Params, glyph string, path outline.Path, adv float64, rounded outline.Path) []string {
+	if c := composites[glyph]; c != nil && !c.joined() {
+		return checkComposed(p, glyph, c, path, adv, rounded)
+	}
 	var problems []string
 	for _, stage := range []string{"unrounded", "rounded"} {
 		c := structureCase{params: p, glyph: glyph, path: path, advance: adv}
@@ -79,6 +86,94 @@ func checkStages(p design.Params, glyph string, path outline.Path, adv float64, 
 		}
 	}
 	return problems
+}
+
+// checkComposed runs the checks on a composed letter whose mark is not joined
+// to its base.  The base is unchanged and is checked on its own; the letter is
+// checked for its mark, which must pass the checks of the outline, for its
+// place in the advance, and for the distance between the mark and the base,
+// which must be at least the clearance floor.  The mark is the last contours
+// of the letter.
+func checkComposed(p design.Params, glyph string, c *composite, path outline.Path, adv float64, rounded outline.Path) []string {
+	n := len(markOutline(p, c.mark, formLower))
+	var problems []string
+	for _, stage := range []string{"unrounded", "rounded"} {
+		full := path
+		if stage == "rounded" {
+			full = rounded
+		}
+		if len(full) <= n {
+			problems = append(problems, fmt.Sprintf("%s: the letter has %d contours, not more than its mark", stage, len(full)))
+			continue
+		}
+		base, mark := full[:len(full)-n], full[len(full)-n:]
+		mc := structureCase{params: p, glyph: glyph, path: mark, advance: adv}
+		if stage == "rounded" {
+			for _, msg := range checkIntegers(mc) {
+				problems = append(problems, stage+", check integers: "+msg)
+			}
+		}
+		for _, ch := range structureChecks {
+			if ch.name == "bbox" {
+				mc.path = full
+			}
+			for _, msg := range ch.run(mc) {
+				problems = append(problems, fmt.Sprintf("%s, check %s of the mark: %s", stage, ch.name, msg))
+			}
+			mc.path = mark
+		}
+		floor := clearanceFloor(p)
+		if d := pathsDistance(base, mark, floor); d < floor {
+			problems = append(problems, fmt.Sprintf("%s, check clearance: the mark is only %.2f from the base, want at least %v", stage, d, floor))
+		}
+	}
+	return problems
+}
+
+// pathsDistance returns the least distance between the flattened outlines a and
+// b, or limit if that is less.
+func pathsDistance(a, b outline.Path, limit float64) float64 {
+	bx0, by0, bx1, by1 := b.BBox()
+	var bs [][2]outline.Point
+	for _, ct := range b {
+		pts := ct.Flatten()
+		for i := range pts {
+			bs = append(bs, [2]outline.Point{pts[i], pts[(i+1)%len(pts)]})
+		}
+	}
+	best := limit
+	for _, ct := range a {
+		pts := ct.Flatten()
+		for i := range pts {
+			p, q := pts[i], pts[(i+1)%len(pts)]
+			if math.Min(p.X, q.X) > bx1+best || math.Max(p.X, q.X) < bx0-best ||
+				math.Min(p.Y, q.Y) > by1+best || math.Max(p.Y, q.Y) < by0-best {
+				continue
+			}
+			for _, s := range bs {
+				best = math.Min(best, segmentDistance(p, q, s[0], s[1]))
+			}
+		}
+	}
+	return best
+}
+
+// segmentDistance returns the distance between the segments pq and rs.
+func segmentDistance(p, q, r, s outline.Point) float64 {
+	cross := func(a, b, c outline.Point) float64 { return (b.X-a.X)*(c.Y-a.Y) - (b.Y-a.Y)*(c.X-a.X) }
+	if cross(p, q, r)*cross(p, q, s) < 0 && cross(r, s, p)*cross(r, s, q) < 0 {
+		return 0
+	}
+	ptSeg := func(a, b, c outline.Point) float64 {
+		dx, dy := c.X-b.X, c.Y-b.Y
+		l := dx*dx + dy*dy
+		t := 0.0
+		if l > 0 {
+			t = math.Max(0, math.Min(1, ((a.X-b.X)*dx+(a.Y-b.Y)*dy)/l))
+		}
+		return math.Hypot(a.X-b.X-t*dx, a.Y-b.Y-t*dy)
+	}
+	return math.Min(math.Min(ptSeg(p, r, s), ptSeg(q, r, s)), math.Min(ptSeg(r, p, q), ptSeg(s, p, q)))
 }
 
 // A structureCase is one glyph in one parameter set.
@@ -326,10 +421,16 @@ func checkBBox(c structureCase) []string {
 	if !ok || e.left == sideUnknown || e.right == sideUnknown {
 		return []string{fmt.Sprintf("no bounding-box rule for glyph %s", c.glyph)}
 	}
-	if len(c.path) == 0 {
+	if len(c.path) == 0 || e.left == sideMark {
 		return nil
 	}
 	left, right := e.inkMargins(c.params)
+	if composites[c.glyph] != nil {
+		// The mark of a composed letter may reach Acc.Overhang beyond the
+		// advance; the base is checked on its own.
+		left = math.Min(left, -c.params.Acc.Overhang)
+		right = math.Min(right, -c.params.Acc.Overhang)
+	}
 	var problems []string
 	x0, _, x1, _ := c.path.BBox()
 	if x0 < left-0.5 {

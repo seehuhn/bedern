@@ -533,6 +533,8 @@ type Params struct {
 	// Sym holds the parameters of the question mark, the ampersand and the
 	// symbols of the basic set, see symbols.go.
 	Sym Symbols
+	// Acc holds the parameters of the accent marks, see accents.go.
+	Acc Accents
 
 	// Kern holds the parameters of the pair kerning, see kern.go.
 	Kern Kern
@@ -786,6 +788,7 @@ func Regular() Params {
 		Figures: regularFigures(),
 		Punct:   regularPunct(),
 		Sym:     regularSymbols(),
+		Acc:     regularAccents(),
 
 		Kern: regularKern(),
 	}

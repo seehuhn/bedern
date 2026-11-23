@@ -386,7 +386,8 @@ func TestCapRLegKeepsAwayFromWhatFollows(t *testing.T) {
 	forCaps(t, func(t *testing.T, np namedParams) {
 		r, adv := cachedOutline(np, "R")
 		for _, e := range table {
-			if e.r == 0 || e.r == ' ' {
+			if e.r == 0 || e.r == ' ' || e.left == sideMark {
+				// A combining mark stands over the letter before it.
 				continue
 			}
 			next, _ := cachedOutline(np, e.name)

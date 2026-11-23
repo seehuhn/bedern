@@ -144,11 +144,34 @@ func FontWith(p design.Params, style design.Style, gs []glyphs.Glyph, now time.T
 		return nil, err
 	}
 	// The code page range is Windows Latin 1 and the Unicode range is Basic
-	// Latin.
+	// Latin, with the ranges and code pages of the accented letters where the
+	// font has them.
 	font.CodePageRange.Set(os2.CP1252)
 	font.UnicodeRange.Set(os2.URBasicLatin)
+	has := func(r rune) bool { _, ok := cm[uint16(r)]; return ok }
+	if has('é') {
+		font.UnicodeRange.Set(os2.URLatin1Sup)
+	}
+	if has('ő') && has('ş') && has('ž') {
+		font.UnicodeRange.Set(os2.URLatinExtA)
+		font.CodePageRange.Set(os2.CP1250)
+		font.CodePageRange.Set(os2.CP1254)
+		font.CodePageRange.Set(os2.CP1257)
+	}
+	if has('ẁ') {
+		font.UnicodeRange.Set(os2.URLatinExtAdditional)
+	}
+	if has('\u0301') {
+		font.UnicodeRange.Set(os2.URCombiningDiacriticalMarks)
+	}
+	if has('ˆ') {
+		font.UnicodeRange.Set(os2.URSpacingModifierLetters)
+	}
+	font.Gdef = gdefInfo(gs)
 	if !opts.NoKern {
-		font.Gpos = kernInfo(kern.Compute(p, gs))
+		font.Gpos = gposInfo(kern.Compute(p, gs), gs)
+	} else {
+		font.Gpos = gposInfo(&kern.Table{}, gs)
 	}
 	return font, nil
 }

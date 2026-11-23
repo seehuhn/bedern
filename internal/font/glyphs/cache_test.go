@@ -57,6 +57,18 @@ func built(glyph string, p design.Params) *builtGlyph {
 	}
 	buildMu.Unlock()
 	b.once.Do(func() {
+		if c := composites[glyph]; c != nil {
+			// A composed letter is built from the shared builds of its base
+			// and its mark, rounded and unrounded.
+			e, _ := lookup(glyph)
+			bb := built(c.base, p)
+			dx, dy, f := c.place(p, bb.path)
+			m := markOutline(p, c.mark, f)
+			b.path, b.advance = c.assemble(bb.path, m, dx, dy), bb.advance
+			b.rune, b.ok = e.r, true
+			b.roundOnce.Do(func() { b.rounded = c.rounded(bb.roundedPath(), m.Round(), bb.path, m, dx, dy) })
+			return
+		}
 		if e, ok := lookup(glyph); ok {
 			b.path, b.advance = e.draw(p)
 			b.rune, b.ok = e.r, true

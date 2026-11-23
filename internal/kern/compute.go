@@ -50,6 +50,10 @@ type Table struct {
 	// NClass1 and NClass2 are the numbers of classes of the right and left
 	// sides over all kernable glyphs, with or without kerns.
 	NClass1, NClass2 int
+
+	// Marked holds the pairs with a glyph which takes the kerning of another
+	// glyph whose kern the marks change, see marks.go.
+	Marked []*Pair
 }
 
 // Compute computes the kerns of the glyphs.  The glyph index is the position
@@ -65,7 +69,7 @@ func Compute(p design.Params, gs []glyphs.Glyph) *Table {
 	}
 	var kernable []*Glyph
 	for _, g := range f.Glyphs {
-		if g.Kind != Skip {
+		if g.Kind != Skip && g.Like < 0 {
 			kernable = append(kernable, g)
 		}
 	}
@@ -146,6 +150,7 @@ func Compute(p design.Params, gs []glyphs.Glyph) *Table {
 
 	t.classes(kernable, all)
 	t.compact(all)
+	t.inherit()
 	for _, a := range kernable {
 		for _, b := range kernable {
 			if pr := all[[2]int{a.Index, b.Index}]; pr != nil && pr.Kern != 0 {
