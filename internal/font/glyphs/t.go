@@ -121,9 +121,16 @@ func tBar(p design.Params) barSpec {
 
 // tFootChain returns the foot of t as a chain which starts on the left-hand edge
 // of the stem, at the height sh.OuterStart plus sh.StemLead, and ends on the
-// right-hand edge, at the height sh.InnerTop plus sh.StemLead.
+// right-hand edge, at the height sh.InnerTop plus sh.StemLead.  The radii of
+// the tip are those of sh times TTipScale.
 func tFootChain(p design.Params, sh tFootShape) chain {
 	s := tStem(p)
+	if k := p.TTipScale; k > 0 {
+		sh.TipRound *= k
+		sh.RightRadius *= k
+		sh.TopRadius *= k
+		sh.CornerRun *= k
+	}
 	return footChain(p, s.Left, s.right(), p.TReach, p.TTipHeight, p.TTipThick, sh)
 }
 

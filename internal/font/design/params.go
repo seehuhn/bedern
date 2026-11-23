@@ -233,6 +233,10 @@ type Params struct {
 	// ATailScale, if positive, multiplies the radii of the tail of a at its low
 	// point and at its tip; zero for 1.
 	ATailScale float64
+	// TTipScale, if positive, multiplies the radii of the tip of the tail of t
+	// (the rounded corners of its cut and the edge at its rightmost and at its
+	// highest point) and the straight run beyond its upper corner; zero for 1.
+	TTipScale float64
 
 	// The letter s.  The spine is SSpineThick thick, measured at right angles
 	// to it at its centre, and runs down to the right at SSpineAngle degrees
