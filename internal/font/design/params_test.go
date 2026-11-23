@@ -27,6 +27,10 @@ func TestValidate(t *testing.T) {
 		"x-height above ascender":  func(p *Params) { p.Ascender = p.XHeight },
 		"join above notch":         func(p *Params) { p.ArchJoin = p.ArchNotch },
 		"notch above x-height":     func(p *Params) { p.ArchNotch = p.XHeight },
+		"outer superness low":      func(p *Params) { p.SupernessOuter = 0.69 },
+		"outer superness high":     func(p *Params) { p.SupernessOuter = 0.81 },
+		"inner superness low":      func(p *Params) { p.SupernessInner = 0.69 },
+		"inner superness high":     func(p *Params) { p.SupernessInner = 0.81 },
 	} {
 		p := Regular()
 		f(&p)

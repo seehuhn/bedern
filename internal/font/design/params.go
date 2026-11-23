@@ -827,9 +827,13 @@ func ClearanceFloor(p Params) float64 {
 	return math.Min(20, 0.7*p.ThinLower)
 }
 
+// supernessMin and supernessMax bound SupernessOuter and SupernessInner.
+const supernessMin, supernessMax = 0.70, 0.80
+
 // Validate returns an error for a parameter set with a value which is not
 // finite, a size which is not positive, a thin part which is not thinner than
-// the stem, or heights which are out of order.  Whether every letter can be
+// the stem, heights which are out of order, or a squareness of the bowls
+// outside 0.70 to 0.80.  Whether every letter can be
 // drawn from the set is checked by glyphs.Check, which builds every glyph and
 // runs the structural checks on it.
 func (p Params) Validate() error {
@@ -872,6 +876,17 @@ func (p Params) Validate() error {
 	// AscenderStem may be smaller than Stem but not larger.
 	if p.AscenderStem > p.Stem {
 		return fmt.Errorf("design: AscenderStem = %v exceeds Stem = %v", p.AscenderStem, p.Stem)
+	}
+	// The squareness of the bowls lies between 0.70 and 0.80.
+	for _, c := range []struct {
+		name string
+		v    float64
+	}{
+		{"SupernessOuter", p.SupernessOuter}, {"SupernessInner", p.SupernessInner},
+	} {
+		if c.v < supernessMin || c.v > supernessMax {
+			return fmt.Errorf("design: %s = %v, want a value from %v to %v", c.name, c.v, supernessMin, supernessMax)
+		}
 	}
 	return nil
 }

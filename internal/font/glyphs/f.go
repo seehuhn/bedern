@@ -43,7 +43,7 @@ import (
 // to the left and FBarRight to the right of the stem; its ends are plain cuts.
 //
 // Side kinds: the left side is measured to the end of the bar or the foot serif
-// (design.FInkLeft); the right side is FSideRight (5) inside the end of the hook, and
+// (design.FInkLeft); the right side is FSideRight (3) inside the end of the hook, and
 // the hook may reach beyond the advance by MaxOverhang if FSideRight is negative.
 
 // fBallAngle is the angle by which the ball terminal of f is turned from its own
