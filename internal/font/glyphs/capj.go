@@ -68,7 +68,7 @@ func capJTail(p design.Params, s capStem, tb placedBall) chain {
 // capJTerminal returns the ball terminal of J: its leftmost ink JReach left of
 // the stem, and the lowest point of the tail OvershootUpper below the baseline.
 func capJTerminal(p design.Params, s capStem) placedBall {
-	return placeAtExtreme(capJBall(p), ballPlace{Angle: capJBallAngle},
+	return must(placeAtExtreme(capJBall(p), ballPlace{Angle: capJBallAngle},
 		func(x0, _ float64) float64 { return p.Caps.CGSJQ.JSideLeft - x0 }, -p.OvershootUpper, false,
-		func(tb placedBall) chain { return capJTail(p, s, tb) })
+		func(tb placedBall) chain { return capJTail(p, s, tb) }))
 }

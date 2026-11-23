@@ -160,3 +160,51 @@ func shortestChord(polys [][]outline.Point, q outline.Point) float64 {
 	}
 	return best
 }
+
+// TestOgonekTipHasNoBend asks that the outer edge of the ogonek, from its lowest point
+// to the cut of its tip, turns one way only: the curvature does not change sign.
+func TestOgonekTipHasNoBend(t *testing.T) {
+	t.Parallel()
+	for _, np := range allParams() {
+		path, _ := cachedOutline(np, "ogonek")
+		if len(path) != 1 {
+			t.Fatalf("%s: the ogonek has %d contours, want 1", np.name, len(path))
+		}
+		pts := path[0].Flatten()
+		n := len(pts)
+		low, tip := 0, 0
+		for i, q := range pts {
+			if q.Y < pts[low].Y {
+				low = i
+			}
+			if q.X > pts[tip].X {
+				tip = i
+			}
+		}
+		// The contour is counter-clockwise: the lower edge runs from the lowest point
+		// up to the tip, turning left where the ink is convex.
+		var last outline.Point
+		have := false
+		worst := 0.0
+		for i := low; i != tip; i = (i + 1) % n {
+			q := pts[i]
+			if have && math.Hypot(q.X-last.X, q.Y-last.Y) < 10 {
+				continue
+			}
+			j := (i + 1) % n
+			for j != tip && math.Hypot(pts[j].X-q.X, pts[j].Y-q.Y) < 10 {
+				j = (j + 1) % n
+			}
+			if have {
+				a := math.Atan2(q.Y-last.Y, q.X-last.X)
+				b := math.Atan2(pts[j].Y-q.Y, pts[j].X-q.X)
+				d := math.Remainder(b-a, 2*math.Pi) * 180 / math.Pi
+				worst = math.Min(worst, d)
+			}
+			last, have = q, true
+		}
+		if worst < -0.2 {
+			t.Errorf("%s: the outer edge of the ogonek turns back by %.2f degrees between its lowest point and the tip", np.name, -worst)
+		}
+	}
+}

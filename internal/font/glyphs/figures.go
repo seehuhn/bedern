@@ -46,12 +46,16 @@ import (
 
 // figBall returns the ball terminal of the figures: the part of the lowercase,
 // Figures.Ball across on the stalk figStalk.
-func figBall(p design.Params) ballPart {
+func figBall(p design.Params) ballPart { return must(figBallPart(p)) }
+
+// figBallPart is figBall which returns an error where the stalk does not fit the
+// ball.
+func figBallPart(p design.Params) (ballPart, error) {
 	b, err := makeBallPart(p.Figures.Ball/2, figStalk(p), ballCurl, ballSection, ballBlend)
 	if err != nil {
-		panic(fmt.Sprintf("glyphs: figures: %v; glyphs.Check reports such parameters", err))
+		return ballPart{}, fmt.Errorf("figures: %v", err)
 	}
-	return b
+	return b, nil
 }
 
 // figStalk returns the thickness of the stalk of the ball terminal of the
@@ -60,12 +64,16 @@ func figStalk(p design.Params) float64 { return p.BallStalk * p.Figures.Ball / p
 
 // curlBall returns the ball terminal of the curled end of 6 and 9: the
 // part of the lowercase, Figures.Ball across on the stalk Figures.CurlStalk.
-func curlBall(p design.Params) ballPart {
+func curlBall(p design.Params) ballPart { return must(curlBallPart(p)) }
+
+// curlBallPart is curlBall which returns an error where the stalk does not fit the
+// ball.
+func curlBallPart(p design.Params) (ballPart, error) {
 	b, err := makeBallPart(p.Figures.Ball/2, p.Figures.CurlStalk, ballCurl, ballSection, ballBlend)
 	if err != nil {
-		panic(fmt.Sprintf("glyphs: figures: %v; glyphs.Check reports such parameters", err))
+		return ballPart{}, fmt.Errorf("figures: %v", err)
 	}
-	return b
+	return b, nil
 }
 
 // curlTerminal returns, in the frame of c, the curled end of a round stroke in
@@ -76,7 +84,17 @@ func curlBall(p design.Params) ballPart {
 // the tip of its wedge lies Figures.CurlNeck from the outer edge (curlTip).  The
 // inner edge runs as how says to the tip.  The chain runs as that of roundTerminal.
 func curlTerminal(name string, p design.Params, outer, inner cubic, centre outline.Point, how figStroke) chain {
-	b := curlBall(p)
+	return must(curlTerminalTry(name, p, outer, inner, centre, how))
+}
+
+// curlTerminalTry is curlTerminal which returns an error where a part of the
+// construction fails for the parameters.
+func curlTerminalTry(name string, p design.Params, outer, inner cubic, centre outline.Point, how figStroke) (c chain, err error) {
+	defer recovered(&err)
+	b, err := curlBallPart(p)
+	if err != nil {
+		return nil, err
+	}
 	start := 1.0
 	if how.Hook {
 		start = tAtFall(outer, how.Fall)
@@ -85,7 +103,7 @@ func curlTerminal(name string, p design.Params, outer, inner cubic, centre outli
 	q0, phi0, k0 := outer.at(start), math.Atan2(-t0.Y, -t0.X), outer.curvature(start)
 	w, err := newWindSpiral(q0, phi0, k0, centre, b.R)
 	if err != nil {
-		panic(fmt.Sprintf("glyphs: glyph %s: %v; glyphs.Check reports such parameters", name, err))
+		return nil, fmt.Errorf("glyph %s: %v", name, err)
 	}
 	tip := curlTip(name, w, centre, b.R, p.Figures.CurlNeck)
 	tb := b.place(ballPlace{Centre: centre, Angle: tip - b.BallW})
@@ -93,17 +111,24 @@ func curlTerminal(name string, p design.Params, outer, inner cubic, centre outli
 	var in chain
 	switch {
 	case how.Arch:
-		in = archToTip(name, inner.P0, inner.tangent(0), tb)
+		in, err = archToTip(name, inner.P0, inner.tangent(0), tb)
 	case how.Tip:
-		in = stalkToTip(name, inner, tb)
+		in, err = stalkToTip(name, inner, tb)
 	default:
-		in = stalkInner(name, inner, tb)
+		in, err = stalkInner(name, inner, tb)
 	}
-	c := join(in, windBall(name, tb, q0, phi0, k0))
+	if err != nil {
+		return nil, err
+	}
+	wound, err := windBall(name, tb, q0, phi0, k0)
+	if err != nil {
+		return nil, err
+	}
+	c = join(in, wound)
 	if how.Hook {
 		c = join(c, chain{curveSeg(outer.sub(start, 1))})
 	}
-	return c
+	return c, nil
 }
 
 // curlTip returns the direction (radians) from the centre of the ball in which
@@ -185,19 +210,32 @@ func roundTerminalAt(b ballPart, outer cubic, angle float64) (placedBall, float6
 // chain runs from the top of the inner edge to the tip, round the ball, and back
 // along the outer edge to its top.
 func roundTerminal(name string, b ballPart, outer, inner cubic, right float64, how figStroke) chain {
-	tb := figBallPlace(name, b, outer, right)
+	return must(roundTerminalTry(name, b, outer, inner, right, how))
+}
+
+// roundTerminalTry is roundTerminal which returns an error where a part of the
+// construction fails for the parameters.
+func roundTerminalTry(name string, b ballPart, outer, inner cubic, right float64, how figStroke) (c chain, err error) {
+	defer recovered(&err)
+	tb, err := figBallPlace(name, b, outer, right)
+	if err != nil {
+		return nil, err
+	}
 
 	// The inner edge, from its top to the tip of the wedge.
 	var in chain
 	switch {
 	case how.Arch:
-		in = archToTip(name, inner.P0, inner.tangent(0), tb)
+		in, err = archToTip(name, inner.P0, inner.tangent(0), tb)
 	case how.Tip:
-		in = stalkToTip(name, inner, tb)
+		in, err = stalkToTip(name, inner, tb)
 	case how.Rise:
-		in = stalkRising(name, how.Before, tb)
+		in, err = stalkRising(name, how.Before, tb)
 	default:
-		in = stalkInner(name, inner, tb)
+		in, err = stalkInner(name, inner, tb)
+	}
+	if err != nil {
+		return nil, err
 	}
 
 	// The outer edge, wound into the ball.
@@ -206,13 +244,16 @@ func roundTerminal(name string, b ballPart, outer, inner cubic, right float64, h
 		start = tAtFall(outer, how.Fall)
 	}
 	t0 := outer.tangent(start)
-	wound := windBall(name, tb, outer.at(start), math.Atan2(-t0.Y, -t0.X), outer.curvature(start))
+	wound, err := windBall(name, tb, outer.at(start), math.Atan2(-t0.Y, -t0.X), outer.curvature(start))
+	if err != nil {
+		return nil, err
+	}
 
-	c := join(in, wound)
+	c = join(in, wound)
 	if how.Hook {
 		c = join(c, chain{curveSeg(outer.sub(start, 1))})
 	}
-	return c
+	return c, nil
 }
 
 // A figStroke says how a figure leads its stroke into the ball (roundTerminal).
@@ -260,7 +301,7 @@ func tAtFall(c cubic, fall float64) float64 {
 // from q0 to the tip, in which the curve so made turns one way only and leaves
 // q0 with a handle longer than archMinHandle.  The figure gives the inner edge
 // on the other side of q0 the same curvature at q0.
-func archToTip(name string, q0, t0 outline.Point, tb placedBall) chain {
+func archToTip(name string, q0, t0 outline.Point, tb placedBall) (chain, error) {
 	var tW outline.Point
 	for _, pc := range tb.Chain {
 		if isTip(pc.P3, tb.Tip) {
@@ -274,7 +315,7 @@ func archToTip(name string, q0, t0 outline.Point, tb placedBall) chain {
 		lo, hi := 0.0, 1.0
 		cHi, okHi := archCurve(q0, t0, tb.Tip, dirOf(aC), archMinHandle)
 		if !okHi {
-			panic(fmt.Sprintf("glyphs: glyph %s: no arch from the top of the counter to the tip of the wedge; glyphs.Check reports such parameters", name))
+			return nil, fmt.Errorf("glyph %s: no arch from the top of the counter to the tip of the wedge", name)
 		}
 		for i := 0; i < 50; i++ {
 			mid := (lo + hi) / 2
@@ -286,7 +327,7 @@ func archToTip(name string, q0, t0 outline.Point, tb placedBall) chain {
 		}
 		c = cHi
 	}
-	return splitAtExtrema(c)
+	return splitAtExtrema(c), nil
 }
 
 // archCurve returns the curve of archToTip from q0, leaving in the direction t0,
@@ -313,7 +354,7 @@ const archMinHandle = 2.0
 // to the section of the part, which leaves the round with its direction and its
 // curvature, at the cut where its curvature changes least abruptly
 // (curvatureRate), and the inner edge of the part from its section to the tip.
-func stalkInner(name string, inner cubic, tb placedBall) chain {
+func stalkInner(name string, inner cubic, tb placedBall) (chain, error) {
 	best, in, tI := math.Inf(1), cubic{}, 0.0
 	for _, free := range []bool{false, true} {
 		for _, u := range cCuts() {
@@ -332,7 +373,7 @@ func stalkInner(name string, inner cubic, tb placedBall) chain {
 		}
 	}
 	if math.IsInf(best, 1) {
-		panic(fmt.Sprintf("glyphs: glyph %s: no inner edge of the stalk reaches the ball terminal; glyphs.Check reports such parameters", name))
+		return nil, fmt.Errorf("glyph %s: no inner edge of the stalk reaches the ball terminal", name)
 	}
 	c := join(chain{curveSeg(inner.sub(0, tI))}, splitAtExtrema(in))
 	for _, pc := range tb.Chain {
@@ -341,7 +382,7 @@ func stalkInner(name string, inner cubic, tb placedBall) chain {
 			break
 		}
 	}
-	return c
+	return c, nil
 }
 
 // stalkToTip returns the inner edge from the top of inner to the tip of the
@@ -350,7 +391,7 @@ func stalkInner(name string, inner cubic, tb placedBall) chain {
 // and arrives with the direction and the curvature of the inner edge of the part
 // (tipEnd), at the cut where its curvature changes least abruptly
 // (curvatureRate).
-func stalkToTip(name string, inner cubic, tb placedBall) chain {
+func stalkToTip(name string, inner cubic, tb placedBall) (chain, error) {
 	tip := tipEnd(tb)
 	best, in, tI := math.Inf(1), cubic{}, 0.0
 	for _, free := range []bool{false, true} {
@@ -370,9 +411,9 @@ func stalkToTip(name string, inner cubic, tb placedBall) chain {
 		}
 	}
 	if math.IsInf(best, 1) {
-		panic(fmt.Sprintf("glyphs: glyph %s: no inner edge of the stalk reaches the tip of the wedge; glyphs.Check reports such parameters", name))
+		return nil, fmt.Errorf("glyph %s: no inner edge of the stalk reaches the tip of the wedge", name)
 	}
-	return join(chain{curveSeg(inner.sub(0, tI))}, splitAtExtrema(in))
+	return join(chain{curveSeg(inner.sub(0, tI))}, splitAtExtrema(in)), nil
 }
 
 // stalkRising returns the inner edge from the start of before, the quarter of
@@ -384,7 +425,7 @@ func stalkToTip(name string, inner cubic, tb placedBall) chain {
 // there has M at least 1; otherwise it is the point of before nearest to its
 // end where M is 1, so that the curvature rises evenly, found by bisection to
 // riseTolerance.
-func stalkRising(name string, before cubic, tb placedBall) chain {
+func stalkRising(name string, before cubic, tb placedBall) (chain, error) {
 	tip := tipEnd(tb)
 	spiral := func(u float64) (windSpiral, bool) {
 		t := before.tangent(u)
@@ -403,7 +444,7 @@ func stalkRising(name string, before cubic, tb placedBall) chain {
 			}
 		}
 		if math.IsNaN(lo) {
-			panic(fmt.Sprintf("glyphs: glyph %s: no inner edge with rising curvature reaches the tip of the wedge; glyphs.Check reports such parameters", name))
+			return nil, fmt.Errorf("glyph %s: no inner edge with rising curvature reaches the tip of the wedge", name)
 		}
 		for hi-lo > riseTolerance {
 			mid := (lo + hi) / 2
@@ -418,7 +459,7 @@ func stalkRising(name string, before cubic, tb placedBall) chain {
 	w, _ := spiral(u)
 	in, err := w.riseCubics()
 	if err != nil {
-		panic(fmt.Sprintf("glyphs: glyph %s: the inner edge to the tip of the wedge: %v; glyphs.Check reports such parameters", name, err))
+		return nil, fmt.Errorf("glyph %s: the inner edge to the tip of the wedge: %v", name, err)
 	}
 	in[len(in)-1].P3 = tip.At
 	var c chain
@@ -427,7 +468,7 @@ func stalkRising(name string, before cubic, tb placedBall) chain {
 	} else {
 		c = chain{curveSeg(before)}
 	}
-	return join(c, in)
+	return join(c, in), nil
 }
 
 // riseStep is the step of the parameter of the round by which stalkRising
@@ -557,17 +598,18 @@ const riseMaxTurn = math.Pi / 4
 
 // figBallPlace returns the part placed as on c (roundTerminalAt), turned so that
 // the rightmost ink of the part lies at right with the centre of the ball on an
-// integer abscissa.
-func figBallPlace(name string, b ballPart, outer cubic, right float64) placedBall {
+// integer abscissa, or an error where no turn of the part puts its ink there.
+func figBallPlace(name string, b ballPart, outer cubic, right float64) (tb placedBall, err error) {
+	defer recovered(&err)
 	x1 := func(angle float64) float64 {
 		tb, _ := roundTerminalAt(b, outer, angle)
 		_, _, x1, _ := chainBBox(tb.Chain)
 		return x1
 	}
-	solve := func(target float64) float64 {
+	solve := func(target float64) (float64, error) {
 		lo, hi := figBallAngles[0], figBallAngles[1]
 		if !(x1(lo) >= target && x1(hi) <= target) {
-			panic(fmt.Sprintf("glyphs: glyph %s: the ball cannot be placed with its ink at %.1f (%.1f to %.1f); glyphs.Check reports such parameters", name, target, x1(hi), x1(lo)))
+			return 0, fmt.Errorf("glyph %s: the ball cannot be placed with its ink at %.1f (%.1f to %.1f)", name, target, x1(hi), x1(lo))
 		}
 		for i := 0; i < 60; i++ {
 			mid := (lo + hi) / 2
@@ -577,12 +619,19 @@ func figBallPlace(name string, b ballPart, outer cubic, right float64) placedBal
 				hi = mid
 			}
 		}
-		return (lo + hi) / 2
+		return (lo + hi) / 2, nil
 	}
-	tb, _ := roundTerminalAt(b, outer, solve(right))
+	angle, err := solve(right)
+	if err != nil {
+		return placedBall{}, err
+	}
+	tb, _ = roundTerminalAt(b, outer, angle)
 	target := right + math.Round(tb.Centre.X) - tb.Centre.X
-	tb, _ = roundTerminalAt(b, outer, solve(target))
-	return tb
+	if angle, err = solve(target); err != nil {
+		return placedBall{}, err
+	}
+	tb, _ = roundTerminalAt(b, outer, angle)
+	return tb, nil
 }
 
 // mirrorCubic returns the curve reflected in the vertical line x = m and walked

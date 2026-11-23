@@ -37,7 +37,7 @@ func TestWAdvanceAndInk(t *testing.T) {
 	t.Parallel()
 	p := design.Regular()
 	path, adv := wGlyph(t, p)
-	tight(t, "advance", adv, 712)
+	tight(t, "advance", adv, 728)
 	tight(t, "advance from side spaces and body", adv, p.DiagSideLeft+p.WInk+p.DiagSideRight)
 	if r := adv / design.NAdvance(p); r < 1.182 || r > 1.444 {
 		t.Errorf("w is %.3f of n wide, want 1.182 to 1.444", r)
@@ -48,7 +48,7 @@ func TestWAdvanceAndInk(t *testing.T) {
 	x0, y0, x1, y1 := path.BBox()
 	tight(t, "left space", x0, p.DiagSideLeft)
 	tight(t, "right space", adv-x1, p.DiagSideRight)
-	tight(t, "ink width", x1-x0, 684)
+	tight(t, "ink width", x1-x0, 700)
 	if r := (x1 - x0) / p.XHeight; r < 1.50 || r > 1.71 {
 		t.Errorf("the ink is %.3f x-heights wide, want 1.50 to 1.71", r)
 	}
@@ -226,6 +226,31 @@ func TestWSerifsKeepTheirDistance(t *testing.T) {
 	for _, gap := range []float64{xs[2] - xs[1], xs[4] - xs[3]} {
 		if gap < 3*design.ClearanceFloor(p) {
 			t.Errorf("an inner serif of w ends %.1f from the diagonal next to it, want at least %v", gap, 3*design.ClearanceFloor(p))
+		}
+	}
+}
+
+// TestWCountersAgainstV holds the counters of w, the white between the first and the
+// second diagonal and between the third and the fourth, at 0.85 of the counter of v
+// at a level below the serifs, and the counters of the two halves equal.
+func TestWCountersAgainstV(t *testing.T) {
+	t.Parallel()
+	for _, p := range []design.Params{design.Regular(), design.Bold()} {
+		wp, _ := wGlyph(t, p)
+		vp, _ := vGlyph(t, p)
+		y := 0.75 * p.XHeight
+		vx := vp.CrossingsX(y)
+		wx := wp.CrossingsX(y)
+		if len(vx) != 4 || len(wx) != 6 {
+			t.Fatalf("the scan at %.0f has %d edges in v and %d in w, want 4 and 6", y, len(vx), len(wx))
+		}
+		vc := vx[2] - vx[1]
+		c1, c2 := wx[2]-wx[1], wx[4]-wx[3]
+		if c1 < 0.85*vc || c2 < 0.85*vc {
+			t.Errorf("the counters of w are %.1f and %.1f, want at least 0.85 of %.1f in v", c1, c2, vc)
+		}
+		if math.Abs(c1-c2) > 1 {
+			t.Errorf("the two counters of w differ: %.1f and %.1f", c1, c2)
 		}
 	}
 }

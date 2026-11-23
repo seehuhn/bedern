@@ -64,3 +64,17 @@ func TestATailKeepsAwayFromWhatFollows(t *testing.T) {
 		}
 	}
 }
+
+// The tail of a is the rightmost ink and overhangs the advance by -ATailSideRight,
+// which is at most MaxOverhang, in the regular and in the bold parameters.
+func TestATailOverhangsTheAdvance(t *testing.T) {
+	t.Parallel()
+	for _, p := range []design.Params{design.Regular(), design.Bold()} {
+		path, adv := aGlyph(t, p)
+		_, _, x1, _ := path.BBox()
+		if p.ATailSideRight >= 0 || -p.ATailSideRight > p.MaxOverhang {
+			t.Fatalf("ATailSideRight = %v, want from -%v to 0 exclusive", p.ATailSideRight, p.MaxOverhang)
+		}
+		tight(t, "overhang of the tail", x1-adv, -p.ATailSideRight)
+	}
+}

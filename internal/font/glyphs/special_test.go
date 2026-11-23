@@ -36,7 +36,7 @@ func barCases() []barCase {
 	hStem := func(p design.Params) float64 { return p.SideStemLeft + design.AscenderInset(p) }
 	dLeft := func(p design.Params) float64 { return capBowlStem(p, false).Left }
 	return []barCase{
-		{"dcroat", lc(dcroatCentre),
+		{"dcroat", dcroatY,
 			func(p design.Params) float64 { return dStem(p) - 1.5*p.Stem },
 			func(p design.Params) float64 { return dStem(p) - 10 }},
 		{"hbar", lc(hbarCentre),
@@ -100,7 +100,7 @@ func TestBarsCrossTheStem(t *testing.T) {
 		}{
 			{"lslash", "l", lslashCentre * p.Ascender, 0.15 * p.Ascender, []int{0}},
 			{"Lslash", "L", capLslashCentre * p.CapHeight, 0.15 * p.CapHeight, []int{0}},
-			{"dcroat", "d", dcroatCentre * p.Ascender, 5, []int{-1}},
+			{"dcroat", "d", dcroatY(p), 5, []int{-1}},
 			{"Dcroat", "D", capDcroatCentre * p.CapHeight, 5, []int{0}},
 			{"hbar", "h", hbarCentre * p.Ascender, 5, []int{0}},
 			{"Hbar", "H", capHbarCentre * p.CapHeight, 5, []int{0, -1}},
@@ -410,6 +410,35 @@ func TestFurtherPunctuation(t *testing.T) {
 					t.Errorf("%s: the double dagger is not symmetric at %.0f: %v against %v", np.name, y, a[i], b[i])
 				}
 			}
+		}
+	}
+}
+
+// TestDcroatBarKeepsAwayFromTheSerif asks that the white between the bar of đ and the
+// underside of the head serif of its stem is at least twice the white between the bar
+// and the bowl, in every parameter set, so that the bar does not clump with the serif
+// at text size.
+func TestDcroatBarKeepsAwayFromTheSerif(t *testing.T) {
+	t.Parallel()
+	for _, np := range allParams() {
+		p := np.params
+		path, _ := cachedOutline(np, "dcroat")
+		y := dcroatY(p)
+		x := design.DStemLeft(p) + design.AscenderInset(p) - p.Stem/4
+		rs := vruns(path, x)
+		var above, below float64
+		for _, r := range rs {
+			if r[0] > y {
+				above = r[0] - (y + p.ThinLower/2)
+				break
+			}
+		}
+		path0, _ := cachedOutline(np, "d")
+		x0, _, _, _ := path0.BBox()
+		ys := path0.CrossingsY((x0 + design.DStemLeft(p) + design.AscenderInset(p)) / 2)
+		below = y - p.ThinLower/2 - ys[len(ys)-1]
+		if above < 2*below {
+			t.Errorf("%s: the bar of đ is %.1f below the head serif and %.1f above the bowl, want the first at least twice the second", np.name, above, below)
 		}
 	}
 }

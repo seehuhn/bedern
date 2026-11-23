@@ -43,7 +43,7 @@ func figSeven(p design.Params) (outline.Path, float64) {
 	tl := outline.Point{X: xr - f.SevenTopThick, Y: lower}
 	leftEdge := quarter(tl, fl, neg(dirUp(top)), neg(dirUp(foot)), 0.36)
 
-	arm := capArm{Edge: tl.X, End: x0, Lower: lower, Upper: h, Drop: f.SevenDrop, SerifThick: f.SevenSerifThick}
+	arm := capArm{Edge: tl.X, End: x0, Lower: lower, Upper: h, Drop: f.SevenDrop, SerifThick: f.SevenSerifThick, MinTurn: figBeakMinTurn}
 	serif := capArmTopLeft(arm)
 	c := join(
 		lineChain(fl, fr),

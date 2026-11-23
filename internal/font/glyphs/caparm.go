@@ -45,18 +45,19 @@ type capArm struct {
 	Lower, Upper float64 // the heights of the underside and of the upper edge
 	Drop, Rise   float64 // how far the serif reaches below Lower and above Upper
 	SerifThick   float64 // the width of the serif halfway along each beak
+	MinTurn      float64 // the least height of the curve of the inner edge of a beak, or zero
 }
 
 // beak returns the beak of z for a serif which reaches depth beyond the far edge
 // of a bar of the thickness bar, in the frame of zBeak.
-func beak(depth, thick, bar float64) chain { return zBeak(bar+depth, thick, bar) }
+func beak(depth, thick, bar, minTurn float64) chain { return zBeakTurn(bar+depth, thick, bar, minTurn) }
 
 // capArmTop returns an arm to the right of a stem whose serif hangs down from
 // its upper edge, at the top of a letter: from (Edge, Lower) to (End, Upper).
 func capArmTop(a capArm) chain {
 	bar := a.Upper - a.Lower
 	// The beak of z is on the left of its bar: mirror it.
-	s := beak(a.Drop, a.SerifThick, bar).mapPoints(func(q outline.Point) outline.Point {
+	s := beak(a.Drop, a.SerifThick, bar, a.MinTurn).mapPoints(func(q outline.Point) outline.Point {
 		return outline.Point{X: a.End - q.X, Y: a.Upper + q.Y}
 	}).reversed()
 	return join(lineChain(outline.Point{X: a.Edge, Y: a.Lower}, s.start()), s)
@@ -66,7 +67,7 @@ func capArmTop(a capArm) chain {
 // from its upper edge: from (End, Upper) to (Edge, Lower).  It is the beak of z
 // as it stands.
 func capArmTopLeft(a capArm) chain {
-	s := beak(a.Drop, a.SerifThick, a.Upper-a.Lower).shifted(a.End, a.Upper)
+	s := beak(a.Drop, a.SerifThick, a.Upper-a.Lower, a.MinTurn).shifted(a.End, a.Upper)
 	return join(s, lineChain(s.end(), outline.Point{X: a.Edge, Y: a.Lower}))
 }
 
@@ -74,7 +75,7 @@ func capArmTopLeft(a capArm) chain {
 // rises from its upper edge: from (End, Lower) to (Edge, Upper).
 func capArmBottom(a capArm) chain {
 	bar := a.Upper - a.Lower
-	s := beak(a.Rise, a.SerifThick, bar).halfTurn(a.End/2, a.Lower/2)
+	s := beak(a.Rise, a.SerifThick, bar, a.MinTurn).halfTurn(a.End/2, a.Lower/2)
 	return join(s, lineChain(s.end(), outline.Point{X: a.Edge, Y: a.Upper}))
 }
 
@@ -83,10 +84,10 @@ func capArmBottom(a capArm) chain {
 // top arm and the upper one that of a bottom arm; they share the cut.
 func capArmMiddle(a capArm) chain {
 	bar := a.Upper - a.Lower
-	lower := beak(a.Drop, a.SerifThick, bar).mapPoints(func(q outline.Point) outline.Point {
+	lower := beak(a.Drop, a.SerifThick, bar, a.MinTurn).mapPoints(func(q outline.Point) outline.Point {
 		return outline.Point{X: a.End - q.X, Y: a.Upper + q.Y}
 	}).reversed()
-	upper := beak(a.Rise, a.SerifThick, bar).halfTurn(a.End/2, a.Lower/2)
+	upper := beak(a.Rise, a.SerifThick, bar, a.MinTurn).halfTurn(a.End/2, a.Lower/2)
 	lower, upper = lower[:len(lower)-1], upper[1:]
 	return join(
 		lineChain(outline.Point{X: a.Edge, Y: a.Lower}, lower.start()),
@@ -109,3 +110,8 @@ func capArmSpec(p design.Params, edge, end, top float64) capArm {
 func capCrossbar(x0, x1, y float64) chain {
 	return lineChain(outline.Point{X: x0, Y: y}, outline.Point{X: x1, Y: y})
 }
+
+// figBeakMinTurn is the least height of the curve by which the inner edge of the
+// beak of 2 and 7 turns into the bar: a shorter curve loses its direction in the
+// rounding to whole units and leaves a kink where the straight edge ends.
+const figBeakMinTurn = 30.0

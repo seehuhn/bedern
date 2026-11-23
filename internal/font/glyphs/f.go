@@ -93,10 +93,10 @@ func fHookFeet(p design.Params) (in, out outline.Point) {
 // curvature.
 func fHookChain(p design.Params, tb placedBall) chain {
 	in, out := fHookFeet(p)
-	return windHook("f",
+	return must(windHook("f",
 		stalkFoot{At: in, Dir: dirOf(math.Pi / 2)},
 		tb,
-		stalkFoot{At: out, Dir: dirOf(-math.Pi / 2)}, fWindRises)
+		stalkFoot{At: out, Dir: dirOf(-math.Pi / 2)}, fWindRises))
 }
 
 // fWindRises is the range of the directions (degrees above the horizontal) in
@@ -110,9 +110,9 @@ var fWindRises = [2]float64{20, 40}
 func fTerminal(p design.Params) placedBall {
 	h := fHook(p)
 	in, out := fHookFeet(p)
-	return placeUnderCrest(newBallPart(p), fBallAngle, h.Cell+h.Reach, h.Apex, func(tb placedBall) chain {
+	return must(placeUnderCrest(newBallPart(p), fBallAngle, h.Cell+h.Reach, h.Apex, func(tb placedBall) chain {
 		return stalkChain("f", footAt(in, math.Pi/2), tb, footAt(out, -math.Pi/2))
-	})
+	}))
 }
 
 // f draws the lowercase letter f, see the comment above.

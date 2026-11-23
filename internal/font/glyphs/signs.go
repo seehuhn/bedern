@@ -202,8 +202,10 @@ func supParams(p design.Params) design.Params {
 		&f.FourDiag, &f.FourBar, &q.SerifThick, &q.Caps.SerifThick} {
 		*v *= k
 	}
-	// The lower ball of 3, heavier, moves to the left to keep its white.
+	// The balls, heavier, move to the left to keep their white and the joins fair.
 	f.ThreeLowerBall -= 12
+	f.ThreeUpperBall -= 3
+	f.TwoBallLeft -= 3
 	return q
 }
 

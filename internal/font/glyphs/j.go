@@ -108,9 +108,9 @@ func jTailDrawn(p design.Params, tb placedBall) chain {
 // jTerminal returns the ball terminal of j: its leftmost ink JReach left of the
 // stem, and the lowest point of the tail JDepth below the baseline.
 func jTerminal(p design.Params) placedBall {
-	return placeAtExtreme(newBallPart(p), ballPlace{Angle: jBallAngle},
+	return must(placeAtExtreme(newBallPart(p), ballPlace{Angle: jBallAngle},
 		func(x0, _ float64) float64 { return design.JInkLeft(p) - x0 }, -p.JDepth, false,
-		func(tb placedBall) chain { return jTailChain(p, tb) })
+		func(tb placedBall) chain { return jTailChain(p, tb) }))
 }
 
 // j draws the lowercase letter j, see the comment above.

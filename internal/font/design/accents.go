@@ -174,7 +174,7 @@ func regularAccents() Accents {
 		OgoThin:    42,
 		OgoTip:     16,
 		OgoDepth:   210,
-		OgoTail:    80,
+		OgoTail:    90,
 
 		CommaScale: 0.92,
 		CommaGap:   56,

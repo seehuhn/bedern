@@ -102,7 +102,7 @@ func curvatureRate(c cubic) float64 {
 // the o (figBallPlace): its rightmost ink CBallInset inside the tip of the lower
 // terminal.
 func cTerminal(p design.Params, f cFrame) placedBall {
-	return figBallPlace("c", newBallPart(p), f.outerU.cubic(0, true), f.tipX-p.CBallInset)
+	return must(figBallPlace("c", newBallPart(p), f.outerU.cubic(0, true), f.tipX-p.CBallInset))
 }
 
 // cStalk returns the end of the upper stroke of c in the ball terminal, from the

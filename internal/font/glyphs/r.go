@@ -91,7 +91,7 @@ func rArm(p design.Params) chain {
 // notch (windHook).
 func rArmChain(p design.Params, tb placedBall) chain {
 	join, notch := rArmFeet(p)
-	return windHook("r", join, tb, notch, rWindRises)
+	return must(windHook("r", join, tb, notch, rWindRises))
 }
 
 // rWindRises is the range of the directions (degrees above the horizontal) in
@@ -104,8 +104,8 @@ var rWindRises = [2]float64{25, 45}
 // at the peak of the arch of n.
 func rTerminal(p design.Params) placedBall {
 	join, notch := rArmFeet(p)
-	return placeUnderCrest(newBallPart(p), rBallAngle, rStem(p).right()+p.RReach, p.XHeight+p.ArchOvershoot,
-		func(tb placedBall) chain { return stalkChain("r", join, tb, notch) })
+	return must(placeUnderCrest(newBallPart(p), rBallAngle, rStem(p).right()+p.RReach, p.XHeight+p.ArchOvershoot,
+		func(tb placedBall) chain { return stalkChain("r", join, tb, notch) }))
 }
 
 // rOutline draws the letter r.

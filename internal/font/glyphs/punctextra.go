@@ -190,20 +190,21 @@ func paragraph(p design.Params) (outline.Path, float64) {
 	return placeInk(path, design.PunctSides{Left: pilcrowLeft, Right: pilcrowRight})
 }
 
-// primes returns n primes: the tapered bar of the ASCII apostrophe leaning
-// primeSlant degrees to the right, as far apart as the bars of the ASCII
-// double quote.
+// primes returns n primes: the tapered bar of the ASCII apostrophe, PrimeWeight
+// times as wide, leaning primeSlant degrees to the right, as far apart as the
+// bars of the ASCII double quote.
 func primes(p design.Params, n int) (outline.Path, float64) {
 	q := p.Punct
 	h := q.StraightHeight
+	wb, wt := q.PrimeWeight*q.StraightBottomWidth, q.PrimeWeight*q.StraightTopWidth
 	top := p.Ascender
 	lean := math.Tan(primeSlant*math.Pi/180) * h
 	var path outline.Path
 	for i := range n {
 		x := float64(i) * q.StraightPitch
 		addPolygon(&path,
-			xy(x-q.StraightBottomWidth/2, top-h), xy(x+q.StraightBottomWidth/2, top-h),
-			xy(x+lean+q.StraightTopWidth/2, top), xy(x+lean-q.StraightTopWidth/2, top))
+			xy(x-wb/2, top-h), xy(x+wb/2, top-h),
+			xy(x+lean+wt/2, top), xy(x+lean-wt/2, top))
 	}
 	return placeInk(path, design.PunctSides{Left: primeSide, Right: primeSide})
 }

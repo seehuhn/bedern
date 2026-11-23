@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"seehuhn.de/go/bedern/internal/font/design"
+	"seehuhn.de/go/bedern/internal/outline"
 )
 
 // The tests of the diagonal capitals A, V, W, X, Y, Z, K, M and N measure the
@@ -140,6 +141,34 @@ func TestCapKArmUndersideIsStraight(t *testing.T) {
 		want := pts[0][1] + (pts[2][1]-pts[0][1])*(pts[1][0]-pts[0][0])/(pts[2][0]-pts[0][0])
 		if math.Abs(pts[1][1]-want) > 0.5 {
 			t.Errorf("the underside of the arm is %.2f off a straight line", pts[1][1]-want)
+		}
+	})
+}
+
+// footInk returns the ink of the rightmost foot of the outline below the height h, the
+// area of the last run of each scan line, in square units.
+func footInk(path outline.Path, h float64) float64 {
+	var area float64
+	for y := 0.5; y < h; y++ {
+		xs := path.CrossingsX(y)
+		if n := len(xs); n >= 2 {
+			area += xs[n-1] - xs[n-2]
+		}
+	}
+	return area
+}
+
+// TestCapKFootIsLighterThanTheFootOfX asks that the foot serif of the leg of K, with
+// its bracket, carries no more ink than the foot of the thick diagonal of X, the
+// leg being KLeg thick against XThick, and at least 0.9 of it.
+func TestCapKFootIsLighterThanTheFootOfX(t *testing.T) {
+	t.Parallel()
+	forCaps(t, func(t *testing.T, np namedParams) {
+		h := 3 * np.params.Caps.SerifThick
+		k := footInk(capOutline(np, "K"), h)
+		x := footInk(capOutline(np, "X"), h)
+		if r := k / x; r > 1 || r < 0.9 {
+			t.Errorf("the foot of the leg of K has %.3f of the ink of the foot of X below %.0f, want 0.9 to 1", r, h)
 		}
 	})
 }

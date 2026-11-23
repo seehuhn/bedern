@@ -262,3 +262,24 @@ func TestZBeaksAreOfTheFamilyOfS(t *testing.T) {
 		t.Errorf("the inner edge leaves the end of the beak at %.1f degrees from the vertical, want 0 to 20", slope)
 	}
 }
+
+// TestBeakTurnKeepsItsHeight asks that the curve by which the inner edge of a beak turns
+// into the bar is at least minTurn high, where the beak is high enough, so that the
+// rounding to whole units leaves no kink where the straight edge ends, and that the
+// straight edge and the curve leave the node in one direction.
+func TestBeakTurnKeepsItsHeight(t *testing.T) {
+	t.Parallel()
+	for _, c := range []struct{ height, thick, bar float64 }{{166, 40, 78}, {170, 40, 78}, {100, 36, 38}, {118, 36, 36}, {260, 60, 119}} {
+		b := zBeakTurn(c.height, c.thick, c.bar, figBeakMinTurn)
+		curve := b[len(b)-1].cubic
+		if h := curve.P3.Y - curve.P0.Y; h < figBeakMinTurn-1e-9 && 0.9*c.height >= c.bar+figBeakMinTurn {
+			t.Errorf("beak %v: the curve into the bar is %.1f high, want at least %v", c, h, figBeakMinTurn)
+		}
+		line := b[len(b)-2].cubic
+		a1 := math.Atan2(line.P3.X-line.P0.X, line.P0.Y-line.P3.Y)
+		a2 := math.Atan2(curve.P1.X-curve.P0.X, curve.P0.Y-curve.P1.Y)
+		if d := math.Abs(a1-a2) * 180 / math.Pi; d > 1e-6 {
+			t.Errorf("beak %v: the edge turns by %.3f degrees where the curve starts", c, d)
+		}
+	}
+}

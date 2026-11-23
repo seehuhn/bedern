@@ -84,7 +84,7 @@ func figTwo(p design.Params) (outline.Path, float64) {
 	outerDiag := figCurve("two", foot, neg(down), 0, rx, outline.Point{Y: 1}, kOuter)
 	innerDiag := fairStartCurve("two", ri, outline.Point{Y: -1}, kInner, outline.Point{X: x0, Y: f.TwoBaseEnd}, down)
 
-	arm := capArm{Edge: foot.X, End: x0 + f.TwoBase, Lower: 0, Upper: f.Heavy, Rise: f.TwoRise, SerifThick: f.TwoSerifThick}
+	arm := capArm{Edge: foot.X, End: x0 + f.TwoBase, Lower: 0, Upper: f.Heavy, Rise: f.TwoRise, SerifThick: f.TwoSerifThick, MinTurn: figBeakMinTurn}
 	base := capArmBottom(arm)
 	c := join(
 		lineChain(outline.Point{X: x0}, base.start()),

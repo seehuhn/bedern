@@ -118,9 +118,9 @@ func capEng(p design.Params) (outline.Path, float64) {
 	in := footRising(outline.Point{X: hook.Left, Y: low + g.JInnerDrop}, -math.Pi/2)
 	out := footAt(outline.Point{X: xr1, Y: low + g.JOuterDrop}, math.Pi/2)
 	reach := design.CapJStemLeft(p) - g.JSideLeft
-	tb := placeAtExtreme(capJBall(p), ballPlace{Angle: capJBallAngle},
+	tb := must(placeAtExtreme(capJBall(p), ballPlace{Angle: capJBallAngle},
 		func(x0, _ float64) float64 { return hook.Left - reach - x0 }, low, false,
-		func(tb placedBall) chain { return stalkChain("Eng", in, tb, out) })
+		func(tb placedBall) chain { return stalkChain("Eng", in, tb, out) }))
 	tail := stalkChain("Eng", in, tb, out)
 	// The lower edge of the diagonal meets the left-hand edge of the hook.
 	meet := diag.edgeAt(edgeLeft, diag.Y+(hook.Left-diag.edgeAt(edgeLeft, diag.Y).X)/diag.Lean)

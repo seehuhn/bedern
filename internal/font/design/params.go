@@ -656,7 +656,7 @@ func Regular() Params {
 		ATailReach:     100,
 		ATailTipHeight: 85,
 		ATailTipThick:  36,
-		ATailSideRight: 0,
+		ATailSideRight: -4,
 
 		SSpineThick:    84,
 		SSpineAngle:    20,
@@ -749,7 +749,7 @@ func Regular() Params {
 		DiagSideLeft:   17,
 		DiagSideRight:  11,
 		VInk:           480,
-		WInk:           684,
+		WInk:           700,
 		WStemCut:       5,
 		WApexHeight:    444,
 		WApexFlat:      30,

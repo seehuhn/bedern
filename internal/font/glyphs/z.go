@@ -52,13 +52,27 @@ import (
 // edge leaves the flat end at the angle design.ZBeakTilt from the vertical and runs
 // straight to half the height of the beak, where it turns into the underside of the
 // bar in one curve.  The beak is thick wide at half the height.
-func zBeak(height, thick, bar float64) chain {
+func zBeak(height, thick, bar float64) chain { return zBeakTurn(height, thick, bar, 0) }
+
+// zBeakTurn is zBeak with the inner edge turning into the bar by a curve of at least
+// minTurn in height.
+func zBeakTurn(height, thick, bar, minTurn float64) chain {
 	tilt := math.Tan(design.ZBeakTilt)
 	end := thick - height/2*tilt
+	// The straight inner edge ends at half the height, or, if that leaves a curve
+	// shorter than minTurn above the underside of the bar, that much above it.
+	half := height / 2
+	if minTurn > 0 {
+		half = math.Min(math.Max(half, bar+minTurn), 0.9*height)
+	}
 	s1 := outline.Point{X: 0, Y: 0}
 	s2 := outline.Point{X: 0, Y: -height}
 	s3 := outline.Point{X: end, Y: -height}
-	s4 := outline.Point{X: thick, Y: -height / 2}
+	x4 := thick
+	if half != height/2 {
+		x4 = end + (height-half)*tilt
+	}
+	s4 := outline.Point{X: x4, Y: -half}
 	s5 := outline.Point{X: thick + design.ZBeakRun, Y: -bar}
 	return chain{
 		lineSeg(s1, s2),

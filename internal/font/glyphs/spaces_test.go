@@ -165,3 +165,28 @@ func TestVisibleSpace(t *testing.T) {
 		})
 	}
 }
+
+// TestPrimesAreNotHairlines asks that the bar of ′ is 52 to 97 wide at half its height
+// in the regular parameters and wider than the bar of the ASCII apostrophe at the
+// same height in every parameter set.
+func TestPrimesAreNotHairlines(t *testing.T) {
+	t.Parallel()
+	for _, np := range allParams() {
+		q := np.params.Punct
+		path, _ := cachedOutline(np, "minute")
+		_, y0, _, y1 := path.BBox()
+		xs := path.CrossingsX((y0 + y1) / 2)
+		if len(xs) != 2 {
+			t.Fatalf("%s: the prime has %d crossings at half its height, want 2", np.name, len(xs))
+		}
+		w := xs[1] - xs[0]
+		apostrophe := (q.StraightTopWidth + q.StraightBottomWidth) / 2
+		if w <= apostrophe {
+			t.Errorf("%s: the prime is %.1f wide at half its height, not wider than the apostrophe, %.1f", np.name, w, apostrophe)
+		}
+		// The range is for the regular weight; other sets scale with the apostrophe.
+		if np.name == "regular" && (w < 52 || w > 97) {
+			t.Errorf("%s: the prime is %.1f wide at half its height, want 52 to 97", np.name, w)
+		}
+	}
+}

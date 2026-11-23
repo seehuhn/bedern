@@ -85,15 +85,35 @@ type ballPart struct {
 	Blend  cubic         // the outer edge from A to its circle
 }
 
-// newBallPart returns the ball terminal of the parameters.  It panics if the
-// stalk does not fit the ball.
-func newBallPart(p design.Params) ballPart {
-	b, err := makeBallPart(p.BallDiameter/2, p.BallStalk, ballCurl, ballSection, ballBlend)
+// must returns v, or panics with the error err if there is one.  The glyph
+// functions have no way to return an error: a construction which fails for the
+// parameters ends in the panic of must, which glyphs.Check reports as the
+// failure of the glyph.  The constructions of the ball terminals return their
+// errors to the function which draws the glyph.
+func must[T any](v T, err error) T {
 	if err != nil {
 		panic(fmt.Sprintf("glyphs: %v; glyphs.Check reports such parameters", err))
 	}
-	return b
+	return v
 }
+
+// recovered turns a panic of a construction which it interrupts into the error
+// *err.
+func recovered(err *error) {
+	if r := recover(); r != nil {
+		*err = fmt.Errorf("%v", r)
+	}
+}
+
+// ballPartFor returns the ball terminal of the parameters, or an error if the
+// stalk does not fit the ball.
+func ballPartFor(p design.Params) (ballPart, error) {
+	return makeBallPart(p.BallDiameter/2, p.BallStalk, ballCurl, ballSection, ballBlend)
+}
+
+// newBallPart returns the ball terminal of the parameters.  It panics if the
+// stalk does not fit the ball.
+func newBallPart(p design.Params) ballPart { return must(ballPartFor(p)) }
 
 // ballPartKey holds every input of makeBallPart.
 type ballPartKey struct{ r, t, curl, section, blend float64 }
@@ -330,14 +350,14 @@ func (w windSpiral) cubics() (chain, error) {
 // the spiral (windSpiral) which leaves q0 in the direction phi0 (radians) with
 // the curvature k0 and ends on the circle of the ball with its direction and its
 // curvature.
-func windBall(name string, tb placedBall, q0 outline.Point, phi0, k0 float64) chain {
+func windBall(name string, tb placedBall, q0 outline.Point, phi0, k0 float64) (chain, error) {
 	w, err := newWindSpiral(q0, phi0, k0, tb.Centre, tb.Part.R)
 	if err != nil {
-		panic(fmt.Sprintf("glyphs: glyph %s: %v; glyphs.Check reports such parameters", name, err))
+		return nil, fmt.Errorf("glyph %s: %v", name, err)
 	}
 	wind, err := w.cubics()
 	if err != nil {
-		panic(fmt.Sprintf("glyphs: glyph %s: the spiral into the ball: %v; glyphs.Check reports such parameters", name, err))
+		return nil, fmt.Errorf("glyph %s: the spiral into the ball: %v", name, err)
 	}
 	aW := math.Atan2(tb.Tip.Y-tb.Centre.Y, tb.Tip.X-tb.Centre.X)
 	aA := w.heading(w.L) + math.Pi/2
@@ -357,7 +377,7 @@ func windBall(name string, tb placedBall, q0 outline.Point, phi0, k0 float64) ch
 			wind = wind[1:]
 		}
 	}
-	return join(ball, wind)
+	return join(ball, wind), nil
 }
 
 // ballMinPiece is the shortest piece of the spiral next to the ball which
@@ -888,12 +908,12 @@ func stalkChainStraight(letter string, in stalkFoot, tb placedBall, out stalkFoo
 // node which the circle has anyway.  A foot whose curvature is zero, on a
 // straight stem, is reached by a transition curve (straightFoot) over the last
 // stemRamp degrees of the turn of the edge.
-func windHook(letter string, in stalkFoot, tb placedBall, out stalkFoot, rises [2]float64) chain {
+func windHook(letter string, in stalkFoot, tb placedBall, out stalkFoot, rises [2]float64) (chain, error) {
 	tip, arc := innerEnd(tb)
 	free := func(f stalkFoot) stalkFoot { return stalkFoot{At: f.At, Dir: f.Dir, Kappa: math.NaN()} }
 	a, err := edgeIn(free(in), tip)
 	if err != nil {
-		panic(fmt.Sprintf("glyphs: glyph %s: the edge into the ball terminal: %v", letter, err))
+		return nil, fmt.Errorf("glyph %s: the edge into the ball terminal: %v", letter, err)
 	}
 	inner := splitAtExtrema(a)
 	if in.Kappa == 0 {
@@ -904,7 +924,7 @@ func windHook(letter string, in stalkFoot, tb placedBall, out stalkFoot, rises [
 	inner = join(inner, arc)
 	outer, err := edgeOut(tb.Out, free(out))
 	if err != nil {
-		panic(fmt.Sprintf("glyphs: glyph %s: the edge out of the ball terminal: %v", letter, err))
+		return nil, fmt.Errorf("glyph %s: the edge out of the ball terminal: %v", letter, err)
 	}
 	spiral := func(rise float64) (windSpiral, float64, error) {
 		t := tAtFall(outer, -rise)
@@ -933,7 +953,7 @@ func windHook(letter string, in stalkFoot, tb placedBall, out stalkFoot, rises [
 		b = a
 	}
 	if !found {
-		panic(fmt.Sprintf("glyphs: glyph %s: the spiral into the ball does not meet it at an extreme; glyphs.Check reports such parameters", letter))
+		return nil, fmt.Errorf("glyph %s: the spiral into the ball does not meet it at an extreme", letter)
 	}
 	mlo := miss(lo)
 	for i := 0; i < 30; i++ {
@@ -946,7 +966,10 @@ func windHook(letter string, in stalkFoot, tb placedBall, out stalkFoot, rises [
 	}
 	_, t, _ := spiral((lo + hi) / 2)
 	q := outer.tangent(t)
-	wound := windBall(letter, tb, outer.at(t), math.Atan2(-q.Y, -q.X), outer.curvature(t))
+	wound, err := windBall(letter, tb, outer.at(t), math.Atan2(-q.Y, -q.X), outer.curvature(t))
+	if err != nil {
+		return nil, err
+	}
 	rest := outer.sub(t, 1)
 	tail := splitAtExtrema(rest)
 	if out.Kappa == 0 {
@@ -954,7 +977,7 @@ func windHook(letter string, in stalkFoot, tb placedBall, out stalkFoot, rises [
 		ramp := straightFoot(rest.at(u), rest.tangent(u), rest.curvature(u), out.At, out.Dir)
 		tail = join(splitAtExtrema(rest.sub(0, u)), chain{curveSeg(ramp)})
 	}
-	return join(inner, wound, tail)
+	return join(inner, wound, tail), nil
 }
 
 // innerEnd returns the end of the inner edge of a hook at the ball tb: the tip
@@ -1029,7 +1052,7 @@ func chainBBox(c chain) (x0, y0, x1, y1 float64) {
 // placeUnderCrest places the part turned by angle so that its rightmost ink is at
 // right and the highest point of the stroke which arm draws to it is at apex, see
 // placeAtExtreme.
-func placeUnderCrest(b ballPart, angle, right, apex float64, arm func(placedBall) chain) placedBall {
+func placeUnderCrest(b ballPart, angle, right, apex float64, arm func(placedBall) chain) (placedBall, error) {
 	return placeAtExtreme(b, ballPlace{Angle: angle}, func(_, x1 float64) float64 { return right - x1 }, apex, true, arm)
 }
 
@@ -1037,28 +1060,36 @@ func placeUnderCrest(b ballPart, angle, right, apex float64, arm func(placedBall
 // abscissa of the centre from the extent in x of the part placed at the origin,
 // and the ball is moved up or down until the highest point (top set) or the lowest
 // point of the stroke which arm draws to it is at the height y, which may lie in
-// the edge the letter draws.
-func placeAtExtreme(b ballPart, pl ballPlace, dx func(x0, x1 float64) float64, y float64, top bool, arm func(placedBall) chain) placedBall {
+// the edge the letter draws.  It returns an error where the construction of the
+// arm fails or the stroke does not settle at y.
+func placeAtExtreme(b ballPart, pl ballPlace, dx func(x0, x1 float64) float64, y float64, top bool, arm func(placedBall) chain) (tb placedBall, err error) {
+	defer recovered(&err)
 	pl.Centre = outline.Point{}
 	x0, y0, x1, y1 := chainBBox(b.place(pl).Chain)
 	pl.Centre = outline.Point{X: dx(x0, x1), Y: y - y0}
 	if top {
 		pl.Centre.Y = y - y1
 	}
-	tb := b.place(pl)
+	tb = b.place(pl)
+	settled := false
+	var ext float64
 	for i := 0; i < 30; i++ {
 		_, y0, _, y1 := chainBBox(arm(tb))
-		ext := y0
+		ext = y0
 		if top {
 			ext = y1
 		}
 		if math.Abs(ext-y) < 1e-7 {
+			settled = true
 			break
 		}
 		pl.Centre.Y += y - ext
 		tb = b.place(pl)
 	}
-	return tb.snapped()
+	if !settled && math.Abs(ext-y) > 1e-3 {
+		return placedBall{}, fmt.Errorf("the ball cannot be placed with its stroke at the height %.1f: it stands at %.1f after 30 steps", y, ext)
+	}
+	return tb.snapped(), nil
 }
 
 // snapped returns the terminal with the centre of the ball moved to the nearest

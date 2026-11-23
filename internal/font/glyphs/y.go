@@ -102,9 +102,9 @@ func yTail(p design.Params, tb placedBall) chain {
 func yTerminal(p design.Params) placedBall {
 	h := yHook(p)
 	left := 2*yCentre(p) - (h.Cell + h.Reach)
-	return placeAtExtreme(newBallPart(p), ballPlace{Angle: yBallAngle},
+	return must(placeAtExtreme(newBallPart(p), ballPlace{Angle: yBallAngle},
 		func(x0, _ float64) float64 { return left - x0 }, -p.YDepth, false,
-		func(tb placedBall) chain { return yTail(p, tb) })
+		func(tb placedBall) chain { return yTail(p, tb) }))
 }
 
 // y draws the lowercase letter y, see the comment above.

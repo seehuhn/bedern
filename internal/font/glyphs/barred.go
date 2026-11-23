@@ -26,7 +26,7 @@ const (
 	lslashAngle  = 37.0  // the bar of ł, degrees above the horizontal
 	lslashCentre = 0.525 // height of the middle of the bar of ł, in ascenders
 	lslashBeyond = 10.0  // how far the bar of ł reaches beyond the tips of the foot serifs, at most
-	dcroatCentre = 0.787 // height of the middle of the bar of đ, in ascenders
+	dcroatLow    = 0.29  // the white between the bowl of đ and its bar, in the white between the bowl and the head serif less the bar
 	dcroatLength = 3.82  // length of the bar of đ, in stems
 	hbarCentre   = 0.768 // height of the middle of the bar of ħ, in ascenders
 	hbarLength   = 3.7   // length of the bar of ħ, in stems
@@ -108,11 +108,25 @@ func capLslash(p design.Params) (outline.Path, float64) {
 	return withBars(p, "L", slantBar(x0+w/2, capLslashCentre*p.CapHeight, w, capLslashAngle, p.Caps.Bar))
 }
 
+// dcroatY returns the height of the middle of the bar of đ: the white between the top
+// of the bowl and the bar is dcroatLow of the white between the bowl and the underside
+// of the head serif, less the bar.
+func dcroatY(p design.Params) float64 {
+	path, _, _ := Outline("d", p)
+	x0, _, _, _ := path.BBox()
+	stem := design.DStemLeft(p) + design.AscenderInset(p)
+	ys := path.CrossingsY((x0 + stem) / 2)
+	bowl := ys[len(ys)-1]
+	ys = path.CrossingsY(stem - p.Stem/4)
+	serif := ys[len(ys)-2]
+	return bowl + dcroatLow*(serif-bowl-p.ThinLower) + p.ThinLower/2
+}
+
 // dcroat draws đ: the d with a horizontal bar across the ascender, which ends
 // on the right where the foot serif ends.
 func dcroat(p design.Params) (outline.Path, float64) {
 	x1 := design.DStemLeft(p) + design.AscenderInset(p) + p.AscenderStem + p.SerifJut
-	y := dcroatCentre * p.Ascender
+	y := dcroatY(p)
 	return withBars(p, "d", rectChain(x1-dcroatLength*p.Stem, y-p.ThinLower/2, x1, y+p.ThinLower/2))
 }
 

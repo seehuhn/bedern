@@ -259,13 +259,14 @@ func (e entry) inkMargins(p design.Params) (left, right float64) {
 		case sideStem, sideStemD, sideStemBP, sideStemB, sideStemQ, sideStemR, sideNarrow:
 			m -= p.SerifJut
 		case sideTailA:
-			// the tail is the rightmost ink: nothing to take off
+			// the tail is the rightmost ink: nothing to take off, and where the
+			// space is negative the tail overhangs the advance by that much
 		case sideCapStem:
 			m -= p.Caps.SerifJut
 		case sideCapBowlStem:
 			m -= p.Caps.SerifJut
 		}
-		if k == sideOverhang || k == sideHang {
+		if k == sideOverhang || k == sideHang || (k == sideTailA && m < 0) {
 			return m // negative: the ink may stand beyond the edge by this much
 		}
 		if k == sideTie {

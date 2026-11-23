@@ -359,7 +359,7 @@ func ogonekChain(a design.Accents) chain {
 		{X: 0, Y: a.OgoOverlap, Dir: ogonekLeave, W: w, Nib: 360},
 		{X: -a.OgoReach + a.OgoThick/2, Y: -0.65 * d, Dir: -90, W: a.OgoThick},
 		{X: 0, Y: -d + a.OgoThin/2, Dir: 0, W: a.OgoThin},
-		{X: a.OgoTail, Y: -0.72 * d, Dir: 35, W: a.OgoTip},
+		{X: a.OgoTail, Y: -0.76 * d, Dir: 42, W: a.OgoTip, ArcEnd: true},
 	})
 }
 

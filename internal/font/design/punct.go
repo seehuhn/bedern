@@ -74,6 +74,7 @@ type Punct struct {
 	// apart.  The straight marks are tapered bars StraightTopWidth wide at the
 	// top, which is at StraightTop, and StraightBottomWidth at the foot,
 	// StraightHeight high; the double one has two of them StraightPitch apart.
+	// The primes are the straight marks PrimeWeight times as wide.
 	QuoteTop            float64
 	QuotePitch          float64
 	StraightTop         float64
@@ -81,6 +82,7 @@ type Punct struct {
 	StraightTopWidth    float64
 	StraightBottomWidth float64
 	StraightPitch       float64
+	PrimeWeight         float64
 	Quote               PunctSides // the single marks: ' and the curly ones
 	QuoteDouble         PunctSides // the curly double marks
 	Straight            PunctSides // the straight single mark
@@ -192,6 +194,7 @@ func regularPunct() Punct {
 		StraightTopWidth:    58,
 		StraightBottomWidth: 30,
 		StraightPitch:       156,
+		PrimeWeight:         1.5,
 		Quote:               PunctSides{60, 60},
 		QuoteDouble:         PunctSides{60, 60},
 		Straight:            PunctSides{70, 70},
