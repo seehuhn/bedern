@@ -1014,10 +1014,11 @@ func capacity(f *File) string {
 // package with the installed converters on a sample of them: every n-th
 // file, some files with each feature and of each class and some of the
 // rejected files.  With the environment variable BEDERN_TFM_ALL set to 1 the
-// sample is every file.
+// sample is every file.  The test runs only with BEDERN_TFM_TREE=1 or
+// BEDERN_TFM_ALL=1, since it reads the 80 000 files of the tree.
 func TestTree(t *testing.T) {
-	if testing.Short() {
-		t.Skip("walks the TeX tree")
+	if os.Getenv("BEDERN_TFM_TREE") != "1" && os.Getenv("BEDERN_TFM_ALL") != "1" {
+		t.Skip("walks the TeX tree; set BEDERN_TFM_TREE=1 to run it")
 	}
 	cv := needConverters(t)
 	paths := treeFiles(t)

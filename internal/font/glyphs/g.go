@@ -319,19 +319,19 @@ func gFitted(cs []cubic, target map[int]float64) []cubic {
 		h0[2*i] = math.Hypot(c.P1.X-c.P0.X, c.P1.Y-c.P0.Y)
 		h0[2*i+1] = math.Hypot(c.P3.X-c.P2.X, c.P3.Y-c.P2.Y)
 	}
-	build := func(h []float64) []cubic {
-		out := make([]cubic, n)
+	build := func(h []float64, out []cubic) []cubic {
 		for i, c := range cs {
 			out[i] = gHandled(c.P0, c.tangent(0), h[2*i], c.P3, c.tangent(1), h[2*i+1])
 		}
 		return out
 	}
+	scratch := make([]cubic, n)
 	resid := func(h []float64) []float64 {
 		r := make([]float64, 0, 3*n)
 		for i := range h {
 			r = append(r, h[i]-h0[i])
 		}
-		b := build(h)
+		b := build(h, scratch)
 		for i := 1; i < n; i++ {
 			r = append(r, gFitWeight*(b[i-1].curvature(1)-b[i].curvature(0)))
 		}
@@ -359,14 +359,15 @@ func gFitted(cs []cubic, target map[int]float64) []cubic {
 	r := resid(h)
 	lambda := 1e-3
 	m := len(h)
+	jac := make([][]float64, len(r))
+	for k := range jac {
+		jac[k] = make([]float64, m)
+	}
+	var hh []float64
 	for iter := 0; iter < 200; iter++ {
 		// The Jacobian, by forward differences.
-		jac := make([][]float64, len(r))
-		for k := range jac {
-			jac[k] = make([]float64, m)
-		}
 		for j := 0; j < m; j++ {
-			hh := append([]float64(nil), h...)
+			hh = append(hh[:0], h...)
 			hh[j] += 1e-5
 			rr := resid(hh)
 			for k := range r {
@@ -416,7 +417,7 @@ func gFitted(cs []cubic, target map[int]float64) []cubic {
 			break
 		}
 	}
-	return build(h)
+	return build(h, make([]cubic, n))
 }
 
 // gFittedEdges returns the curves, which join end to end with a common

@@ -601,9 +601,11 @@ func g2Cubic(p0, t0 outline.Point, k0 float64, p3, t3 outline.Point, k3 float64)
 	h := arcHandle(p0, t0, p3, t3)
 	best, bestDist := math.NaN(), math.Inf(1)
 	const n = 400
+	fnext := f(0)
 	for i := 0; i < n; i++ {
 		lo, hi := chord*float64(i)/n, chord*float64(i+1)/n
-		flo, fhi := f(lo), f(hi)
+		flo, fhi := fnext, f(hi)
+		fnext = fhi
 		if math.IsNaN(flo) || math.IsNaN(fhi) || (flo > 0) == (fhi > 0) {
 			continue
 		}
@@ -622,13 +624,34 @@ func g2Cubic(p0, t0 outline.Point, k0 float64, p3, t3 outline.Point, k3 float64)
 	a := best
 	bb := bOf(a)
 	if !(a > 0 && bb > 0 && bb < chord) {
-		return cubic{}, fmt.Errorf("no cubic curve from %v to %v has the curvatures %v and %v at its ends", p0, p3, k0, k3)
+		return cubic{}, &noCubicError{p0, p3, k0, k3}
 	}
 	return cubic{p0,
 		outline.Point{X: p0.X + a*t0.X, Y: p0.Y + a*t0.Y},
 		outline.Point{X: p3.X - bb*t3.X, Y: p3.Y - bb*t3.Y},
 		p3}, nil
 }
+
+// noCubicError is the error of g2Cubic; it formats its message only when the
+// message is read.
+type noCubicError struct {
+	p0, p3 outline.Point
+	k0, k3 float64
+}
+
+func (e *noCubicError) Error() string {
+	return fmt.Sprintf("no cubic curve from %v to %v has the curvatures %v and %v at its ends", e.p0, e.p3, e.k0, e.k3)
+}
+
+// lazyError is an error whose message is formatted only when it is read.
+type lazyError struct {
+	format string
+	args   []any
+}
+
+func (e *lazyError) Error() string { return fmt.Sprintf(e.format, e.args...) }
+
+func lazyErrorf(format string, args ...any) error { return &lazyError{format, args} }
 
 // g2End returns the cubic curve from p0, leaving in the direction t0 with the
 // handle a, to p3, arriving in the direction t3 with the signed curvature k3.  It
@@ -639,11 +662,11 @@ func g2End(p0, t0 outline.Point, a float64, p3, t3 outline.Point, k3 float64) (c
 	d := outline.Point{X: p3.X - p0.X, Y: p3.Y - p0.Y}
 	num := 2.0 / 3 * (cr(d, t3) - a*cr(t0, t3)) / k3
 	if !(num > 0) || !(a > 0) {
-		return cubic{}, fmt.Errorf("no cubic curve from %v with the handle %v arrives at %v with the curvature %v", p0, a, p3, k3)
+		return cubic{}, lazyErrorf("no cubic curve from %v with the handle %v arrives at %v with the curvature %v", p0, a, p3, k3)
 	}
 	b := math.Sqrt(num)
 	if b >= math.Hypot(d.X, d.Y) {
-		return cubic{}, fmt.Errorf("the curve from %v to %v needs a handle of %v at its end", p0, p3, b)
+		return cubic{}, lazyErrorf("the curve from %v to %v needs a handle of %v at its end", p0, p3, b)
 	}
 	return cubic{p0,
 		outline.Point{X: p0.X + a*t0.X, Y: p0.Y + a*t0.Y},
@@ -726,10 +749,10 @@ func fairEndWith(p0, t0, p3, t3 outline.Point, k3 float64, rising bool) (cubic, 
 		a := (0.05 + 0.005*float64(i)) * chord
 		c, err := g2End(p0, t0, a, p3, t3, k3)
 		if err == nil && !oneWay(c, math.Copysign(1, k3)) {
-			err = fmt.Errorf("the curve from %v to %v with the handle %v turns both ways", p0, p3, a)
+			err = lazyErrorf("the curve from %v to %v with the handle %v turns both ways", p0, p3, a)
 		}
 		if err == nil && rising && !curvatureRisesWithin(c, 0.06*math.Abs(k3)) {
-			err = fmt.Errorf("the curve from %v to %v with the handle %v has a hump of the curvature", p0, p3, a)
+			err = lazyErrorf("the curve from %v to %v with the handle %v has a hump of the curvature", p0, p3, a)
 		}
 		if err != nil {
 			lastErr = err
