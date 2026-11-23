@@ -60,6 +60,12 @@ type Table struct {
 // Compute computes the kerns of the glyphs.  The glyph index is the position
 // in gs.
 func Compute(p design.Params, gs []glyphs.Glyph) *Table {
+	return ComputeWith(p, gs, nil)
+}
+
+// ComputeWith is Compute with further exceptions, which apply to this
+// computation only and take precedence over design.KernExceptions.
+func ComputeWith(p design.Params, gs []glyphs.Glyph, exceptions []design.KernException) *Table {
 	f := Analyse(p, gs)
 	k := p.Kern
 	t := &Table{Font: f}
@@ -76,6 +82,9 @@ func Compute(p design.Params, gs []glyphs.Glyph) *Table {
 	}
 	exc := make(map[[2]string]design.KernException)
 	for _, e := range design.KernExceptions {
+		exc[[2]string{e.Left, e.Right}] = e
+	}
+	for _, e := range exceptions {
 		exc[[2]string{e.Left, e.Right}] = e
 	}
 	all := make(map[[2]int]*Pair)
