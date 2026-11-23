@@ -158,7 +158,7 @@ func FontWith(p design.Params, style design.Style, gs []glyphs.Glyph, now time.T
 		font.CodePageRange.Set(os2.CP1254)
 		font.CodePageRange.Set(os2.CP1257)
 	}
-	if has('ẁ') {
+	if has('ẞ') {
 		font.UnicodeRange.Set(os2.URLatinExtAdditional)
 	}
 	if has('\u0301') {

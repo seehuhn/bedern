@@ -222,16 +222,6 @@ var composedList = []struct {
 	{"scommaaccent", 'ș', composite{"s", markCommaBelow}},
 	{"uni021A", 'Ț', composite{"T", markCommaBelow}},
 	{"uni021B", 'ț', composite{"t", markCommaBelow}},
-
-	// Latin Extended Additional: Welsh.
-	{"Wgrave", 'Ẁ', composite{"W", markGrave}},
-	{"wgrave", 'ẁ', composite{"w", markGrave}},
-	{"Wacute", 'Ẃ', composite{"W", markAcute}},
-	{"wacute", 'ẃ', composite{"w", markAcute}},
-	{"Wdieresis", 'Ẅ', composite{"W", markDieresis}},
-	{"wdieresis", 'ẅ', composite{"w", markDieresis}},
-	{"Ygrave", 'Ỳ', composite{"Y", markGrave}},
-	{"ygrave", 'ỳ', composite{"y", markGrave}},
 }
 
 // spacingList lists the spacing accents, which are the marks standing alone,
