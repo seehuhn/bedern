@@ -15,7 +15,8 @@ import (
 // sides.
 func TestLigaturesTakeTheSidesOfTheirLetters(t *testing.T) {
 	t.Parallel()
-	for _, s := range allSets()[:4] {
+	sets := allSets()
+	for _, s := range sets[:min(4, len(sets))] {
 		t.Run(s.name, func(t *testing.T) {
 			t.Parallel()
 			gs := glyphstest.Set(s.p)

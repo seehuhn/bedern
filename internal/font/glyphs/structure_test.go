@@ -17,9 +17,9 @@ import (
 // The structural checks do not depend on the shape of a letter.  Every glyph
 // of the table is checked, unrounded and rounded, for every variant, every
 // parameter set and, in the full tier, the bold parameters.  In the other
-// perturbed sets than those of composedRoutine the routine tier leaves out the
-// derived glyphs (derived) and the glyphs whose checks have the same inputs as
-// in the regular set (sameChecks), which give the same result.
+// perturbed sets than those of composedRoutine the tests leave out the derived
+// glyphs (derived) and the glyphs whose checks have the same inputs as in the
+// regular set (sameChecks), which give the same result.
 
 type namedParams struct {
 	name   string
@@ -77,6 +77,19 @@ func boldApplies(t *testing.T, np namedParams) bool {
 	return np.name != "bold" || !boldExempt[name]
 }
 
+// structureRoutineSets is the number of perturbed parameter sets on which the
+// routine tier runs the structure test, besides the variants; the full tier
+// runs it on all sets and on the bold parameters.
+const structureRoutineSets = 1
+
+// structureParams returns the parameter sets on which the structure test runs.
+func structureParams() []namedParams {
+	if !testing.Short() {
+		return allParams()
+	}
+	return paramSets(designtest.Sets(true, structureRoutineSets))
+}
+
 // derivedParams returns the parameter sets on which the tests of the derived
 // glyphs run: the variants and, in the routine tier, the first
 // composedRoutineSets perturbed sets.
@@ -122,7 +135,7 @@ func TestStructure(t *testing.T) {
 			t.Errorf("derivedGlyphs names %s, which is not in the table", g)
 		}
 	}
-	for _, np := range allParams() {
+	for _, np := range structureParams() {
 		t.Run(np.name, func(t *testing.T) {
 			t.Parallel()
 			all := composedRoutine(np.name) || np.name == "bold"
@@ -157,14 +170,13 @@ func derived(glyph string) bool {
 }
 
 // composedRoutineSets is the number of perturbed parameter sets on which the
-// routine tier runs the structure test of every glyph and the tests of the
-// composed letters and of the derived glyphs, besides the variants; the full
-// tier runs them on all sets.
+// routine tier runs the tests of the composed letters and of the derived
+// glyphs, besides the variants; the full tier runs them on all sets.
 const composedRoutineSets = 3
 
-// composedRoutine says whether the structure test of every glyph and the tests
-// of the composed letters run on the parameter set of the given name in this
-// tier.
+// composedRoutine says whether the structure test of every glyph, where it runs,
+// and the tests of the composed letters run on the parameter set of the given
+// name in this tier.
 func composedRoutine(set string) bool {
 	if !testing.Short() || set == "regular" {
 		return true

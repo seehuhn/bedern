@@ -438,7 +438,7 @@ const (
 	riseTolerance = 1e-9
 )
 
-// newRiseSpiral returns the spiral (windSpiral) from p0, leaving in the
+// searchRiseSpiral returns the spiral (windSpiral) from p0, leaving in the
 // direction phi0 (radians) with the curvature k0 (positive turning clockwise),
 // which ends at p3 in the direction phi3: the length L, the power M and the
 // curvature K1 at the end are the solution of the three equations for the end
@@ -446,7 +446,7 @@ const (
 // riseMinPower.  It reports an error if there is none, or if the method stays
 // at riseMinPower for riseFloorSteps steps in a row or makes too little
 // progress (riseStall).
-func newRiseSpiral(p0 outline.Point, phi0, k0 float64, p3 outline.Point, phi3 float64) (windSpiral, error) {
+func searchRiseSpiral(p0 outline.Point, phi0, k0 float64, p3 outline.Point, phi3 float64) (windSpiral, error) {
 	w := windSpiral{P0: p0, Phi0: phi0, K0: k0}
 	for phi3-phi0 > math.Pi {
 		phi3 -= 2 * math.Pi

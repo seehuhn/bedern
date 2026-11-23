@@ -193,13 +193,13 @@ type windSpiral struct {
 	L, M   float64
 }
 
-// newWindSpiral returns the spiral from p0, leaving in the direction phi0 with
+// searchWindSpiral returns the spiral from p0, leaving in the direction phi0 with
 // the curvature k0 (positive, turning clockwise), which ends on the circle about
 // centre of the radius r with its direction and its curvature: the length L and
 // the power M are the solution of the two equations which put the centre of
 // curvature at the end of the spiral at centre, found by Newton's method with M
 // at most windMaxPower.  It reports an error if there is none with M at least 1.
-func newWindSpiral(p0 outline.Point, phi0, k0 float64, centre outline.Point, r float64) (windSpiral, error) {
+func searchWindSpiral(p0 outline.Point, phi0, k0 float64, centre outline.Point, r float64) (windSpiral, error) {
 	w := windSpiral{P0: p0, Phi0: phi0, K0: k0, K1: 1 / r}
 	miss := func(L, m float64) (float64, float64) {
 		v := w

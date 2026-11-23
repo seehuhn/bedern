@@ -11,15 +11,22 @@ import (
 )
 
 // Check accepts the regular parameters, and turns the panic of a construction
-// which fails into an error which names the glyph.
+// which fails into an error which names the glyph.  The routine tier applies
+// the check to the glyph a alone; the full tier applies it to every glyph.
 func TestCheck(t *testing.T) {
 	t.Parallel()
-	if err := Check(design.Regular()); err != nil {
+	check := func(p design.Params) error {
+		if testing.Short() {
+			return CheckGlyph(p, "a")
+		}
+		return Check(p)
+	}
+	if err := check(design.Regular()); err != nil {
 		t.Fatalf("regular parameters: %v", err)
 	}
 	p := design.Regular()
 	p.BallStalk = p.BallDiameter // a stalk as thick as the ball
-	err := Check(p)
+	err := check(p)
 	if err == nil {
 		t.Fatal("Check accepts a stalk as thick as the ball")
 	}
