@@ -106,6 +106,10 @@ type Symbols struct {
 	// AtStem thick; AtSide on each side.
 	AtInk, AtTop, AtBottom, AtRing, AtBowlW, AtBowlBottom, AtBowlTop, AtBowlThick, AtStem, AtSide float64
 
+	// CircRing, if positive, is the thickness of the ring of © and ®; zero
+	// for 40.
+	CircRing float64
+
 	// The ampersand: AmpInk wide from AmpBottom to AmpTop; the diagonal
 	// AmpThick where it is heaviest, the left side of the lower bowl
 	// AmpBowlThick, the thin strokes Caps.RoundThin; the tail ends in a cut

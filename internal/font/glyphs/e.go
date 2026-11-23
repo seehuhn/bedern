@@ -4,8 +4,6 @@
 package glyphs
 
 import (
-	"math"
-
 	"seehuhn.de/go/bedern/internal/font/design"
 	"seehuhn.de/go/bedern/internal/outline"
 )
@@ -36,9 +34,16 @@ func eThickY(p design.Params) float64 {
 // e, which are also those of the counter and of the outer edge of the bowl of a
 // where they meet its stem (aBowl).  The bar is EBarThick thick and centred on
 // EBarHeight, and its underside lies at least 4 above the left extreme of the
-// eye, where the stroke is vertical.
+// eye, where the stroke is vertical, or on the extreme if it would lie less
+// than EBarSnap above it.
 func eBar(p design.Params) (low, high float64) {
-	low = math.Max(p.EBarHeight-p.EBarThick/2, eThickY(p)+4)
+	low, y := p.EBarHeight-p.EBarThick/2, eThickY(p)
+	switch {
+	case p.EBarSnap > 0 && low < y+p.EBarSnap:
+		low = y
+	case low < y+4:
+		low = y + 4
+	}
 	return low, low + p.EBarThick
 }
 
@@ -132,8 +137,10 @@ func e(p design.Params) (outline.Path, float64) {
 	f.outerU.segment(&path, 1, true) // top to the left extreme
 	f.outerD.segment(&path, 2, true) // left extreme to the bottom
 	terminal.appendTo(&path)
-	f.innerD.segment(&path, 1, false)         // bottom to the left extreme
-	path.LineTo(toUnderside.X, toUnderside.Y) // up to the underside of the bar
+	f.innerD.segment(&path, 1, false) // bottom to the left extreme
+	if f.barLow > f.thickY {
+		path.LineTo(toUnderside.X, toUnderside.Y) // up to the underside of the bar
+	}
 
 	// The eye.
 	path.MoveTo(innerL.P0.X, innerL.P0.Y)

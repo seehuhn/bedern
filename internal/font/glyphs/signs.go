@@ -46,7 +46,7 @@ const (
 	ordBottom   = 331.0 // the underline of ª and º
 	ordGap      = 55.0  // the white between the underline and the letter
 	ordSide     = 30.0  // the side spaces of ª and º
-	circRing    = 40.0  // the ring of © and ®
+	circRing    = 40.0  // the ring of © and ® where Sym.CircRing is zero
 	circGap     = 21.0  // the least distance from the farthest ink of the letter of © and ® to the inside of the ring
 	circSide    = 35.0  // the side spaces of © and ®
 	centStroke  = 50.0  // the stroke of ¢, as that of $
@@ -346,14 +346,18 @@ func brokenbar(p design.Params) (outline.Path, float64) {
 }
 
 // circled draws © or ®: a ring from the overshoot below the baseline to the
-// overshoot above the cap height, circRing thick, and in it the capital drawn
+// overshoot above the cap height, Sym.CircRing (or circRing) thick, and in it the capital drawn
 // heavier and scaled as a superior figure, centred, and scaled less where it
 // would come closer than circGap to the ring.
 func circled(p design.Params, letter string) (outline.Path, float64) {
 	bottom, top := -p.OvershootUpper, p.CapHeight+p.OvershootUpper
 	r := (top - bottom) / 2
 	cy := (top + bottom) / 2
-	outer, counter := ringChains(-r, bottom, r, top, circRing, circRing, 0.7071, 0.7071)
+	ring := circRing
+	if p.Sym.CircRing > 0 {
+		ring = p.Sym.CircRing
+	}
+	outer, counter := ringChains(-r, bottom, r, top, ring, ring, 0.7071, 0.7071)
 	path := chainsPath(outer, counter)
 	l, _, _ := Outline(letter, heavierLetters(p, p.Figures.SupWeight/supScale))
 	lx0, _, lx1, _ := l.BBox()
@@ -366,7 +370,7 @@ func circled(p design.Params, letter string) (outline.Path, float64) {
 			reach = math.Max(reach, math.Hypot(q.X, q.Y))
 		}
 	}
-	l = scaledPath(l, math.Min(supScale, (r-circRing-circGap)/reach))
+	l = scaledPath(l, math.Min(supScale, (r-ring-circGap)/reach))
 	path = append(path, shiftInk(l, 0, cy)...)
 	return placeInk(path, design.PunctSides{Left: circSide, Right: circSide})
 }

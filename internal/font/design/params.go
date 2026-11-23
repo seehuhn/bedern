@@ -178,7 +178,9 @@ type Params struct {
 	// at its tip.  EEyeSuperness is the squareness of the eye above the bar, whose
 	// sides are vertical where they leave the upper edge of the bar.  The thin
 	// parts, the thickest part, the overshoot and the squareness of the outer
-	// edge are those of the o.
+	// edge are those of the o.  The underside of the bar lies at least 4
+	// above the left extreme; if EBarSnap is positive, an underside less than
+	// EBarSnap above the left extreme lies on it.
 	EBarHeight    float64
 	EBarThick     float64
 	EBowlWidth    float64
@@ -186,6 +188,7 @@ type Params struct {
 	EEyeSuperness float64
 	EAperture     float64
 	ETerminalTip  float64
+	EBarSnap      float64
 
 	// The letter c is the curve of the o open on the right.  CBowlWidth is the
 	// width of its ink, from the left extreme to the tip of the lower terminal,
