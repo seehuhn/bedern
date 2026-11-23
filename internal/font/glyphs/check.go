@@ -521,7 +521,8 @@ func clearanceFloor(p design.Params) float64 {
 
 // A sharpCrotch is an inner corner of a glyph which the design makes narrower
 // than the slit angle: a white wedge which ends in a point under solid ink,
-// such as the wedges between the stems and the diagonals of M.  Near its tip
+// such as the wedges between the stems and the diagonals of M and N and those
+// between the diagonals of W.  Near its tip
 // the two edges are closer than the floor and far apart along the outline.  Tip
 // is the corner and Dirs are the unit vectors along its two edges, away from
 // the tip.
@@ -536,6 +537,8 @@ type sharpCrotch struct {
 // these corners: see crotchSkip.
 var sharpCrotches = map[string]func(p design.Params) []sharpCrotch{
 	"M": capMCrotches,
+	"N": capNCrotches,
+	"W": capWCrotches,
 }
 
 // crotchTolerance is the distance from the line of an edge within which a piece of

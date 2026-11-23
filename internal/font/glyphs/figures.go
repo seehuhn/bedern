@@ -255,8 +255,11 @@ func tAtFall(c cubic, fall float64) float64 {
 // of the inner edge of the part: one cubic curve which leaves q0 with the
 // curvature of the circular arc which turns from the one direction to the other
 // over the chord, and arrives at the tip with the handle of that arc
-// (arcHandle).  The figure gives the inner edge on the other side of q0 the
-// same curvature at q0.
+// (arcHandle).  Where no such curve turns one way only, the curve arrives in the
+// direction nearest to that of the part, turned towards that of the circular arc
+// from q0 to the tip, in which the curve so made turns one way only and leaves
+// q0 with a handle longer than archMinHandle.  The figure gives the inner edge
+// on the other side of q0 the same curvature at q0.
 func archToTip(name string, q0, t0 outline.Point, tb placedBall) chain {
 	var tW outline.Point
 	for _, pc := range tb.Chain {
@@ -264,15 +267,46 @@ func archToTip(name string, q0, t0 outline.Point, tb placedBall) chain {
 			tW = pc.tangent(1)
 		}
 	}
-	turn := math.Atan2(t0.X*tW.Y-t0.Y*tW.X, t0.X*tW.X+t0.Y*tW.Y) // negative: clockwise
-	chord := math.Hypot(tb.Tip.X-q0.X, tb.Tip.Y-q0.Y)
-	k := 2 * math.Sin(turn/2) / chord
-	c, err := g2Start(q0, t0, k, tb.Tip, tW, arcHandle(q0, t0, tb.Tip, tW))
-	if err != nil || !oneWay(c, -1) {
-		panic(fmt.Sprintf("glyphs: glyph %s: no arch from the top of the counter to the tip of the wedge; glyphs.Check reports such parameters", name))
+	c, ok := archCurve(q0, t0, tb.Tip, tW, 0)
+	if !ok {
+		aW := math.Atan2(tW.Y, tW.X)
+		aC := math.Atan2(t0.Y, t0.X) + 2*(math.Atan2(tb.Tip.Y-q0.Y, tb.Tip.X-q0.X)-math.Atan2(t0.Y, t0.X))
+		lo, hi := 0.0, 1.0
+		cHi, okHi := archCurve(q0, t0, tb.Tip, dirOf(aC), archMinHandle)
+		if !okHi {
+			panic(fmt.Sprintf("glyphs: glyph %s: no arch from the top of the counter to the tip of the wedge; glyphs.Check reports such parameters", name))
+		}
+		for i := 0; i < 50; i++ {
+			mid := (lo + hi) / 2
+			if cm, ok := archCurve(q0, t0, tb.Tip, dirOf(aW+mid*(aC-aW)), archMinHandle); ok {
+				hi, cHi = mid, cm
+			} else {
+				lo = mid
+			}
+		}
+		c = cHi
 	}
 	return splitAtExtrema(c)
 }
+
+// archCurve returns the curve of archToTip from q0, leaving in the direction t0,
+// to tip, arriving in the direction tW, and whether it turns one way only and
+// leaves q0 with a handle longer than minHandle.
+func archCurve(q0, t0, tip, tW outline.Point, minHandle float64) (cubic, bool) {
+	turn := math.Atan2(t0.X*tW.Y-t0.Y*tW.X, t0.X*tW.X+t0.Y*tW.Y) // negative: clockwise
+	chord := math.Hypot(tip.X-q0.X, tip.Y-q0.Y)
+	k := 2 * math.Sin(turn/2) / chord
+	c, err := g2Start(q0, t0, k, tip, tW, arcHandle(q0, t0, tip, tW))
+	if err != nil || !oneWay(c, -1) || !(math.Hypot(c.P1.X-c.P0.X, c.P1.Y-c.P0.Y) > minHandle) {
+		return c, false
+	}
+	return c, true
+}
+
+// archMinHandle is the shortest handle with which the arch of archToTip leaves
+// the top of the counter where it arrives at the tip of the wedge in another
+// direction than the part.
+const archMinHandle = 2.0
 
 // stalkInner returns the inner edge from the top of inner to the tip of the
 // wedge of tb: the inner edge of the round to a cut, one cubic curve from there

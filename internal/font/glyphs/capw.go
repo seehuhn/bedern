@@ -25,7 +25,9 @@ func capWVertices(p design.Params) (v1, v2 vertex) {
 // an apex in the middle.  The thick diagonals are thinned a little (WThick).
 // The apex is pointed in the way of the lowercase w: it has no serif and is cut
 // flat, WApexFlat wide, WApexHeight, a few units under the cap height, where
-// the outer edge of the second diagonal meets that of the third.  The contour
+// the outer edge of the second diagonal meets that of the third.  The wedges of
+// white at the notch between the vertices and at their crotches come to points,
+// listed as sharp crotches for the clearance check (capWCrotches).  The contour
 // is that of w.
 func capW(p design.Params) (outline.Path, float64) {
 	d := p.CapDiag
@@ -59,4 +61,20 @@ func capW(p design.Params) (outline.Path, float64) {
 		lineChain(inL.start(), outL.start()),
 	)
 	return capContour(c), design.CapWAdvance(p)
+}
+
+// capWCrotches returns the three sharp crotches of W: the notch between the two
+// vertices, where the outer edges of the middle diagonals meet, and the crotches of
+// the two vertices.
+func capWCrotches(p design.Params) []sharpCrotch {
+	v1, v2 := capWVertices(p)
+	up := func(d diagonal) outline.Point {
+		u := d.down()
+		return outline.Point{X: -u.X, Y: -u.Y}
+	}
+	return []sharpCrotch{
+		{Name: "notch", Tip: edgeMeet(v1.Right, edgeRight, v2.Left, edgeLeft), Dirs: [2]outline.Point{v1.Right.down(), v2.Left.down()}},
+		{Name: "left crotch", Tip: v1.crotch(), Dirs: [2]outline.Point{up(v1.Left), up(v1.Right)}},
+		{Name: "right crotch", Tip: v2.crotch(), Dirs: [2]outline.Point{up(v2.Left), up(v2.Right)}},
+	}
 }

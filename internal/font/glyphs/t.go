@@ -165,7 +165,11 @@ func tFootChain(p design.Params, sh tFootShape) chain {
 // low points, with the handles sh.OuterA, sh.OuterB, sh.InnerA and sh.InnerB.
 // Where the upper edge or the inner curve cannot reach the inner low point
 // with the radius sh.InnerRadius, both take the nearest curvature with which
-// they can.
+// they can; where no curvature allows both, the inner low point moves, by the
+// least whole number of units up to footShiftMax, to the left or, where that
+// does not help, to the right, so that both reach it with the radius
+// sh.InnerRadius and each handle of the upper edge is at least footHandleMin
+// of its chord.
 func footChain(p design.Params, xl, xr, reach, tipHeight, tipThick float64, sh tFootShape) chain {
 	pt := func(x, y float64) outline.Point { return outline.Point{X: x, Y: y} }
 	low := -p.OvershootLower
@@ -187,22 +191,32 @@ func footChain(p design.Params, xl, xr, reach, tipHeight, tipThick float64, sh t
 	turn := pt(cUpper.X+rho*e.X-sh.CornerRun*dir.X, cUpper.Y+rho*e.Y-sh.CornerRun*dir.Y)
 
 	up, down, east, west := pt(0, 1), pt(0, -1), pt(1, 0), pt(-1, 0)
-	lowOuter, lowInner := pt(xb, low), pt(xb-sh.InnerShift, ib)
+	lowOuter := pt(xb, low)
 
-	// The guides of the two curves between the stem and the low points, and the
-	// points of the guides through which the curves pass.
+	// The guide of the outer curve and its point through which the curve
+	// passes; the guide of the inner curve is drawn below for each place of
+	// the inner low point.
 	og := cubic{pt(xl, sh.OuterStart), pt(xl, sh.OuterStart-sh.OuterA*(sh.OuterStart-low)), pt(xb-sh.OuterB*(xb-xl), low), lowOuter}
-	ig := cubic{pt(xr, sh.InnerTop), pt(xr, sh.InnerTop-sh.InnerB*(sh.InnerTop-ib)), pt(lowInner.X-sh.InnerA*(lowInner.X-xr), ib), lowInner}
 	om, ot, ok := og.at(outerGuideAt), og.tangent(outerGuideAt), og.curvature(outerGuideAt)
-	im, it, ik := ig.at(innerGuideAt), ig.tangent(innerGuideAt), ig.curvature(innerGuideAt)
 	innerStem := pt(xr, sh.InnerTop+sh.StemLead)
 
 	// The curvature at the inner low point is 1/sh.InnerRadius or, where the
 	// upper edge or the inner curve cannot take it, the nearest one which both
-	// can take.
+	// can take.  Where none can, the inner low point moves to the left or,
+	// where that does not help, to the right, by the least whole number of
+	// units at which both reach it with the radius sh.InnerRadius and each
+	// handle of the upper edge is at least footHandleMin of its chord.
 	kInner := 1 / sh.InnerRadius
 	var upper, inner cubic
+	var lowInner, im, it outline.Point
+	var ik float64
 	found := false
+	place := func(shift float64) {
+		lowInner = pt(xb-sh.InnerShift-shift, ib)
+		ig := cubic{pt(xr, sh.InnerTop), pt(xr, sh.InnerTop-sh.InnerB*(sh.InnerTop-ib)), pt(lowInner.X-sh.InnerA*(lowInner.X-xr), ib), lowInner}
+		im, it, ik = ig.at(innerGuideAt), ig.tangent(innerGuideAt), ig.curvature(innerGuideAt)
+	}
+	place(0)
 	for i := 0; i < 100 && !found; i++ {
 		for _, f := range []float64{1 + 0.01*float64(i), 1 - 0.01*float64(i)} {
 			var err1, err2 error
@@ -210,6 +224,25 @@ func footChain(p design.Params, xl, xr, reach, tipHeight, tipThick float64, sh t
 			inner, err2 = g2Cubic(im, it, ik, lowInner, east, f*kInner)
 			if err1 == nil && err2 == nil {
 				found = true
+				break
+			}
+		}
+	}
+	for d := 1.0; d <= footShiftMax && !found; d++ {
+		for _, shift := range []float64{d, -d} {
+			place(shift)
+			for i := 0; i < 100 && !found; i++ {
+				for _, f := range []float64{1 + 0.01*float64(i), 1 - 0.01*float64(i)} {
+					var err1, err2 error
+					upper, err1 = g2Cubic(turn, neg(dir), 0, lowInner, west, -f*kInner)
+					inner, err2 = g2Cubic(im, it, ik, lowInner, east, f*kInner)
+					if err1 == nil && err2 == nil && minHandle(upper) >= footHandleMin {
+						found = true
+						break
+					}
+				}
+			}
+			if found {
 				break
 			}
 		}
@@ -244,6 +277,24 @@ func footChain(p design.Params, xl, xr, reach, tipHeight, tipThick float64, sh t
 		curve("the inner edge of the foot", innerStem, down, sh.StemBend, im, it, ik).reversed(),
 	)
 	return ch
+}
+
+// footShiftMax is how far, in units, the inner low point of the foot may move
+// to either side.
+const footShiftMax = 40.0
+
+// footHandleMin is the least length of each handle of the upper edge of the
+// tail, as a fraction of its chord, where the inner low point of the foot
+// moves.
+const footHandleMin = 0.25
+
+// minHandle returns the length of the shorter handle of c as a fraction of its
+// chord.
+func minHandle(c cubic) float64 {
+	ch := math.Hypot(c.P3.X-c.P0.X, c.P3.Y-c.P0.Y)
+	h0 := math.Hypot(c.P1.X-c.P0.X, c.P1.Y-c.P0.Y)
+	h1 := math.Hypot(c.P3.X-c.P2.X, c.P3.Y-c.P2.Y)
+	return math.Min(h0, h1) / ch
 }
 
 // outerGuideAt and innerGuideAt are the parameters of the points of the guides

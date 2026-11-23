@@ -29,7 +29,7 @@ import (
 // The ball hangs from the stroke as on the lowercase: the part is mirrored, so
 // that the stalk comes over the top from the right and curls down into the ball,
 // and it is turned so that its two edges meet the stroke at the top extreme as
-// fairly as they can (qBall).
+// fairly as they can, and hangs as high as they let it (qBall).
 //
 // Side kinds: open on both sides; the side spaces are QSide to the leftmost ink
 // (the ball) and to the rightmost ink (the right extreme of the hook).
@@ -52,8 +52,8 @@ func newQFrame(p design.Params) qFrame {
 // curve which has no curvature at either end.
 const qInflection = 1e-7
 
-// qCurlJoin is the angle (degrees) round the ball from its leftmost point at
-// which the curl of the terminal joins its circle.
+// qCurlJoin is the first angle (degrees) round the ball from its leftmost point
+// at which the curl of the terminal joins its circle (qTerminal).
 const qCurlJoin = 20.0
 
 // qStemRun is the length of the straight foot of the stem.
@@ -79,38 +79,70 @@ func question(p design.Params) (outline.Path, float64) {
 	f := newQFrame(p)
 	sts := qStations(p, f)
 	right, left := strokeOpen(sts)
-	r := p.BallDiameter / 2
-	fits := func(ball chain, tb placedBall) bool {
-		_, err := qTerminalErr(ball, tb, right)
-		return err == nil
-	}
-	ball, tb := ballStartPlaced("question", p, right, left, f.x0+r, span(0.80*p.Sym.QTop, 0.86*p.Sym.QTop, 0.01*p.Sym.QTop), span(-60, 40, 2), true, fits)
-	hook := join(right, lineChain(right.end(), left.start()), left, qTerminal(ball, tb, right))
+	hook := join(right, lineChain(right.end(), left.start()), left, qBall(p, right, left, f.x0+p.BallDiameter/2))
 	return chainsPath(hook, dotChain(p, f.cx, p.DotDiameter/2)), f.x1 + p.Sym.QSide
 }
 
+// qBallSteps is the number of steps by which qBall lowers the window of the
+// centre of the ball.
+const qBallSteps = 20
+
+// qCurlJoinMax is the largest angle (degrees) round the ball from its leftmost
+// point at which qBall lets the curl join the circle.
+const qCurlJoinMax = 60.0
+
+// qBall returns the ball terminal of the hook (qTerminal) on the ball which
+// ballSearch places, mirrored, with its centre at cx, from 0.80 to 0.86 of
+// QTop, and turned by -60 to 40 degrees, among the places for which qTerminal
+// joins the parts with the curl joining the circle qCurlJoin past its leftmost
+// point; the edges of the stalk go on with the curvature of the stroke.  Where
+// no place in this window does, the window is lowered by 0.01 QTop at a time,
+// at most qBallSteps times.  Where no window has such a place, the windows are
+// searched again with the curvature of the inner edge of the stalk free at the
+// stroke and with the curl joining the circle at the first angle from
+// qCurlJoin to qCurlJoinMax, in steps of 5 degrees, at which it can.
+func qBall(p design.Params, right, left chain, cx float64) chain {
+	b := newBallPart(p)
+	r0, l1 := right[0].cubic, left[len(left)-1].cubic
+	in := stalkFoot{At: l1.P3, Dir: l1.tangent(1), Kappa: l1.curvature(1)}
+	out := stalkFoot{At: r0.P0, Dir: r0.tangent(0), Kappa: r0.curvature(0)}
+	top, step := p.Sym.QTop, 0.01*p.Sym.QTop
+	angles := span(-60, 40, 2)
+	maxJoin := qCurlJoin
+	fits := func(ball chain, tb placedBall) bool {
+		_, err := qTerminal(ball, tb, right, maxJoin)
+		return err == nil
+	}
+	for pass := 0; pass < 2; pass++ {
+		if pass == 1 {
+			out.Kappa, maxJoin = math.NaN(), qCurlJoinMax
+		}
+		for i := 0; i <= qBallSteps; i++ {
+			d := float64(i) * step
+			ys := span(0.80*top-d, 0.86*top-d, step)
+			if ball, tb := ballSearch(b, in, out, cx, ys, angles, true, fits); ball != nil {
+				c, _ := qTerminal(ball, tb, right, maxJoin)
+				return c
+			}
+		}
+	}
+	panic("glyphs: glyph question: the stalk cannot reach the ball terminal; glyphs.Check reports such parameters")
+}
+
 // qTerminal returns the ball terminal of the hook on the ball tb, whose chain
-// with its stalk is ball (ballStartPlaced): the outer edge of the stalk and the
+// with its stalk is ball (ballSearch): the outer edge of the stalk and the
 // curl of the part to the start of its last curve before its leftmost point;
 // from there one cubic curve, with the direction and the curvature of the curl,
-// past the leftmost point to the circle of the ball qCurlJoin beyond its
-// leftmost point, which it meets with the direction and the curvature of the
-// circle (g2Cubic); the circle to the tip of the wedge; and from the tip the
+// past the leftmost point to the circle of the ball, which it meets with the
+// direction and the curvature of the circle (g2Cubic) at the first angle past
+// its leftmost point from qCurlJoin to maxJoin, in steps of 5 degrees, at which
+// such a curve exists; the circle to the tip of the wedge; and from the tip the
 // inner edge, which leaves with the direction and the curvature of the inner
 // edge of the part and meets the start of the right-hand edge of the stroke
 // with its direction and its curvature (edgeOut), or, where no such curve
-// exists, leaves the tip with the handle of a circular arc (g2End).
-func qTerminal(ball chain, tb placedBall, right chain) chain {
-	c, err := qTerminalErr(ball, tb, right)
-	if err != nil {
-		panic(err.Error())
-	}
-	return c
-}
-
-// qTerminalErr is qTerminal which returns an error where no curve joins the
-// parts.
-func qTerminalErr(ball chain, tb placedBall, right chain) (chain, error) {
+// exists, leaves the tip with the handle of a circular arc (g2End).  It returns
+// an error where no curve joins the parts.
+func qTerminal(ball chain, tb placedBall, right chain, maxJoin float64) (chain, error) {
 	r0 := right[0].cubic
 	c, r := tb.Centre, tb.Part.R
 	iL, iT := -1, -1
@@ -125,11 +157,17 @@ func qTerminalErr(ball chain, tb placedBall, right chain) (chain, error) {
 	if iT < 0 {
 		return nil, errors.New("glyphs: glyph question: the ball terminal has no tip")
 	}
-	// The curl joins the circle qCurlJoin past its leftmost point.
-	aJ := math.Pi + qCurlJoin*math.Pi/180
-	join0 := outline.Point{X: c.X + r*math.Cos(aJ), Y: c.Y + r*math.Sin(aJ)}
 	l := ball[iL].cubic
-	curl, err := g2Cubic(l.P0, l.tangent(0), l.curvature(0), join0, dirOf(aJ+math.Pi/2), 1/r)
+	var aJ float64
+	var curl cubic
+	var err error
+	for j := qCurlJoin; j <= maxJoin; j += 5 {
+		aJ = math.Pi + j*math.Pi/180
+		join0 := outline.Point{X: c.X + r*math.Cos(aJ), Y: c.Y + r*math.Sin(aJ)}
+		if curl, err = g2Cubic(l.P0, l.tangent(0), l.curvature(0), join0, dirOf(aJ+math.Pi/2), 1/r); err == nil {
+			break
+		}
+	}
 	if err != nil {
 		return nil, errors.New("glyphs: glyph question: the curl cannot reach the ball; glyphs.Check reports such parameters")
 	}

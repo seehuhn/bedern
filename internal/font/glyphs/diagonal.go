@@ -178,13 +178,15 @@ type diagSerif struct {
 // of the rise of the stem bracket; fairHandleObtuse is the place of the handle on
 // the edge on the obtuse side, as a fraction of the way from the corner to the end;
 // fairOffsetObtuse and fairOffsetAcute are the distances of the other handle from
-// the line of the edge, on the white side.
+// the line of the edge, on the white side; on the acute side that handle lies at
+// most fairOffsetAcuteMax of the way up from the edge to the extreme.
 const (
-	fairRunObtuse    = 2.5
-	fairRunAcute     = 2.2
-	fairHandleObtuse = 0.7
-	fairOffsetObtuse = 0.5
-	fairOffsetAcute  = 0.3
+	fairRunObtuse      = 2.5
+	fairRunAcute       = 2.2
+	fairHandleObtuse   = 0.7
+	fairOffsetObtuse   = 0.5
+	fairOffsetAcute    = 0.3
+	fairOffsetAcuteMax = 0.5
 )
 
 // stemBracket returns the bracket of the stem type from the point leave on the
@@ -243,7 +245,8 @@ func (d diagonal) fairBracket(e edge, leave, corner outline.Point, acute bool, r
 	}
 	below := d.edgeAt(e, corner.Y+(x.X-corner.X)/d.Lean)
 	end := d.edgeAt(e, under-fairRunAcute*rise)
-	handle := outline.Point{X: below.X, Y: below.Y + fairOffsetAcute/math.Abs(unit(below, end).X)}
+	off := min(fairOffsetAcute/math.Abs(unit(below, end).X), fairOffsetAcuteMax*(x.Y-below.Y))
+	handle := outline.Point{X: below.X, Y: below.Y + off}
 	on := func(beta float64) cubic {
 		return cubic{P0: x, P1: handle, P2: outline.Point{X: below.X + beta*(end.X-below.X), Y: below.Y + beta*(end.Y-below.Y)}, P3: end}
 	}

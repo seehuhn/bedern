@@ -25,8 +25,9 @@ func capNStems(p design.Params) (l, r thinStem) {
 // pointed vertex with the right-hand edge of the right stem, cut flat NFlat wide
 // and NDepth below the baseline; it overshoots the baseline slightly like
 // the vertex of V.  The inner edge of the diagonal meets the
-// left-hand edge of the right stem in a sharp inner corner above the baseline.  The
-// contour is one counter-clockwise outline:
+// left-hand edge of the right stem in a sharp inner corner above the baseline.  Both
+// wedges of white come to points, sharp crotches listed as such for the clearance
+// check (capNCrotches).  The contour is one counter-clockwise outline:
 //
 //	the left stem from the tip of its left foot serif, along the baseline and round
 //	the right foot serif, up the right-hand edge to the wedge, down the
@@ -69,7 +70,7 @@ func capNDiagonal(p design.Params) (diag diagonal, crotch outline.Point) {
 	return diag, edgeMeet(diag, edgeRight, stemD, edgeLeft)
 }
 
-// capNCrotches returns the two crotches of N: the point of the white wedge between
+// capNCrotches returns the two sharp crotches of N: the point of the white wedge between
 // the left stem and the diagonal, NJoin below the cap height, and the inner corner
 // between the diagonal and the right stem above the baseline.
 func capNCrotches(p design.Params) []sharpCrotch {

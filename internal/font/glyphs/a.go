@@ -254,31 +254,61 @@ const aSuperness = 0.70
 // ball, where it takes the direction and the curvature of the stalk (g2Cubic).
 // The crest lies at aCrestX or, where no such curve joins it to the ball, as
 // little to the left of it as allows one (aCrestSearch); where none does, the
-// curvature at the crest is the greatest for which there is one.
+// curvature at the crest is the greatest for which there is one; and where
+// that fails as well, the crest lies as little to the right of aCrestX as
+// allows one (aCrestAt).
 func aArcChain(p design.Params, tb placedBall) chain {
-	x, bend := aCrestAt(p, tb)
-	c, ok := aArc(p, tb, x, bend)
+	c, ok := aArcFor(p, tb)
 	if !ok {
 		panic("glyphs: glyph a: no edge joins the crest to the ball")
 	}
 	return c
 }
 
+// aArcFor returns the arc of a with the ball terminal tb and its crest at
+// aCrestAt, and whether there is one.
+func aArcFor(p design.Params, tb placedBall) (chain, bool) {
+	x, bend := aCrestAt(p, tb)
+	return aArc(p, tb, x, bend)
+}
+
 // aCrestAt returns the abscissa of the crest of a with the ball terminal tb,
 // and whether the curvature at the top of the splines must be lowered, see
-// aArcChain.
+// aArcChain: that of aCrestNear or, where it finds none, the crest as little
+// to the right of aCrestX as allows an arc, first without and then with the
+// curvature lowered.
 func aCrestAt(p design.Params, tb placedBall) (float64, bool) {
+	if x, bend, ok := aCrestNear(p, tb); ok {
+		return x, bend
+	}
 	x0 := aCrestX(p)
-	for dx := 0.0; dx <= aCrestSearch; dx++ {
-		if _, ok := aArc(p, tb, x0-dx, false); ok {
-			return x0 - dx, false
+	for _, bend := range []bool{false, true} {
+		for dx := 1.0; dx <= aCrestSearch; dx++ {
+			if _, ok := aArc(p, tb, x0+dx, bend); ok {
+				return x0 + dx, bend
+			}
 		}
 	}
 	return x0, true
 }
 
-// aCrestSearch is how far, in units, the crest of a may move to the left of
-// aCrestX.
+// aCrestNear returns the abscissa of the crest of a with the ball terminal
+// tb at aCrestX or as little to the left of it as allows an arc, or, where
+// none does, at aCrestX with the curvature at the top of the splines lowered;
+// whether the curvature is lowered; and whether there is such an arc.
+func aCrestNear(p design.Params, tb placedBall) (float64, bool, bool) {
+	x0 := aCrestX(p)
+	for dx := 0.0; dx <= aCrestSearch; dx++ {
+		if _, ok := aArc(p, tb, x0-dx, false); ok {
+			return x0 - dx, false, true
+		}
+	}
+	_, ok := aArc(p, tb, x0, true)
+	return x0, true, ok
+}
+
+// aCrestSearch is how far, in units, the crest of a may move to either side
+// of aCrestX.
 const aCrestSearch = 40.0
 
 // aArc returns the arc of a with its crest at the abscissa x, see aArcChain,
@@ -375,14 +405,46 @@ const aBallGap = 18.0
 
 // aTerminal returns the ball terminal of a, the mirror image of that of r turned
 // by aBallAngle: its leftmost ink AArcReach inside the free extreme of the bowl,
-// and its centre aBallDrop below the crest.
+// and its centre aBallDrop below the crest.  Where aCrestNear finds no arc
+// which joins the crest to this terminal, the terminal is turned
+// counter-clockwise by the whole number of degrees, from zero to aBallTurn,
+// at which the arc of aArcFor is fairest (bending).
 func aTerminal(p design.Params) placedBall {
+	tb := aTerminalAt(p, aBallAngle)
+	if _, _, ok := aCrestNear(p, tb); ok {
+		return tb
+	}
+	best, bestE := tb, math.Inf(1)
+	for d := 0.0; d <= aBallTurn; d++ {
+		t := aTerminalAt(p, aBallAngle+d*math.Pi/180)
+		c, ok := aArcFor(p, t)
+		if !ok {
+			continue
+		}
+		e := 0.0
+		for _, pc := range c {
+			e += bending(pc.cubic)
+		}
+		if e < bestE {
+			best, bestE = t, e
+		}
+	}
+	return best
+}
+
+// aTerminalAt returns the ball terminal of a turned by the angle a (radians),
+// placed as aTerminal places it.
+func aTerminalAt(p design.Params, a float64) placedBall {
 	b := newBallPart(p)
-	pl := ballPlace{Angle: aBallAngle, Mirror: true}
+	pl := ballPlace{Angle: a, Mirror: true}
 	x0, _, _, _ := chainBBox(b.place(pl).Chain)
 	pl.Centre = outline.Point{X: p.ASideLeft + p.AArcReach - x0, Y: p.XHeight + p.OvershootLower - aBallDrop(p)}
 	return b.place(pl).snapped()
 }
+
+// aBallTurn is the largest angle, in degrees, by which aTerminal turns the
+// ball terminal of a beyond aBallAngle.
+const aBallTurn = 20.0
 
 // aBallAngle is the angle (radians) by which the mirrored ball terminal of a is
 // turned: a little clockwise.

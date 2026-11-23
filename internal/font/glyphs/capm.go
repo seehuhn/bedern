@@ -16,7 +16,7 @@ import (
 // absolute value and leave the inner edges of the stems MCrotchDepth below the
 // cap height: each wedge comes to a point, a sharp crotch under solid ink,
 // narrower than the slit angle and listed as such for the clearance check
-// (capMCrotches).  The left stem is thin (thinStem) and has the head serif on its
+// (capMCrotches), with the crotch of the vertex.  The left stem is thin (thinStem) and has the head serif on its
 // left and the foot serifs on both sides, the right stem the head serif on its
 // right and the foot serifs on both sides; the diagonals end flush with the cap
 // height on the stems.  The contour is one counter-clockwise outline:
@@ -78,16 +78,19 @@ func capMVertex(p design.Params) vertex {
 	return newVertex((x1+x0)/2, d.MFlat, -d.MHeight, design.CapMLean(p), d.MThick, d.Thin)
 }
 
-// capMCrotches returns the two sharp crotches of M, the points of the white wedges
+// capMCrotches returns the three sharp crotches of M: the points of the white wedges
 // between the stems and the diagonals, MCrotchDepth below the cap height on the inner
-// edges of the stems.
+// edges of the stems, and the crotch of the vertex.
 func capMCrotches(p design.Params) []sharpCrotch {
 	d := p.CapDiag
 	vx := capMVertex(p)
 	y := p.CapHeight - d.MCrotchDepth
 	down := outline.Point{Y: -1}
+	upL, upR := vx.Left.down(), vx.Right.down()
+	upL.X, upL.Y, upR.X, upR.Y = -upL.X, -upL.Y, -upR.X, -upR.Y
 	return []sharpCrotch{
 		{Name: "left wedge", Tip: vx.Left.edgeAt(edgeLeft, y), Dirs: [2]outline.Point{down, vx.Left.down()}},
 		{Name: "right wedge", Tip: vx.Right.edgeAt(edgeRight, y), Dirs: [2]outline.Point{down, vx.Right.down()}},
+		{Name: "vertex", Tip: vx.crotch(), Dirs: [2]outline.Point{upL, upR}},
 	}
 }
