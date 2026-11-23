@@ -120,7 +120,7 @@ func Compute(p design.Params, gs []glyphs.Glyph) *Table {
 			pr.Allow = allow
 			pr.Model = f.Solve(a, b, bs, target+allow)
 			v := 0.0
-			if pr.Model < 0 && f.interplay(a, b, z) {
+			if pr.Model < 0 && (f.interplay(a, b, z) || a.Kind == Upper && isDash(b)) {
 				v = math.Max(k.Soft*math.Tanh(pr.Model/k.Soft), -k.MaxNegative)
 			}
 			pr.Dist0 = f.Distance(a, b, 0)
@@ -149,6 +149,8 @@ func Compute(p design.Params, gs []glyphs.Glyph) *Table {
 		}
 	}
 
+	f.unifyDashes(kernable, all)
+
 	t.classes(kernable, all)
 	t.compact(all)
 	t.inherit()
@@ -160,6 +162,83 @@ func Compute(p design.Params, gs []glyphs.Glyph) *Table {
 		}
 	}
 	return t
+}
+
+// dashes holds the hyphen, the en dash and the em dash.  They lie at one height
+// and differ in length and thickness.
+var dashes = []rune{'-', '–', '—'}
+
+func isDash(g *Glyph) bool {
+	return g.Rune == '-' || g.Rune == '–' || g.Rune == '—'
+}
+
+// mouthDepth is the depth in units by which the white in the zone of a dash must
+// exceed the white above and below the zone for the zone to be a mouth.
+const mouthDepth = 300
+
+// unifyDashes gives a capital the same kern before the three dashes.  The
+// model for a capital before a dash does not depend on the number of bands in
+// which the dash responds; the kern is the one of least size which the limits
+// leave for any of the three dashes, and zero if the capital has a mouth at the
+// height of the dashes, as C has.
+func (f *Font) unifyDashes(kernable []*Glyph, all map[[2]int]*Pair) {
+	for _, a := range kernable {
+		if a.Kind != Upper {
+			continue
+		}
+		var prs []*Pair
+		kk := math.MinInt
+		for _, r := range dashes {
+			b := f.glyphOf(r)
+			if b == nil {
+				continue
+			}
+			pr := all[[2]int{a.Index, b.Index}]
+			if pr == nil || pr.Reason != "" {
+				continue
+			}
+			prs = append(prs, pr)
+			kk = max(kk, pr.Kern)
+		}
+		if len(prs) == 0 {
+			continue
+		}
+		if f.hasMouth(a, prs[0].Zone) {
+			kk = 0
+		}
+		for _, pr := range prs {
+			if pr.Kern == kk {
+				continue
+			}
+			pr.Kern, pr.Floor = f.applyFloor(a, pr.Right, kk, pr.Dist0)
+			pr.White1 = f.white(a, pr.Right, pr.Zone, float64(pr.Kern))
+			pr.Dist1 = pr.Dist0
+			if pr.Kern != 0 {
+				pr.Dist1 = f.Distance(a, pr.Right, float64(pr.Kern))
+			}
+		}
+	}
+}
+
+// hasMouth says whether the right side of a is open in the zone, with ink of a
+// above and below the zone which lies at least mouthDepth closer to the edge
+// than the ink of a in the zone.
+func (f *Font) hasMouth(a *Glyph, z Zone) bool {
+	deepest := math.Inf(1)
+	for i := z.Lo; i < z.Hi; i++ {
+		if !math.IsNaN(a.Right[i]) {
+			deepest = math.Min(deepest, a.Right[i])
+		}
+	}
+	closer := func(lo, hi int) bool {
+		for i := lo; i < hi; i++ {
+			if i >= 0 && i < len(a.Right) && !math.IsNaN(a.Right[i]) && a.Right[i] <= deepest-mouthDepth {
+				return true
+			}
+		}
+		return false
+	}
+	return !math.IsInf(deepest, 1) && closer(0, z.Lo) && closer(z.Hi, len(a.Right))
 }
 
 // floorOnly holds the marks which keep only the floor distance to a letter:

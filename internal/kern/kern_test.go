@@ -455,3 +455,40 @@ func TestKernRanges(t *testing.T) {
 		}
 	}
 }
+
+// dashKernSpread is the largest difference in units between the kerns of a
+// capital before the hyphen, the en dash and the em dash.
+const dashKernSpread = 10
+
+// capitalsC holds the glyph names of C and its accented forms.
+var capitalsC = map[string]bool{"C": true, "Cacute": true, "Ccircumflex": true, "Cdotaccent": true, "Ccaron": true, "Ccedilla": true}
+
+// TestCapitalsKernAlikeBeforeDashes: a capital has the same kern, within
+// dashKernSpread, before the hyphen, the en dash and the em dash, and C and
+// its accented forms, with a mouth at the height of the dashes, have none.
+func TestCapitalsKernAlikeBeforeDashes(t *testing.T) {
+	t.Parallel()
+	for _, s := range allSets() {
+		t.Run(s.name, func(t *testing.T) {
+			t.Parallel()
+			tb := computed(s.p)
+			f := tb.Font
+			for _, a := range f.Glyphs {
+				if a.Kind != Upper {
+					continue
+				}
+				lo, hi := math.Inf(1), math.Inf(-1)
+				for _, r := range dashes {
+					k := float64(tb.Kern(a.Index, f.glyphOf(r).Index))
+					lo, hi = math.Min(lo, k), math.Max(hi, k)
+				}
+				if hi-lo > dashKernSpread {
+					t.Errorf("%s: kerns before the dashes range from %g to %g", a.Name, lo, hi)
+				}
+				if capitalsC[a.Name] && (lo != 0 || hi != 0) {
+					t.Errorf("%s: kerns before the dashes range from %g to %g, want none", a.Name, lo, hi)
+				}
+			}
+		})
+	}
+}
