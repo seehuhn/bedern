@@ -180,7 +180,7 @@ func ligature(p design.Params, parts []string) (outline.Path, float64) {
 		stemDown(&path, p, tail)
 		stemUp(&path, p, tail, tail.Top)
 	case "j":
-		t := jTailDrawn(p, jTerminal(p)).shifted(tail.Left-p.JStemLeft, 0)
+		t := jTail(p).shifted(tail.Left-p.JStemLeft, 0)
 		path.LineTo(t.start().X, t.start().Y)
 		t.appendTo(&path)
 		path.LineTo(tail.right(), tail.Top)
@@ -370,8 +370,8 @@ type fHookParts struct {
 	chain, head, tail, under chain
 }
 
-// fHookCache holds the parts of the hook of f by the parameters, so that the
-// ligatures of one set of parameters draw the hook once.
+// fHookCache holds the parts of the hook of f by the parameters, so that f, ſ
+// and the ligatures of one set of parameters draw the hook once.
 var fHookCache sync.Map // design.Params -> func() fHookParts
 
 // newFHookParts returns the parts of the hook of f.

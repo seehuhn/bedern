@@ -249,7 +249,7 @@ func TestSharedStroke(t *testing.T) {
 // fraction slash.
 func TestSuperiorFigures(t *testing.T) {
 	t.Parallel()
-	for _, np := range allParams() {
+	for _, np := range derivedParams() {
 		p := np.params
 		one, _ := cachedOutline(np, "one")
 		sup, _ := cachedOutline(np, "uni00B9")

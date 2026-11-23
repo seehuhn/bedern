@@ -5,6 +5,7 @@ package glyphs
 
 import (
 	"math"
+	"sync"
 
 	"seehuhn.de/go/bedern/internal/font/design"
 	"seehuhn.de/go/bedern/internal/outline"
@@ -85,6 +86,17 @@ func jTailFeet(p design.Params) (in, out stalkFoot) {
 // into the stem without curvature (stalkChainStraight).
 const jRamp = 15.0
 
+// jTails holds the tails of j by the parameters, so that j, ŋ and the
+// ligature of f and j of one set of parameters draw the tail once.
+var jTails sync.Map // design.Params -> func() chain
+
+// jTail returns jTailDrawn with the terminal of j.  The chain is shared and
+// must not be changed.
+func jTail(p design.Params) chain {
+	f, _ := jTails.LoadOrStore(p, sync.OnceValue(func() chain { return jTailDrawn(p, jTerminal(p)) }))
+	return f.(func() chain)()
+}
+
 // jTailDrawn returns the tail of j as it is drawn: jTailChain with an outer
 // edge which meets the straight right-hand edge of the stem without curvature
 // (stalkChainStraight).
@@ -112,7 +124,7 @@ func jOutline(p design.Params) outline.Path {
 	var path outline.Path
 	path.MoveTo(stem.right(), stem.Top)
 	stemCap(&path, p, stem)
-	tail := jTailDrawn(p, jTerminal(p))
+	tail := jTail(p)
 	path.LineTo(tail.start().X, tail.start().Y)
 	tail.appendTo(&path)
 	path.LineTo(stem.right(), stem.Top)

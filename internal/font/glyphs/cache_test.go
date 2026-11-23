@@ -70,6 +70,14 @@ var (
 	builds  = map[buildKey]*builtGlyph{}
 )
 
+// Check takes the glyphs from the shared builds.
+func init() {
+	checkDraw = func(name string, p design.Params) (outline.Path, float64) {
+		b := built(name, p)
+		return b.path, b.advance
+	}
+}
+
 // built returns the shared build of the glyph in the parameters p.
 func built(glyph string, p design.Params) *builtGlyph {
 	k := buildKey{glyph, p}

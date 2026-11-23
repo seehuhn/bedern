@@ -72,10 +72,14 @@ func run(dir string, now time.Time) error {
 	return os.WriteFile(filepath.Join(dir, bedern.LicenseFile), []byte(bedern.OFL), 0o666)
 }
 
+// glyphSet returns the glyphs of a parameter set.  Tests replace it by a
+// function which shares the builds.
+var glyphSet = glyphs.Set
+
 // renderFont builds the regular font and writes its bytes to w.
 func renderFont(w io.Writer, now time.Time) error {
 	p := design.Regular()
-	font, err := build.Font(p, design.RegularStyle(), glyphs.Set(p), now)
+	font, err := build.Font(p, design.RegularStyle(), glyphSet(p), now)
 	if err != nil {
 		return err
 	}

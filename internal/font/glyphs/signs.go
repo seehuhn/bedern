@@ -5,6 +5,7 @@ package glyphs
 
 import (
 	"math"
+	"sync"
 
 	"seehuhn.de/go/bedern/internal/font/design"
 	"seehuhn.de/go/bedern/internal/outline"
@@ -222,10 +223,29 @@ func heavierLetters(p design.Params, k float64) design.Params {
 // superiorInk returns the superior figure drawn from the glyph of the figure,
 // with its baseline at the height base, centred on the abscissa 0.
 func superiorInk(p design.Params, figure string, base float64) outline.Path {
-	q := supParams(p)
-	path, adv, _ := Outline(figure, q)
-	path = scaledPath(shiftInk(path, -adv/2, 0), supScale)
-	return shiftInk(path, 0, base)
+	return shiftInk(supFigure(p, figure), 0, base)
+}
+
+// supFigureKey names a superior figure in one set of parameters.
+type supFigureKey struct {
+	p      design.Params
+	figure string
+}
+
+// supFigures holds the superior figures by the parameters and the figure, so
+// that the superior figures and the fractions of one set of parameters draw
+// each figure once.
+var supFigures sync.Map // supFigureKey -> func() outline.Path
+
+// supFigure returns the figure drawn with supParams, scaled by supScale, with
+// its baseline at 0 and centred on the abscissa 0.  The path is shared and
+// must not be changed.
+func supFigure(p design.Params, figure string) outline.Path {
+	f, _ := supFigures.LoadOrStore(supFigureKey{p, figure}, sync.OnceValue(func() outline.Path {
+		path, adv, _ := Outline(figure, supParams(p))
+		return scaledPath(shiftInk(path, -adv/2, 0), supScale)
+	}))
+	return f.(func() outline.Path)()
 }
 
 // supAdvance returns the advance of a superior figure.

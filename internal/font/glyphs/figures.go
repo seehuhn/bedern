@@ -348,7 +348,8 @@ func stalkToTip(name string, inner cubic, tb placedBall) chain {
 // the direction of the inner edge of the part, its curvature rising with the
 // power M of the length run.  The cut is the start of inner if the spiral from
 // there has M at least 1; otherwise it is the point of before nearest to its
-// end where M is 1, so that the curvature rises evenly, found by bisection.
+// end where M is 1, so that the curvature rises evenly, found by bisection to
+// riseTolerance.
 func stalkRising(name string, before cubic, tb placedBall) chain {
 	tip := tipEnd(tb)
 	spiral := func(u float64) (windSpiral, bool) {
@@ -370,7 +371,7 @@ func stalkRising(name string, before cubic, tb placedBall) chain {
 		if math.IsNaN(lo) {
 			panic(fmt.Sprintf("glyphs: glyph %s: no inner edge with rising curvature reaches the tip of the wedge; glyphs.Check reports such parameters", name))
 		}
-		for i := 0; i < 50; i++ {
+		for hi-lo > riseTolerance {
 			mid := (lo + hi) / 2
 			if w, ok := spiral(mid); ok && w.M >= 1 {
 				lo = mid
@@ -396,15 +397,21 @@ func stalkRising(name string, before cubic, tb placedBall) chain {
 }
 
 // riseStep is the step of the parameter of the round by which stalkRising
-// scans for the cut.
-const riseStep = 0.01
+// scans for the cut, and riseTolerance the length of the interval of the
+// parameter to which the bisection narrows it.
+const (
+	riseStep      = 0.01
+	riseTolerance = 1e-9
+)
 
 // newRiseSpiral returns the spiral (windSpiral) from p0, leaving in the
 // direction phi0 (radians) with the curvature k0 (positive turning clockwise),
 // which ends at p3 in the direction phi3: the length L, the power M and the
 // curvature K1 at the end are the solution of the three equations for the end
-// point and the direction there, found by Newton's method.  It reports an
-// error if there is none.
+// point and the direction there, found by Newton's method with M at least
+// riseMinPower.  It reports an error if there is none, or if the method stays
+// at riseMinPower for riseFloorSteps steps in a row or makes too little
+// progress (riseStall).
 func newRiseSpiral(p0 outline.Point, phi0, k0 float64, p3 outline.Point, phi3 float64) (windSpiral, error) {
 	w := windSpiral{P0: p0, Phi0: phi0, K0: k0}
 	for phi3-phi0 > math.Pi {
@@ -426,10 +433,17 @@ func newRiseSpiral(p0 outline.Point, phi0, k0 float64, p3 outline.Point, phi3 fl
 		return q.X - p3.X, q.Y - p3.Y
 	}
 	L, m := 1.02*math.Hypot(p3.X-p0.X, p3.Y-p0.Y), 2.0
+	floor, first := 0, 0.0
 	for i := 0; i < 200; i++ {
 		fx, fy := miss(L, m)
-		if math.Hypot(fx, fy) < 1e-7 {
+		r := math.Hypot(fx, fy)
+		if r < 1e-7 {
 			return set(L, m), nil
+		}
+		if i == 0 {
+			first = r
+		} else if i == riseStallSteps && r > riseStall*first {
+			break
 		}
 		const h = 1e-6
 		ax, ay := miss(L+h, m)
@@ -443,10 +457,30 @@ func newRiseSpiral(p0 outline.Point, phi0, k0 float64, p3 outline.Point, phi3 fl
 		for math.Abs(dL) > 0.05*L || math.Abs(dm) > 0.5 {
 			dL, dm = dL/2, dm/2
 		}
-		L, m = L-dL, math.Max(m-dm, 0.1)
+		L, m = L-dL, math.Max(m-dm, riseMinPower)
+		if m == riseMinPower {
+			floor++
+			if floor == riseFloorSteps {
+				break
+			}
+		} else {
+			floor = 0
+		}
 	}
 	return w, fmt.Errorf("no spiral from %v runs to %v", p0, p3)
 }
+
+// riseMinPower is the least power M of a spiral of newRiseSpiral and
+// riseFloorSteps the number of steps in a row at that power after which the
+// search ends without a spiral; the search also ends without one if after
+// riseStallSteps steps the miss of the end point is more than riseStall times
+// the first.
+const (
+	riseMinPower   = 0.1
+	riseFloorSteps = 4
+	riseStallSteps = 20
+	riseStall      = 0.8
+)
 
 // riseCubics returns the spiral as cubic curves walked from P0 to its end, cut
 // at its extremes and halved where a piece turns by more than riseMaxTurn; each

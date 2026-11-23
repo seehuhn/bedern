@@ -5,6 +5,7 @@ package glyphs
 
 import (
 	"math"
+	"sync"
 
 	"seehuhn.de/go/bedern/internal/font/design"
 	"seehuhn.de/go/bedern/internal/outline"
@@ -74,6 +75,17 @@ func rArmFeet(p design.Params) (join, notch stalkFoot) {
 		footAt(outline.Point{X: x1, Y: p.RNotch}, rArmOuterAngle*math.Pi/180+math.Pi)
 }
 
+// rArms holds the arms of r by the parameters, so that r and the tests of one
+// set of parameters draw the arm once.
+var rArms sync.Map // design.Params -> func() chain
+
+// rArm returns rArmChain with the terminal of r.  The chain is shared and must
+// not be changed.
+func rArm(p design.Params) chain {
+	f, _ := rArms.LoadOrStore(p, sync.OnceValue(func() chain { return rArmChain(p, rTerminal(p)) }))
+	return f.(func() chain)()
+}
+
 // rArmChain returns the arm of r with the ball terminal tb: from the join on the
 // stem along the underside, round the ball and back along the outer edge to the
 // notch (windHook).
@@ -102,7 +114,7 @@ func rOutline(p design.Params) outline.Path {
 	var path outline.Path
 	path.MoveTo(stem.start())
 	stemUp(&path, p, stem, p.RJoin)
-	rArmChain(p, rTerminal(p)).appendTo(&path)
+	rArm(p).appendTo(&path)
 	stemCap(&path, p, stem)
 	stemDown(&path, p, stem)
 	return path

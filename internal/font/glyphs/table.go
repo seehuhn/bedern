@@ -43,9 +43,14 @@ func (k sideKind) String() string {
 // outline (the distance of the ink from the edge of the advance, negative if
 // the ink reaches beyond it) and the kinds of its two sides.
 func WriteTable(w io.Writer, p design.Params) error {
+	return WriteTableOf(w, Set(p))
+}
+
+// WriteTableOf is WriteTable for the glyphs gs which Set returns.
+func WriteTableOf(w io.Writer, gs []Glyph) error {
 	tw := tabwriter.NewWriter(w, 0, 0, 2, ' ', tabwriter.AlignRight)
 	fmt.Fprintln(tw, "glyph\tadvance\tlsb\trsb\tleft\tright\t")
-	for i, g := range Set(p) {
+	for i, g := range gs {
 		lsb, rsb := "-", "-"
 		if len(g.Path) > 0 {
 			x0, _, x1, _ := g.Path.BBox()

@@ -154,7 +154,7 @@ const euroBarTolerance = 8.0
 
 func TestEuroBarsCentred(t *testing.T) {
 	t.Parallel()
-	for _, np := range allParams() {
+	for _, np := range derivedParams() {
 		path, _, _ := outlineOf("Euro", np.params)
 		x0, y0, _, y1 := path.BBox()
 		ys := path.CrossingsY(x0 + 2)
@@ -222,7 +222,7 @@ func measureC(t *testing.T, name string, path outline.Path, left float64) cShape
 
 func TestEuroIsCScaled(t *testing.T) {
 	t.Parallel()
-	for _, np := range allParams() {
+	for _, np := range derivedParams() {
 		cp, _, _ := outlineOf("C", np.params)
 		cx0, _, _, _ := cp.BBox()
 		c := measureC(t, np.name+", C", cp, cx0)

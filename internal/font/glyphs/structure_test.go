@@ -17,8 +17,9 @@ import (
 // The structural checks do not depend on the shape of a letter.  Every glyph
 // of the table is checked, unrounded and rounded, for every variant and every
 // parameter set.  In the other perturbed sets than those of composedRoutine
-// the routine tier leaves out the glyphs whose checks have the same inputs as
-// in the regular set (sameChecks), which give the same result.
+// the routine tier leaves out the derived glyphs (derived) and the glyphs
+// whose checks have the same inputs as in the regular set (sameChecks), which
+// give the same result.
 
 type namedParams struct {
 	name   string
@@ -28,14 +29,26 @@ type namedParams struct {
 
 // routineSets is the number of perturbed parameter sets on which the routine
 // tier (go test -short) runs the structure test and the tests of the letters,
-// see designtest.Sets: negative for all of them.  The full tier runs them on
-// all sets, and TestGolden does so in both tiers.
-const routineSets = -1
+// see designtest.Sets: the first nine, which move the lowercase proportions,
+// the capitals, the weight and the counters, and the parameters of each group
+// of letters and of the punctuation once.  The full tier runs them on all sets,
+// and TestGolden does so in both tiers.
+const routineSets = 9
 
 // allParams returns the parameter sets on which the property tests run: the
 // variants and, in the routine tier, the first routineSets perturbed sets.
 func allParams() []namedParams {
 	return paramSets(designtest.Sets(testing.Short(), routineSets))
+}
+
+// derivedParams returns the parameter sets on which the tests of the derived
+// glyphs run: the variants and, in the routine tier, the first
+// composedRoutineSets perturbed sets.
+func derivedParams() []namedParams {
+	if !testing.Short() {
+		return allParams()
+	}
+	return paramSets(designtest.Sets(true, composedRoutineSets))
 }
 
 // goldenParams returns every parameter set, whichever the tier.
@@ -57,28 +70,49 @@ func paramSets(perturbed []designtest.Set) []namedParams {
 func TestStructure(t *testing.T) {
 	t.Parallel()
 	regular := namedParams{name: "regular", params: design.Regular()}
+	for _, g := range derivedGlyphs {
+		if _, ok := lookup(g); !ok {
+			t.Errorf("derivedGlyphs names %s, which is not in the table", g)
+		}
+	}
 	for _, np := range allParams() {
 		t.Run(np.name, func(t *testing.T) {
 			t.Parallel()
+			all := composedRoutine(np.name)
+			var names []string
 			for _, e := range table {
 				if len(np.glyphs) > 0 && !slices.Contains(np.glyphs, e.name) {
 					continue
 				}
-				if !composedRoutine(np.name) && sameChecks(regular, np, e.name) {
+				if !all && (derived(e.name) || sameChecks(regular, np, e.name)) {
 					continue
 				}
-				t.Run(e.name, func(t *testing.T) {
-					t.Parallel()
-					testStructureGlyph(t, np, e.name)
-				})
+				names = append(names, e.name)
 			}
+			forEachParallel(len(names), func(i int) { testStructureGlyph(t, np, names[i]) })
 		})
 	}
 }
 
+// derivedGlyphs lists the glyphs which are not composed but are drawn from
+// other glyphs scaled or with other weights: the superior figures, the
+// fractions, the ordinals, © and ®.  Their structural checks and the tests of
+// these glyphs and of the euro, which is the C scaled, run on derivedParams.
+var derivedGlyphs = []string{
+	"uni00B9", "uni00B2", "uni00B3", "onequarter", "onehalf", "threequarters",
+	"ordfeminine", "ordmasculine", "copyright", "registered",
+}
+
+// derived says whether the glyph is composed of a base and a mark or is one of
+// derivedGlyphs.
+func derived(glyph string) bool {
+	return composites[glyph] != nil || slices.Contains(derivedGlyphs, glyph)
+}
+
 // composedRoutineSets is the number of perturbed parameter sets on which the
 // routine tier runs the structure test of every glyph and the tests of the
-// composed letters, besides the variants; the full tier runs them on all sets.
+// composed letters and of the derived glyphs, besides the variants; the full
+// tier runs them on all sets.
 const composedRoutineSets = 3
 
 // composedRoutine says whether the structure test of every glyph and the tests

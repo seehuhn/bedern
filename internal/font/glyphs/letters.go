@@ -60,7 +60,7 @@ func capThorn(p design.Params) (outline.Path, float64) {
 // longs draws ſ: the f without its crossbar.
 func longs(p design.Params) (outline.Path, float64) {
 	stem := fStem(p)
-	h := fHookChain(p, fTerminal(p))
+	h := newFHookParts(p).chain
 	var path outline.Path
 	path.MoveTo(stem.start())
 	stemUp(&path, p, stem, h.start().Y)
@@ -88,7 +88,7 @@ func eng(p design.Params) (outline.Path, float64) {
 	right := stemSpec{Left: left.Left + p.Stem + p.NCounter, Width: p.Stem}
 	arch := archBetween(p, left, right)
 	dx := right.Left - jStem(p).Left
-	tail := jTailDrawn(p, jTerminal(p)).mapPoints(func(q outline.Point) outline.Point {
+	tail := jTail(p).mapPoints(func(q outline.Point) outline.Point {
 		return outline.Point{X: q.X + dx, Y: q.Y}
 	})
 	var path outline.Path

@@ -74,9 +74,9 @@ func stalkOfUncached(p design.Params, letter string) chain {
 	case "c":
 		return cStalk(p, newCFrame(p))
 	case "f":
-		return fHookChain(p, fTerminal(p))
+		return newFHookParts(p).chain
 	case "r":
-		return rArmChain(p, rTerminal(p))
+		return rArm(p)
 	}
 	panic("stalkOf: " + letter)
 }

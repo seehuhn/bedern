@@ -113,13 +113,19 @@ func (bs *checkBuilds) get(name string) (outline.Path, float64) {
 	bs.mu.Unlock()
 	b.once.Do(func() {
 		defer func() { b.fault = recover() }()
-		e, _ := lookup(name)
-		b.path, b.adv = e.draw(bs.p)
+		b.path, b.adv = checkDraw(name, bs.p)
 	})
 	if b.fault != nil {
 		panic(b.fault)
 	}
 	return b.path, b.adv
+}
+
+// checkDraw draws the glyph which is not composed for Check.  Tests replace it
+// by a function which shares the builds.
+var checkDraw = func(name string, p design.Params) (outline.Path, float64) {
+	e, _ := lookup(name)
+	return e.draw(p)
 }
 
 // checkStages runs all checks on the unrounded and on the rounded outline of a
