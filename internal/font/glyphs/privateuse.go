@@ -21,6 +21,7 @@ type PrivateUse struct {
 // privateUse lists the glyphs in the Private Use Area.  The glyph table takes
 // the code points of these glyphs from this list.
 var privateUse = []PrivateUse{
+	{0xEB09, "born", `\textborn`, "the sign for the year of birth in genealogy"},
 	{0xEB11, "cwmascender", `\textascendercompwordmark`, "the compound word mark as high as the ascenders, an empty glyph without width"},
 	{0xEB12, "cwmcapital", `\textcapitalcompwordmark`, "the compound word mark as high as the capitals, an empty glyph without width"},
 	{0xEB16, "died", `\textdied`, "the sign for the year of death in genealogy"},
@@ -38,7 +39,6 @@ var privateUse = []PrivateUse{
 	{0xF724, "dollar.oldstyle", `\textdollaroldstyle`, "the dollar sign of the old-style figures"},
 	{0xF7A2, "cent.oldstyle", `\textcentoldstyle`, "the cent sign of the old-style figures"},
 	{0xE400, "twelveudash", `\texttwelveudash`, "the dash of two thirds of an em"},
-	{0xE401, "born", `\textborn`, "the sign for the year of birth in genealogy"},
 }
 
 // PrivateUseFirst and PrivateUseLast are the first and the last code point of

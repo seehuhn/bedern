@@ -96,7 +96,7 @@ func init() {
 // every other glyph.
 func inklessHeight(p design.Params, name string) float64 {
 	switch name {
-	case "cwm":
+	case "uni200C":
 		return p.XHeight
 	case "cwmcapital":
 		return p.CapHeight

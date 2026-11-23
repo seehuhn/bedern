@@ -174,7 +174,7 @@ func texFiles(out []*rendered, now time.Time) (map[string][]byte, []tex.Report, 
 		kerns  []tex.KernFunc
 	)
 	for i, f := range fonts {
-		tf = append(tf, &tex.Font{Style: f.style(), Series: f.series, Glyphs: out[i].glyphs})
+		tf = append(tf, &tex.Font{Style: f.style(), Series: f.series, Glyphs: out[i].tex})
 		params = append(params, out[i].params)
 		kerns = append(kerns, out[i].kern.Kern)
 	}
@@ -202,6 +202,9 @@ type rendered struct {
 	params   design.Params
 	glyphs   []glyphs.Glyph
 	kern     *kern.Table
+
+	// tex holds the glyphs as the files for TeX need them (tex.ForTeX).
+	tex []glyphs.Glyph
 }
 
 // render builds the font f, with the PFB file if withPFB is set.  If dated
@@ -210,6 +213,7 @@ func render(f fontSpec, now time.Time, dated, withPFB bool) (*rendered, error) {
 	p := f.params()
 	r := &rendered{params: p, glyphs: glyphSet(p)}
 	r.kern = kern.Compute(p, r.glyphs)
+	r.tex = tex.ForTeX(p, r.glyphs)
 	font, err := build.FontWith(p, f.style(), r.glyphs, now, build.Options{Kern: r.kern})
 	if err != nil {
 		return nil, err
@@ -225,7 +229,7 @@ func render(f fontSpec, now time.Time, dated, withPFB bool) (*rendered, error) {
 		}
 	}
 	if withPFB {
-		if r.pfb, err = build.PFB(p, f.style(), r.glyphs, now); err != nil {
+		if r.pfb, err = build.PFB(p, f.style(), r.tex, now); err != nil {
 			return nil, err
 		}
 	}

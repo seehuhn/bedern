@@ -747,6 +747,13 @@ func markAnchor(p design.Params, k markKind) Anchor {
 	return Anchor{Class: anchorClass(k), X: combiningX(p), Y: y}
 }
 
+// belowAnchorMin returns the depth below the baseline from which a letter has a
+// descender for the bottom anchor: more than the overshoot of the round
+// letters and of the diagonal ones.
+func belowAnchorMin(p design.Params) float64 {
+	return 2 * math.Max(math.Max(p.OvershootLower, p.OvershootUpper), p.DiagOvershoot)
+}
+
 // baseAnchors returns the anchors of a letter for the combining marks: the
 // top, bottom and ogonek anchors of the letters a to z, A to Z, the dotless
 // i and j and the form of i of the feature locl, from the unrounded outline.  A combining mark is set on
@@ -767,9 +774,15 @@ func baseAnchors(p design.Params, name string, path outline.Path) []Anchor {
 	case slices.Contains(ascenderBases, name):
 		top = p.Ascender + p.Acc.GapCap - p.Acc.Gap
 	}
+	// The bottom anchor lies on the baseline, or under the lowest ink of a
+	// letter with a descender, so that a mark below clears the descender.
+	bottom := 0.0
+	if _, y0, _, _ := path.BBox(); y0 < -belowAnchorMin(p) {
+		bottom = math.Round(y0)
+	}
 	return []Anchor{
 		{Class: "top", X: math.Round(topX(p, name, path)), Y: math.Round(top)},
-		{Class: "bottom", X: math.Round(bottomX(p, name, path)), Y: 0},
+		{Class: "bottom", X: math.Round(bottomX(p, name, path)), Y: bottom},
 		{Class: "ogonek", X: math.Round(ogonekX(p, name, path)), Y: 0},
 	}
 }

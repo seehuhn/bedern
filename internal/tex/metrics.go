@@ -108,7 +108,7 @@ func NewMetrics(e *Encoding, p design.Params, gs []glyphs.Glyph, kern KernFunc) 
 			ch.Italic = math.Max(0, x1-g.Advance)
 		}
 		switch g.Name {
-		case "cwm":
+		case "uni200C":
 			ch.Height = p.XHeight
 		case "cwmcapital":
 			ch.Height = p.CapHeight

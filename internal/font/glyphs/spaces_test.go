@@ -30,7 +30,7 @@ func TestSpacesOfFixedWidth(t *testing.T) {
 				"uni2000": em / 2, "uni2001": em, "uni2002": em / 2, "uni2003": em,
 				"uni2004": em / 3, "uni2005": em / 4, "uni2006": em / 6,
 				"uni2007": zero, "uni2008": stop, "uni205F": em * 4 / 18,
-				"cwm": 0,
+				"uni200C": 0,
 			} {
 				path, adv := cachedOutline(np, name)
 				if len(path) != 0 {
@@ -103,7 +103,7 @@ func TestPerThousandZeroCompletesThePercent(t *testing.T) {
 		t.Run(np.name, func(t *testing.T) {
 			t.Parallel()
 			zero, zadv := cachedOutline(np, "perthousandzero")
-			for _, c := range [][2]string{{"percent", "perthousand"}, {"perthousand", "permyriad"}} {
+			for _, c := range [][2]string{{"percent", "perthousand"}, {"perthousand", "uni2031"}} {
 				a, aadv := cachedOutline(np, c[0])
 				b, badv := cachedOutline(np, c[1])
 				set := append(append(outline.Path{}, a...), shiftInk(zero, aadv, 0)...)
@@ -133,7 +133,7 @@ func TestVisibleSpace(t *testing.T) {
 		t.Run(np.name, func(t *testing.T) {
 			t.Parallel()
 			p := np.params
-			path, adv := cachedOutline(np, "visiblespace")
+			path, adv := cachedOutline(np, "uni2423")
 			_, zero := cachedOutline(np, "zero")
 			x0, y0, x1, y1 := path.BBox()
 			if adv != zero || math.Abs(x0-(adv-x1)) > 1 || x0 < 0 {

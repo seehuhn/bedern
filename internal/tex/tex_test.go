@@ -114,7 +114,6 @@ func TestResolve(t *testing.T) {
 		{Name: ".notdef"},
 		{Name: "a", Rune: 'a'},
 		{Name: "S_S"},
-		{Name: "cwm"},
 		{Name: "other", Rune: 0x200C},
 	}
 	index, missing := T1.Resolve(gs)
@@ -738,6 +737,62 @@ func TestGlyphToUnicodeForms(t *testing.T) {
 	} {
 		if !strings.Contains(text, "\\pdfglyphtounicode"+want+"\n") {
 			t.Errorf("the mapping lacks %s", want)
+		}
+	}
+}
+
+// TestForTeXLowersTheCapitalAccents checks that the capital forms of the
+// accents and the ties of the capitals are lowered by the difference of the
+// cap height and the x-height, that no other glyph moves and that the list
+// handed in stays as it is.  The metric file of TS1 then has the heights
+// which TeX needs for them, since it raises an accent over a capital by the
+// height of the capital less the x-height.
+func TestForTeXLowersTheCapitalAccents(t *testing.T) {
+	p := design.Regular()
+	drop := p.CapHeight - p.XHeight
+	gs := []glyphs.Glyph{
+		{Name: ".notdef", Advance: 500},
+		box("grave.case", 0, 900, 1000, 100),
+		box("dotaccent.case", 0, 900, 1000, 100),
+		box("tieaccentcapital", 0xEB63, 900, 1000, 400),
+		box("tieaccentcapital.new", 0, 900, 1000, 400),
+		box("tieaccentlowercase", 0xEB65, 900, 1000, 300),
+		box("grave", '`', 900, 1000, 100),
+	}
+	got := ForTeX(p, gs)
+	for i, g := range gs {
+		_, y0, _, y1 := g.Path.BBox()
+		_, z0, _, z1 := got[i].Path.BBox()
+		lowerIt := i >= 1 && i <= 4
+		switch {
+		case lowerIt && (z0 != y0-drop || z1 != y1-drop):
+			t.Errorf("%s: from %v-%v to %v-%v, want %v lower", g.Name, y0, y1, z0, z1, drop)
+		case !lowerIt && (z0 != y0 || z1 != y1):
+			t.Errorf("%s moved from %v-%v to %v-%v", g.Name, y0, y1, z0, z1)
+		}
+	}
+	if _, y0, _, _ := gs[1].Path.BBox(); y0 != 900 {
+		t.Errorf("the list handed in changed: the grave stands at %v", y0)
+	}
+
+	noKern := func(a, b int) int { return 0 }
+	m := NewMetrics(TS1, p, ForTeX(p, gs), noKern)
+	n := NewMetrics(TS1, p, gs, noKern)
+	for _, c := range []int{0x00, 0x0A, 0x1B, 0x1D} {
+		if m.Chars[c] == nil {
+			t.Errorf("slot %d of TS1 has no glyph", c)
+			continue
+		}
+		if want := n.Chars[c].Height - drop; m.Chars[c].Height != want {
+			t.Errorf("slot %d of TS1 has height %v, want %v", c, m.Chars[c].Height, want)
+		}
+	}
+	for _, c := range []int{0x1A, 0x1C} {
+		if m.Chars[c] == nil {
+			continue
+		}
+		if m.Chars[c].Height != n.Chars[c].Height {
+			t.Errorf("slot %d of TS1 changed its height", c)
 		}
 	}
 }

@@ -39,7 +39,7 @@ func TestInklessHeights(t *testing.T) {
 			_, _, _, top[g.Name] = g.Path.BBox()
 		}
 	}
-	want := map[string]float64{"cwm": top["x"], "cwmcapital": top["H"], "cwmascender": top["l"]}
+	want := map[string]float64{"uni200C": top["x"], "cwmcapital": top["H"], "cwmascender": top["l"]}
 	seen := 0
 	for _, g := range gs {
 		h, ok := want[g.Name]
