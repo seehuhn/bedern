@@ -47,6 +47,10 @@ func PrivateDict(p design.Params) *type1.PrivateDict {
 type Options struct {
 	// NoKern leaves out the feature kern.
 	NoKern bool
+
+	// Kern holds the kerns of the glyphs, as kern.Compute returns them.  If
+	// it is nil, the kerns are computed.
+	Kern *kern.Table
 }
 
 // Font assembles a Bedern font of the given style from the given glyphs, with
@@ -183,10 +187,13 @@ func FontWith(p design.Params, style design.Style, gs []glyphs.Glyph, now time.T
 	}
 	font.Gdef = gdefInfo(p, gs)
 	font.Gsub = gsubInfo(gs)
-	if !opts.NoKern {
-		font.Gpos = gposInfo(kern.Compute(p, gs), gs)
-	} else {
+	switch {
+	case opts.NoKern:
 		font.Gpos = gposInfo(&kern.Table{}, gs)
+	case opts.Kern != nil:
+		font.Gpos = gposInfo(opts.Kern, gs)
+	default:
+		font.Gpos = gposInfo(kern.Compute(p, gs), gs)
 	}
 	return font, nil
 }

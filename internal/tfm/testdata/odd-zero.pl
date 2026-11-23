@@ -1,0 +1,422 @@
+(FAMILY BEDERN)
+(FACE F MRR)
+(CODINGSCHEME BEDERN TEST TEXT)
+(DESIGNSIZE R 10.0)
+(COMMENT DESIGNSIZE IS IN POINTS)
+(COMMENT OTHER SIZES ARE MULTIPLES OF DESIGNSIZE)
+(CHECKSUM O 10717527306)
+(SEVENBITSAFEFLAG TRUE)
+(FONTDIMEN
+   (SLANT R 0.0)
+   (SPACE R 0.333)
+   (STRETCH R 0.166)
+   (SHRINK R 0.111)
+   (XHEIGHT R 0.43)
+   (QUAD R 1.0)
+   (EXTRASPACE R 0.111)
+   )
+(BOUNDARYCHAR O 40)
+(LIGTABLE
+   (LABEL BOUNDARYCHAR)
+   (/LIG> C s O 20)
+   (KRN C T R -0.02)
+   (STOP)
+   (LABEL C f)
+   (LIG C i O 14)
+   (LIG C f O 13)
+   (LIG C l O 15)
+   (KRN O 47 R 0.078)
+   (KRN O 77 R 0.078)
+   (STOP)
+   (LABEL O 13)
+   (LIG C i O 16)
+   (LIG C l O 17)
+   (KRN O 47 R 0.078)
+   (STOP)
+   (LABEL O 140)
+   (LIG O 140 O 134)
+   (STOP)
+   (LABEL O 47)
+   (LIG O 47 O 42)
+   (KRN O 77 R 0.111)
+   (STOP)
+   (LABEL O 55)
+   (LIG O 55 O 173)
+   (STOP)
+   (LABEL O 173)
+   (LIG O 55 O 174)
+   (STOP)
+   (LABEL C s)
+   (LIG/ O 40 O 21)
+   (KRN C a R -0.005)
+   (STOP)
+   (LABEL C k)
+   (KRN C a R -0.056)
+   (LABEL C v)
+   (LABEL C w)
+   (KRN C e R -0.028)
+   (KRN C a R -0.028)
+   (KRN C o R -0.028)
+   (KRN O 40 R -0.01)
+   (STOP)
+   (LABEL C A)
+   (KRN C t R -0.028)
+   (KRN C C R -0.028)
+   (SKIP D 1)
+   (LABEL C L)
+   (KRN C y R -0.083)
+   (KRN C T R -0.083)
+   (KRN C V R -0.111)
+   (STOP)
+   )
+(CHARACTER O 13
+   (CHARWD R 0.583)
+   (CHARHT R 0.694)
+   (CHARIC R 0.077)
+   (COMMENT
+      (LIG C i O 16)
+      (LIG C l O 17)
+      (KRN O 47 R 0.078)
+      )
+   )
+(CHARACTER O 14
+   (CHARWD R 0.556)
+   (CHARHT R 0.694)
+   )
+(CHARACTER O 15
+   (CHARWD R 0.556)
+   (CHARHT R 0.694)
+   )
+(CHARACTER O 16
+   (CHARWD R 0.833)
+   (CHARHT R 0.694)
+   )
+(CHARACTER O 17
+   (CHARWD R 0.833)
+   (CHARHT R 0.694)
+   )
+(CHARACTER O 20
+   (CHARWD R 0.3)
+   (CHARHT R 0.43)
+   )
+(CHARACTER O 21
+   (CHARWD R 0.278)
+   (CHARHT R 0.43)
+   )
+(CHARACTER O 40
+   (CHARWD R 0.333)
+   )
+(CHARACTER O 42
+   (CHARWD R 0.5)
+   (CHARHT R 0.694)
+   )
+(CHARACTER O 47
+   (CHARWD R 0.3)
+   (CHARHT R 0.694)
+   (COMMENT
+      (LIG O 47 O 42)
+      (KRN O 77 R 0.111)
+      )
+   )
+(CHARACTER O 54
+   (CHARWD R 0.3)
+   (CHARHT R 0.105)
+   (CHARDP R 0.194)
+   )
+(CHARACTER O 55
+   (CHARWD R 0.333)
+   (CHARHT R 0.25)
+   (COMMENT
+      (LIG O 55 O 173)
+      )
+   )
+(CHARACTER O 56
+   (CHARWD R 0.3)
+   (CHARHT R 0.105)
+   )
+(CHARACTER O 77
+   (CHARWD R 0.472)
+   (CHARHT R 0.694)
+   )
+(CHARACTER C A
+   (CHARWD R 0.6)
+   (CHARHT R 0.683)
+   (COMMENT
+      (KRN C t R -0.028)
+      (KRN C C R -0.028)
+      (KRN C T R -0.083)
+      (KRN C V R -0.111)
+      )
+   )
+(CHARACTER C B
+   (CHARWD R 0.607)
+   (CHARHT R 0.683)
+   )
+(CHARACTER C C
+   (CHARWD R 0.614)
+   (CHARHT R 0.683)
+   )
+(CHARACTER C D
+   (CHARWD R 0.621)
+   (CHARHT R 0.683)
+   )
+(CHARACTER C E
+   (CHARWD R 0.628)
+   (CHARHT R 0.683)
+   )
+(CHARACTER C F
+   (CHARWD R 0.635)
+   (CHARHT R 0.683)
+   )
+(CHARACTER C G
+   (CHARWD R 0.642)
+   (CHARHT R 0.683)
+   )
+(CHARACTER C H
+   (CHARWD R 0.649)
+   (CHARHT R 0.683)
+   )
+(CHARACTER C I
+   (CHARWD R 0.656)
+   (CHARHT R 0.683)
+   )
+(CHARACTER C J
+   (CHARWD R 0.663)
+   (CHARHT R 0.683)
+   )
+(CHARACTER C K
+   (CHARWD R 0.67)
+   (CHARHT R 0.683)
+   )
+(CHARACTER C L
+   (CHARWD R 0.677)
+   (CHARHT R 0.683)
+   (COMMENT
+      (KRN C y R -0.083)
+      (KRN C T R -0.083)
+      (KRN C V R -0.111)
+      )
+   )
+(CHARACTER C M
+   (CHARWD R 0.684)
+   (CHARHT R 0.683)
+   )
+(CHARACTER C N
+   (CHARWD R 0.691)
+   (CHARHT R 0.683)
+   )
+(CHARACTER C O
+   (CHARWD R 0.698)
+   (CHARHT R 0.683)
+   )
+(CHARACTER C P
+   (CHARWD R 0.705)
+   (CHARHT R 0.683)
+   )
+(CHARACTER C Q
+   (CHARWD R 0.712)
+   (CHARHT R 0.683)
+   )
+(CHARACTER C R
+   (CHARWD R 0.719)
+   (CHARHT R 0.683)
+   )
+(CHARACTER C S
+   (CHARWD R 0.726)
+   (CHARHT R 0.683)
+   )
+(CHARACTER C T
+   (CHARWD R 0.733)
+   (CHARHT R 0.683)
+   )
+(CHARACTER C U
+   (CHARWD R 0.74)
+   (CHARHT R 0.683)
+   )
+(CHARACTER C V
+   (CHARWD R 0.747)
+   (CHARHT R 0.683)
+   )
+(CHARACTER C W
+   (CHARWD R 0.754)
+   (CHARHT R 0.683)
+   )
+(CHARACTER C X
+   (CHARWD R 0.761)
+   (CHARHT R 0.683)
+   )
+(CHARACTER C Y
+   (CHARWD R 0.768)
+   (CHARHT R 0.683)
+   )
+(CHARACTER C Z
+   (CHARWD R 0.775)
+   (CHARHT R 0.683)
+   )
+(CHARACTER O 134
+   (CHARWD R 0.5)
+   (CHARHT R 0.694)
+   )
+(CHARACTER O 140
+   (CHARWD R 0.3)
+   (CHARHT R 0.694)
+   (COMMENT
+      (LIG O 140 O 134)
+      )
+   )
+(CHARACTER C a
+   (CHARWD R 0.4)
+   (CHARHT R 0.0)
+   )
+(CHARACTER C b
+   (CHARWD R 0.41)
+   (CHARHT R 0.43)
+   (CHARDP R 0.2)
+   )
+(CHARACTER C c
+   (CHARWD R 0.42)
+   (CHARHT R 0.68)
+   )
+(CHARACTER C d
+   (CHARWD R 0.43)
+   (CHARHT R 0.43)
+   )
+(CHARACTER C e
+   (CHARWD R 0.44)
+   (CHARHT R 0.68)
+   (CHARDP R 0.2)
+   )
+(CHARACTER C f
+   (CHARWD R 0.45)
+   (CHARHT R 0.43)
+   (COMMENT
+      (LIG C i O 14)
+      (LIG C f O 13)
+      (LIG C l O 15)
+      (KRN O 47 R 0.078)
+      (KRN O 77 R 0.078)
+      )
+   )
+(CHARACTER C g
+   (CHARWD R 0.46)
+   (CHARHT R 0.68)
+   )
+(CHARACTER C h
+   (CHARWD R 0.47)
+   (CHARHT R 0.43)
+   (CHARDP R 0.2)
+   )
+(CHARACTER C i
+   (CHARWD R 0.48)
+   (CHARHT R 0.68)
+   )
+(CHARACTER C j
+   (CHARWD R 0.49)
+   (CHARHT R 0.43)
+   )
+(CHARACTER C k
+   (CHARWD R 0.5)
+   (CHARHT R 0.68)
+   (CHARDP R 0.2)
+   (COMMENT
+      (KRN C a R -0.056)
+      (KRN C e R -0.028)
+      (KRN C a R -0.028)
+      (KRN C o R -0.028)
+      (KRN O 40 R -0.01)
+      )
+   )
+(CHARACTER C l
+   (CHARWD R 0.51)
+   (CHARHT R 0.43)
+   )
+(CHARACTER C m
+   (CHARWD R 0.52)
+   (CHARHT R 0.68)
+   )
+(CHARACTER C n
+   (CHARWD R 0.53)
+   (CHARHT R 0.43)
+   (CHARDP R 0.2)
+   )
+(CHARACTER C o
+   (CHARWD R 0.54)
+   (CHARHT R 0.68)
+   )
+(CHARACTER C p
+   (CHARWD R 0.55)
+   (CHARHT R 0.43)
+   )
+(CHARACTER C q
+   (CHARWD R 0.56)
+   (CHARHT R 0.68)
+   (CHARDP R 0.2)
+   )
+(CHARACTER C r
+   (CHARWD R 0.57)
+   (CHARHT R 0.43)
+   )
+(CHARACTER C s
+   (CHARWD R 0.58)
+   (CHARHT R 0.68)
+   (COMMENT
+      (LIG/ O 40 O 21)
+      (KRN C a R -0.005)
+      )
+   )
+(CHARACTER C t
+   (CHARWD R 0.59)
+   (CHARHT R 0.43)
+   (CHARDP R 0.2)
+   )
+(CHARACTER C u
+   (CHARWD R 0.6)
+   (CHARHT R 0.68)
+   )
+(CHARACTER C v
+   (CHARWD R 0.61)
+   (CHARHT R 0.43)
+   (COMMENT
+      (KRN C e R -0.028)
+      (KRN C a R -0.028)
+      (KRN C o R -0.028)
+      (KRN O 40 R -0.01)
+      )
+   )
+(CHARACTER C w
+   (CHARWD R 0.62)
+   (CHARHT R 0.68)
+   (CHARDP R 0.2)
+   (COMMENT
+      (KRN C e R -0.028)
+      (KRN C a R -0.028)
+      (KRN C o R -0.028)
+      (KRN O 40 R -0.01)
+      )
+   )
+(CHARACTER C x
+   (CHARWD R 0.63)
+   (CHARHT R 0.43)
+   )
+(CHARACTER C y
+   (CHARWD R 0.64)
+   (CHARHT R 0.68)
+   )
+(CHARACTER C z
+   (CHARWD R 0.65)
+   (CHARHT R 0.43)
+   (CHARDP R 0.2)
+   )
+(CHARACTER O 173
+   (CHARWD R 0.5)
+   (CHARHT R 0.43)
+   (CHARIC R 0.028)
+   (COMMENT
+      (LIG O 55 O 174)
+      )
+   )
+(CHARACTER O 174
+   (CHARWD R 1.0)
+   (CHARHT R 0.43)
+   (CHARIC R 0.028)
+   )
