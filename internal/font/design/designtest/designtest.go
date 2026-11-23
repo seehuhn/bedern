@@ -72,7 +72,7 @@ func Sets(routine bool, n int) []Set {
 // In the sets which scale the x-height the bowl and the ear of g move with it.
 // Every set passes Params.Validate and glyphs.Check.  A change of the serif
 // length scales BracketReach, SerifJutInner and QSideRight in the same
-// proportion.  A change of the x-height moves the notch and the join of the arm
+// proportion and moves BSideLeft by the change.  A change of the x-height moves the notch and the join of the arm
 // of r with it, and the upper notch and join of the bowls of p and q.  A change
 // of the stem changes AscenderStem with it.
 func Perturbed() []Set {
@@ -118,6 +118,8 @@ var perturbed = sync.OnceValue(func() []Set {
 	serif := func(v float64) func(*design.Params) {
 		return func(p *design.Params) {
 			r := v / p.SerifJut
+			// The head serif of b keeps its distance from the edge of the advance.
+			p.BSideLeft += v - p.SerifJut
 			p.SerifJut = v
 			p.BracketReach = math.Round(p.BracketReach * r)
 			p.SerifJutInner = math.Round(p.SerifJutInner * r)

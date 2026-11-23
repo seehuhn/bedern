@@ -114,8 +114,9 @@ func TestBPQAdvancesAndSides(t *testing.T) {
 		want        float64
 		sum         float64 // the advance as the sum of the side spaces and the body
 	}{
+		// 85 + 81 + 332 + 38.
+		{"b", 'b', sideStemB, sideBowlBP, 536, p.BSideLeft + p.Stem + p.BBowl.Width + p.BPSideRight},
 		// 95 + 81 + 332 + 38.
-		{"b", 'b', sideStemBP, sideBowlBP, 546, p.BPSideLeft + p.Stem + p.BBowl.Width + p.BPSideRight},
 		{"p", 'p', sideStemBP, sideBowlBP, 546, p.BPSideLeft + p.Stem + p.PBowl.Width + p.BPSideRight},
 		// 33 + 338 + 81 + 71.
 		{"q", 'q', sideBowlDQ, sideStemQ, 523, p.DQSideLeft + p.QBowl.Width + p.Stem + p.QSideRight},
@@ -148,7 +149,7 @@ func TestBPQAdvancesAndSides(t *testing.T) {
 
 // The side of b and p which is the left of the stem has the head serif and, for
 // p, the foot serif at the descender line; the bounding-box rule of its own
-// takes the serif from BPSideLeft.
+// takes the serif from BSideLeft for b and from BPSideLeft for p.
 func TestBPQBoundingBoxRules(t *testing.T) {
 	t.Parallel()
 	p := design.Regular()
@@ -161,19 +162,22 @@ func TestBPQBoundingBoxRules(t *testing.T) {
 			t.Errorf("%s: ink from %v to %v in the advance %v, want margins %v and %v", name, x0, x1, adv, left, right)
 		}
 	}
-	// The rule for the left of b and p takes the serif from BPSideLeft, and for the
+	// The rule for the left of b takes the serif from BSideLeft, for p from BPSideLeft, and for the
 	// right of q from QSideRight: the margin is the side space less SerifJut, and the
 	// serif tip is there (b has it AscenderInset further in).
 	e, _ := lookup("b")
 	l, _ := e.inkMargins(p)
-	near(t, "left margin of b", l, p.BPSideLeft-p.SerifJut)
+	near(t, "left margin of b", l, p.BSideLeft-p.SerifJut)
+	e, _ = lookup("p")
+	l, _ = e.inkMargins(p)
+	near(t, "left margin of p", l, p.BPSideLeft-p.SerifJut)
 	e, _ = lookup("q")
 	_, r := e.inkMargins(p)
 	near(t, "right margin of q", r, p.QSideRight-p.SerifJut)
 	for _, name := range []string{"b", "p"} {
 		path, _ := bpqGlyph(t, name, p)
 		x0, _, _, _ := path.BBox()
-		near(t, name+": the serif tip against the margin", x0, p.BPSideLeft-p.SerifJut+design.AscenderInset(p)*map[string]float64{"b": 1, "p": 0}[name])
+		near(t, name+": the serif tip against the margin", x0, map[string]float64{"b": p.BSideLeft + design.AscenderInset(p), "p": p.BPSideLeft}[name]-p.SerifJut)
 	}
 	q, adv := bpqGlyph(t, "q", p)
 	_, _, x1, _ := q.BBox()

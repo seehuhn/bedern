@@ -505,7 +505,8 @@ type Params struct {
 	SideRoundRight float64
 	DSideRight     float64 // distance from the right edge of the stem of d to the edge of the advance
 	SideOpenRight  float64 // distance from the right extreme of the bowl of e to the edge of the advance
-	BPSideLeft     float64 // distance from the edge of the advance to the left-hand edge of the stem of b and p
+	BPSideLeft     float64 // distance from the edge of the advance to the left-hand edge of the stem of p
+	BSideLeft      float64 // distance from the edge of the advance to the left-hand edge of a stem of width Stem in the cell of the stem of b
 	DQSideLeft     float64 // distance from the edge of the advance to the left extreme of the bowl of d and q
 	BPSideRight    float64 // distance from the right extreme of the bowl of b and p to the edge of the advance
 	CSideLeft      float64 // distance from the edge of the advance to the left extreme of c
@@ -768,6 +769,7 @@ func Regular() Params {
 		SideRoundRight: 27,
 		DSideRight:     90,
 		BPSideLeft:     95,
+		BSideLeft:      85,
 		DQSideLeft:     33,
 		BPSideRight:    38,
 		CSideLeft:      32,

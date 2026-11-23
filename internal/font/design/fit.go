@@ -172,10 +172,10 @@ func RStemLeft(p Params) float64 {
 }
 
 // BStemLeft returns the position of the left-hand edge of the stem of b: the
-// side space BPSideLeft, which is measured to the edge of a stem of width Stem,
+// side space BSideLeft, which is measured to the edge of a stem of width Stem,
 // and the inset of the lighter ascender stem (AscenderInset).
 func BStemLeft(p Params) float64 {
-	return p.BPSideLeft + AscenderInset(p)
+	return p.BSideLeft + AscenderInset(p)
 }
 
 // BStemRight returns the position of the right-hand edge of the stem of b, on
@@ -188,7 +188,7 @@ func BStemRight(p Params) float64 {
 // mirror image of d: the cell of the stem (a stem of width Stem) and the width
 // of the bowl, as for d.
 func BBowlRight(p Params) float64 {
-	return p.BPSideLeft + p.Stem + p.BBowl.Width
+	return p.BSideLeft + p.Stem + p.BBowl.Width
 }
 
 // BAdvance returns the advance of the letter b: the left side space of the

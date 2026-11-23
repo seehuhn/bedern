@@ -54,7 +54,8 @@ const (
 	sideStem              // the edge of a stem with serifs: SideStemLeft or SideStemRight to the stem
 	sideRound             // the extreme of a bowl: SideRoundLeft or SideRoundRight
 	sideStemD             // the right edge of the stem of d: DSideRight
-	sideStemBP            // the left edge of the stem of b and p, with the serifs: BPSideLeft
+	sideStemBP            // the left edge of the stem of p, with the serifs: BPSideLeft
+	sideStemB             // the left edge of the stem of b, with the serifs: BSideLeft
 	sideBowlDQ            // the left extreme of the bowl of d and q: DQSideLeft
 	sideBowlBP            // the right extreme of the bowl of b and p: BPSideRight
 	sideBowlC             // the left extreme of c: CSideLeft
@@ -142,6 +143,8 @@ func (k sideKind) space(p design.Params, left bool) float64 {
 		return p.DSideRight
 	case k == sideStemBP:
 		return p.BPSideLeft
+	case k == sideStemB:
+		return p.BSideLeft
 	case k == sideStemQ:
 		return p.QSideRight
 	case k == sideBowlDQ:
@@ -241,7 +244,7 @@ func (e entry) inkMargins(p design.Params) (left, right float64) {
 	margin := func(k sideKind, isLeft bool) float64 {
 		m := k.space(p, isLeft)
 		switch k {
-		case sideStem, sideStemD, sideStemBP, sideStemQ, sideStemR, sideNarrow:
+		case sideStem, sideStemD, sideStemBP, sideStemB, sideStemQ, sideStemR, sideNarrow:
 			m -= p.SerifJut
 		case sideTailA:
 			// the tail is the rightmost ink: nothing to take off
@@ -263,7 +266,7 @@ var table = []entry{
 	{".notdef", 0, sideOpen, sideOpen, notdef},
 	{"space", ' ', sideOpen, sideOpen, space},
 	{"a", 'a', sideBowlA, sideTailA, a},
-	{"b", 'b', sideStemBP, sideBowlBP, b},
+	{"b", 'b', sideStemB, sideBowlBP, b},
 	{"c", 'c', sideBowlC, sideOpen, c},
 	{"d", 'd', sideBowlDQ, sideStemD, d},
 	{"e", 'e', sideRound, sideOpen, e},

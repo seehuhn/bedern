@@ -13,7 +13,7 @@ import (
 
 var sideKindNames = [...]string{
 	sideUnknown: "unknown", sideStem: "stem", sideRound: "round", sideStemD: "stemD",
-	sideStemBP: "stemBP", sideBowlDQ: "bowlDQ", sideBowlBP: "bowlBP", sideBowlC: "bowlC",
+	sideStemBP: "stemBP", sideStemB: "stemB", sideBowlDQ: "bowlDQ", sideBowlBP: "bowlBP", sideBowlC: "bowlC",
 	sideStemR: "stemR", sideStemQ: "stemQ", sideNarrow: "narrow", sideBowlA: "bowlA",
 	sideTailA: "tailA", sideOpen: "open", sideOverhang: "overhang", sideBarF: "barF",
 	sideBarT: "barT", sideLoopG: "loopG", sideEarG: "earG", sideDiag: "diag",
