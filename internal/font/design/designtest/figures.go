@@ -27,7 +27,7 @@ func figuresUp(p *design.Params) {
 	f.SixBowlTop, f.SixLeftY, f.SixArcWidth = 455, 316, 432
 	f.CurlHeight, f.SixBallIn = 139, 44
 	f.SevenDrop, f.SevenFootX, f.SevenFoot = 100, 186, 92
-	f.EightWaist, f.EightUpperWidth = 378, 374
+	f.EightWaist, f.EightUpperWidth, f.EightGap = 378, 374, 82
 }
 
 // figuresDown is the opposite of figuresUp, for the set caps-down.
@@ -48,5 +48,5 @@ func figuresDown(p *design.Params) {
 	f.FiveFlag, f.FiveBowlTop, f.FiveStroke, f.FiveInnerLeft = 302, 396, 40, -74
 	f.SixBowlTop, f.SixLeftY, f.SixArcWidth = 416, 288, 396
 	f.SevenDrop, f.SevenFootX, f.SevenFoot, f.SevenSerifThick = 86, 168, 78, 40
-	f.EightWaist, f.EightUpperWidth = 346, 342
+	f.EightWaist, f.EightUpperWidth, f.EightGap = 346, 342, 72
 }

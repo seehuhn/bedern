@@ -182,12 +182,16 @@ type Figures struct {
 	SevenFootAngle  float64
 	SevenTopThick   float64
 
-	// 8.  EightWaist is the height of the middle between the counters and
-	// EightGap the distance between them; the upper bowl is EightUpperWidth
-	// wide, centred over the lower one.  The sides of the bowls are
-	// EightUL, EightUR, EightLL and EightLR thick at the counters' middles
-	// (upper left, upper right, lower left, lower right), and EightWaistThin
-	// is the thickness of the bowls where they meet at the middle.
+	// 8.  The spine is the ink between the counters: it lies between two
+	// parallel lines EightGap apart about the point at the height EightWaist
+	// in the middle of the ink, which fall to the right at EightSpine degrees
+	// from the horizontal.  The upper bowl is EightUpperWidth wide, centred
+	// over the lower one; the outer edge of the upper bowl ends EightWaistThin
+	// below EightWaist and that of the lower bowl EightWaistThin above it.  The
+	// sides of the bowls are EightUL, EightUR, EightLL and EightLR thick
+	// (upper left, upper right, lower left, lower right), and the thin arcs at
+	// the upper right and the lower left are EightJoin thick where they meet
+	// the spine.
 	EightWaist      float64
 	EightGap        float64
 	EightUpperWidth float64
@@ -196,6 +200,8 @@ type Figures struct {
 	EightLL         float64
 	EightLR         float64
 	EightWaistThin  float64
+	EightSpine      float64
+	EightJoin       float64
 }
 
 // regularFigures returns the parameters of the figures of Bedern Regular.
@@ -289,13 +295,15 @@ func regularFigures() Figures {
 		SevenTopThick:   66,
 
 		EightWaist:      360,
-		EightGap:        66,
+		EightGap:        78,
 		EightUpperWidth: 356,
-		EightUL:         82,
+		EightUL:         76,
 		EightUR:         62,
 		EightLL:         66,
-		EightLR:         84,
-		EightWaistThin:  46,
+		EightLR:         78,
+		EightWaistThin:  14,
+		EightSpine:      16,
+		EightJoin:       36,
 	}
 }
 
