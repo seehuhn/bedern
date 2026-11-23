@@ -278,37 +278,71 @@ func breveChain(w, h, thick, thin float64) chain {
 // the base at the height CedOverlap, and a hook which leaves the neck to the
 // right, thin, swells to CedThick at its right, comes round below thin and ends
 // in a cut CedEnd across to the lower left, as the bowl of a five hangs from
-// its stem.  Neck and hook are one contour.
+// its stem.  The hook starts at the left edge of the neck: the left edge of
+// the neck turns in one corner into the inner edge of the hook, and the upper
+// edge of the hook, cut where it leaves the neck, meets the right edge of the
+// neck in one corner.  The contour is drawn as one, without a union.
 func cedillaChain(a design.Accents) chain {
 	d := a.CedDepth
-	var neck outline.Path
-	addBar(&neck, -a.CedNeck/2, -0.24*d, a.CedNeck/2, a.CedOverlap)
-	hook := strokeChain([]station{
-		{X: -0.25 * a.CedNeck, Y: -0.24 * d, Dir: 0, W: 0.8 * a.CedNeck},
+	xl, xr := -a.CedNeck/2, a.CedNeck/2
+	r, l := strokeOpen([]station{
+		{X: xl, Y: -0.24 * d, Dir: 0, W: 0.8 * a.CedNeck},
 		{X: a.CedReach - a.CedThick/2, Y: -0.6 * d, Dir: -90, W: a.CedThick},
-		{X: 0.15 * a.CedReach, Y: -d + 0.45*a.CedEnd, Dir: 180, W: 0.9 * a.CedEnd},
-		{X: -a.CedTail + a.CedEnd/2, Y: -0.93 * d, Dir: 165, W: a.CedEnd},
+		{X: 0, Y: -d + 0.45*a.CedEnd, Dir: 180, W: 0.9 * a.CedEnd},
+		{X: -a.CedTail + a.CedEnd/2, Y: -0.86 * d, Dir: 160, W: a.CedEnd},
 	})
-	cs := union(append(pathChains(neck), hook)...)
-	if len(cs) != 1 {
-		panic(fmt.Sprintf("glyphs: the cedilla has %d contours", len(cs)))
-	}
-	return cs[0]
+	l = cutAtX(l, xr)
+	top := outline.Point{X: xr, Y: a.CedOverlap}
+	topLeft := outline.Point{X: xl, Y: a.CedOverlap}
+	return join(r, lineChain(r.end(), l.start()), l,
+		lineChain(l.end(), top), lineChain(top, topLeft), lineChain(topLeft, r.start()))
 }
 
-// ogonekChain returns the ogonek: a stroke which leaves the base at the height
-// OgoOverlap, runs down and to the left, turns at its leftmost point, comes
-// round below to the right and ends in a narrow cut which points up to the
-// right.
+// cutAtX returns the chain up to the last place where it crosses the
+// vertical x, searched from its end.
+func cutAtX(c chain, x float64) chain {
+	for i := len(c) - 1; i >= 0; i-- {
+		p := c[i]
+		if (p.P0.X-x)*(p.P3.X-x) > 0 {
+			continue
+		}
+		lo, hi := 0.0, 1.0
+		for range 60 {
+			m := (lo + hi) / 2
+			if (p.at(m).X-x)*(p.P0.X-x) > 0 {
+				lo = m
+			} else {
+				hi = m
+			}
+		}
+		out := append(chain{}, c[:i]...)
+		q := p.split(lo, true)
+		q.P3.X = x
+		return append(out, piece{q, p.line})
+	}
+	panic(fmt.Sprintf("glyphs: the chain does not cross x = %v", x))
+}
+
+// ogonekLeave is the direction in degrees in which the ogonek leaves the base,
+// down and to the left.
+const ogonekLeave = -140
+
+// ogonekChain returns the ogonek: a stroke OgoNeck thick which leaves the base
+// in the direction ogonekLeave, swells and turns at its leftmost point, comes
+// round below to the right and tapers to a narrow cut which points up to the
+// right.  It starts inside the base with a horizontal cut at the height
+// OgoOverlap, so that all of the mark lies below that height.
 func ogonekChain(a design.Accents) chain {
 	d := a.OgoDepth
-	sts := []station{
-		{X: 0, Y: a.OgoOverlap, Dir: -112, W: a.OgoNeck},
-		{X: -a.OgoReach + a.OgoThick/2, Y: -0.55 * d, Dir: -90, W: a.OgoThick},
-		{X: -0.25 * a.OgoReach, Y: -d + a.OgoThin/2, Dir: 0, W: a.OgoThin},
-		{X: a.OgoTail, Y: -0.82 * d, Dir: 25, W: a.OgoTip},
-	}
-	return strokeChain(sts)
+	// The nib at the start is horizontal (360, since 0 leaves it unset) and
+	// wider by the slant of the stroke, so that the stroke is OgoNeck thick.
+	w := a.OgoNeck / math.Abs(math.Sin(ogonekLeave*math.Pi/180))
+	return strokeChain([]station{
+		{X: 0, Y: a.OgoOverlap, Dir: ogonekLeave, W: w, Nib: 360},
+		{X: -a.OgoReach + a.OgoThick/2, Y: -0.65 * d, Dir: -90, W: a.OgoThick},
+		{X: 0, Y: -d + a.OgoThin/2, Dir: 0, W: a.OgoThin},
+		{X: a.OgoTail, Y: -0.72 * d, Dir: 35, W: a.OgoTip},
+	})
 }
 
 // scaledComma returns the comma scaled by s, with the centre of its head at

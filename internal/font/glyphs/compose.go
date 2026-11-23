@@ -32,9 +32,11 @@ import (
 // the letters whose top is a stem (i, j and l, and h), the upper part of a and
 // the bowl of g.  The bottom anchor stands at the middle of the ink of the
 // base, or of its stem (t, l, r and the capitals T, L), at the lowest ink of
-// the base there for the cedilla and on the baseline for the comma below.  The
-// ogonek anchor stands at the lowest ink of the base at the right of its foot:
-// the stem of a, u, i and I, the right foot of A, the bottom right of e, E, U.
+// the base there for the cedilla and on the baseline for the comma below; the
+// cedilla of t stands at the lowest point of t instead.  The ogonek anchor
+// stands at the lowest ink of the base where ogonekX puts it: under the stem
+// of a, u, i and I, near the right end of the foot of E and A, and right of
+// the lowest point of e and U.
 // The side anchor of d, l, t and L stands Acc.ApoGap to the right of the right
 // edge of the stem, at the height of its top.
 
@@ -401,17 +403,15 @@ func (c *composite) place(p design.Params, base outline.Path) (dx, dy float64, f
 		return math.Round(x), math.Round(top), formCap
 	case markCedilla, markOgonek:
 		x := bottomX(p, c.base, base)
-		if c.mark == markOgonek {
+		switch {
+		case c.mark == markOgonek:
 			x = ogonekX(p, c.base, base)
+		case c.base == "t":
+			// The neck of the cedilla leaves the lowest point of the curve of
+			// t into its tail.
+			x = lowestX(base)
 		}
-		y := lowestInk(base, x)
-		if !c.joined() {
-			// The neck of a cedilla which stands apart begins CedApart below
-			// the lowest ink of the base.
-			_, y0, _, _ := base.BBox()
-			y = math.Min(y, y0) - a.CedOverlap - a.CedApart
-		}
-		return math.Round(x), math.Round(y), formLower
+		return math.Round(x), math.Round(lowestInk(base, x)), formLower
 	case markCommaBelow:
 		return math.Round(bottomX(p, c.base, base)), 0, formLower
 	}
@@ -441,15 +441,9 @@ func (c *composite) form() markForm {
 	return formLower
 }
 
-// joined says whether the mark is joined to the base: the ogonek, and the
-// cedilla of c, s, C and S.  The cedilla of t and T stands apart below the
-// foot.
-func (c *composite) joined() bool {
-	if c.mark == markCedilla {
-		return slices.Contains([]string{"c", "s", "C", "S"}, c.base)
-	}
-	return c.mark.joinable()
-}
+// joined says whether the mark is joined to the base: the cedilla and the
+// ogonek.
+func (c *composite) joined() bool { return c.mark.joinable() }
 
 // assemble returns the unrounded letter: the base with the mark moved by (dx,
 // dy).  A joined mark is united with the base.
@@ -497,6 +491,19 @@ func inkSpan(path outline.Path, y0, y1 float64) (lo, hi float64) {
 		}
 	}
 	return lo, hi
+}
+
+// lowestX returns the abscissa of the lowest point of the outline.
+func lowestX(path outline.Path) float64 {
+	x, low := 0.0, math.Inf(1)
+	for _, ct := range path {
+		for _, q := range ct.Flatten() {
+			if q.Y < low {
+				x, low = q.X, q.Y
+			}
+		}
+	}
+	return x
 }
 
 // lowestInk returns the lowest height at which the vertical through x meets
@@ -597,7 +604,11 @@ func stemAt(path outline.Path, y float64) (lo, hi float64) {
 	return xs[0], xs[1]
 }
 
-// ogonekX returns the abscissa at which the ogonek leaves the base.
+// ogonekX returns the abscissa at which the ogonek leaves the base: a quarter
+// of the stem right of the axis of the right stem of a and u, the stem of i
+// and I, OgoReach left of the right end of the foot of E and A, and
+// right of the lowest point of e (by 0.6 of OgoReach) and of U (by three
+// quarters of it).
 func ogonekX(p design.Params, name string, base outline.Path) float64 {
 	h := p.XHeight
 	if isCapital(name) {
@@ -605,18 +616,19 @@ func ogonekX(p design.Params, name string, base outline.Path) float64 {
 	}
 	switch name {
 	case "a", "u":
-		// The right stem.
+		// A quarter of the stem right of the axis of the right stem.
 		_, hi := inkSpan(base, 0.3*h, 0.5*h)
-		return hi - p.Stem/2
+		return hi - p.Stem/4
 	case "i", "I":
 		lo, hi := inkSpan(base, 0.3*h, 0.5*h)
 		return (lo + hi) / 2
-	case "A":
+	case "E", "A":
 		_, hi := inkSpan(base, 0, 0.02*h)
-		return hi - p.Caps.SerifJut
+		return hi - p.Acc.OgoReach
+	case "U":
+		return lowestX(base) + 0.75*p.Acc.OgoReach
 	}
-	lo, hi := inkSpan(base, 0, h)
-	return lo + 0.68*(hi-lo)
+	return lowestX(base) + 0.6*p.Acc.OgoReach
 }
 
 // sideAnchor returns the right edge of the stem of d, l, t or L and the height

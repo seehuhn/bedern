@@ -72,10 +72,10 @@ type Accents struct {
 	// A cedilla which is not joined to its base begins CedApart below it.
 	CedNeck, CedOverlap, CedReach, CedThick, CedTail, CedDepth, CedEnd, CedApart float64
 
-	// The ogonek: a hook which leaves the base OgoOverlap above the baseline
-	// OgoNeck thick, bends OgoReach to the left of where it leaves, is
+	// The ogonek: a hook which leaves the base OgoOverlap above its lowest
+	// ink OgoNeck thick, bends OgoReach to the left of where it leaves, is
 	// OgoThick thick at its left, OgoThin at its bottom and OgoDepth deep, and
-	// ends in a cut OgoTip across OgoTail to the right of where it leaves.
+	// tapers to a cut OgoTip across OgoTail to the right of where it leaves.
 	OgoNeck, OgoOverlap, OgoReach, OgoThick, OgoThin, OgoDepth, OgoTail, OgoTip float64
 
 	// The comma below and the comma above of g: the comma scaled by
@@ -159,14 +159,14 @@ func regularAccents() Accents {
 		CedEnd:     28,
 		CedApart:   36,
 
-		OgoNeck:    54,
-		OgoOverlap: 26,
+		OgoNeck:    20,
+		OgoOverlap: 14,
 		OgoReach:   100,
-		OgoThick:   56,
-		OgoThin:    30,
-		OgoTip:     22,
+		OgoThick:   64,
+		OgoThin:    42,
+		OgoTip:     16,
 		OgoDepth:   210,
-		OgoTail:    60,
+		OgoTail:    80,
 
 		CommaScale: 0.92,
 		CommaGap:   56,
