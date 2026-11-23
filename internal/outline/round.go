@@ -101,6 +101,17 @@ func (p Path) Round() Path {
 	return out
 }
 
+// RoundNodes returns a copy of the path with all coordinates rounded to
+// integers as Round rounds them, with every segment kept: the short segments
+// are not merged.
+func (p Path) RoundNodes() Path {
+	out := make(Path, len(p))
+	for i, c := range p {
+		out[i] = c.round()
+	}
+	return out
+}
+
 // Merged returns the path with the short segments merged as Round does, not
 // rounded.
 func (p Path) Merged() Path {
