@@ -380,14 +380,16 @@ func TestCapBowlSerifsAreThoseOfH(t *testing.T) {
 }
 
 // The foot of the leg of R keeps at least pairClearance from every letter which follows it
-// without a kern, the capitals and the lowercase.
+// without a kern, the capitals and the lowercase; the composed letters in the
+// parameter sets of composedRoutine.
 func TestCapRLegKeepsAwayFromWhatFollows(t *testing.T) {
 	t.Parallel()
 	forCaps(t, func(t *testing.T, np namedParams) {
 		r, adv := cachedOutline(np, "R")
 		for _, e := range table {
-			if e.r == 0 || e.r == ' ' || e.left == sideMark {
-				// A combining mark stands over the letter before it.
+			if e.r == 0 || e.r == ' ' || e.left == sideMark || !inTier(np, e.name) {
+				// A combining mark stands over the letter before it; the
+				// composed letters follow inTier.
 				continue
 			}
 			next, _ := cachedOutline(np, e.name)

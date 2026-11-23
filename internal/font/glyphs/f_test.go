@@ -226,19 +226,44 @@ func TestFOverhang(t *testing.T) {
 // of two paths, with the nearest points.
 func minDistanceBetween(a, b outline.Path) (d float64, pa, pb outline.Point) {
 	d = math.Inf(1)
-	flat := func(p outline.Path) [][]outline.Point {
-		var all [][]outline.Point
+	// A flattened contour with its bounding box.
+	type flatContour struct {
+		pts            []outline.Point
+		x0, y0, x1, y1 float64
+	}
+	flat := func(p outline.Path) []flatContour {
+		var all []flatContour
 		for _, ct := range p {
-			all = append(all, ct.Flatten())
+			c := flatContour{pts: ct.Flatten(), x0: math.Inf(1), y0: math.Inf(1), x1: math.Inf(-1), y1: math.Inf(-1)}
+			for _, q := range c.pts {
+				c.x0, c.y0, c.x1, c.y1 = min(c.x0, q.X), min(c.y0, q.Y), max(c.x1, q.X), max(c.y1, q.Y)
+			}
+			all = append(all, c)
 		}
 		return all
 	}
-	for _, pa0 := range flat(a) {
-		for _, pb0 := range flat(b) {
+	// far says whether the box from (lo, bot) to (hi, top) is at least d from
+	// the box of c.
+	far := func(lo, bot, hi, top float64, c flatContour) bool {
+		gx := max(0, max(lo, c.x0)-min(hi, c.x1))
+		gy := max(0, max(bot, c.y0)-min(top, c.y1))
+		return gx*gx+gy*gy >= d*d
+	}
+	fb := flat(b)
+	for _, ca := range flat(a) {
+		pa0 := ca.pts
+		for _, cb := range fb {
+			pb0 := cb.pts
+			if far(ca.x0, ca.y0, ca.x1, ca.y1, cb) {
+				continue
+			}
 			for i, q := range pa0 {
 				q2 := pa0[(i+1)%len(pa0)]
 				qlo, qhi := min(q.X, q2.X), max(q.X, q2.X)
 				qbot, qtop := min(q.Y, q2.Y), max(q.Y, q2.Y)
+				if far(qlo, qbot, qhi, qtop, cb) {
+					continue
+				}
 				for j, r := range pb0 {
 					r2 := pb0[(j+1)%len(pb0)]
 					// A segment whose bounding box is at least d from that of

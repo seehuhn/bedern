@@ -6,6 +6,7 @@ package glyphs
 import (
 	"slices"
 	"strings"
+	"sync"
 	"testing"
 
 	"seehuhn.de/go/bedern/internal/font/design"
@@ -15,7 +16,9 @@ import (
 
 // The structural checks do not depend on the shape of a letter.  Every glyph
 // of the table is checked, unrounded and rounded, for every variant and every
-// parameter set.
+// parameter set.  In the other perturbed sets than those of composedRoutine
+// the routine tier leaves out the glyphs whose checks have the same inputs as
+// in the regular set (sameChecks), which give the same result.
 
 type namedParams struct {
 	name   string
@@ -53,6 +56,7 @@ func paramSets(perturbed []designtest.Set) []namedParams {
 
 func TestStructure(t *testing.T) {
 	t.Parallel()
+	regular := namedParams{name: "regular", params: design.Regular()}
 	for _, np := range allParams() {
 		t.Run(np.name, func(t *testing.T) {
 			t.Parallel()
@@ -60,7 +64,7 @@ func TestStructure(t *testing.T) {
 				if len(np.glyphs) > 0 && !slices.Contains(np.glyphs, e.name) {
 					continue
 				}
-				if composites[e.name] != nil && !composedRoutine(np.name) {
+				if !composedRoutine(np.name) && sameChecks(regular, np, e.name) {
 					continue
 				}
 				t.Run(e.name, func(t *testing.T) {
@@ -73,22 +77,54 @@ func TestStructure(t *testing.T) {
 }
 
 // composedRoutineSets is the number of perturbed parameter sets on which the
-// routine tier runs the structure test of the composed letters, besides the
-// regular parameters; the full tier runs it on all sets.
+// routine tier runs the structure test of every glyph and the tests of the
+// composed letters, besides the variants; the full tier runs them on all sets.
 const composedRoutineSets = 3
 
-// composedRoutine says whether the structure test of the composed letters runs
-// on the parameter set of the given name in this tier.
+// composedRoutine says whether the structure test of every glyph and the tests
+// of the composed letters run on the parameter set of the given name in this
+// tier.
 func composedRoutine(set string) bool {
 	if !testing.Short() || set == "regular" {
 		return true
 	}
+	return composedRoutineNames()[set]
+}
+
+// composedRoutineNames holds the names of the perturbed sets of composedRoutine.
+var composedRoutineNames = sync.OnceValue(func() map[string]bool {
+	names := map[string]bool{}
 	for _, s := range designtest.Sets(true, composedRoutineSets) {
-		if s.Name == set {
-			return true
-		}
+		names[s.Name] = true
 	}
-	return false
+	return names
+})
+
+// sameChecks says whether the structural checks of the glyph have the same
+// inputs in the parameter sets a and b: the same unrounded and rounded
+// outlines and advance, and the same values of the parameters which the checks
+// read (the clearance floor, the ink margins of the sides, the overhang of the
+// marks, the number of contours of the mark and the sharp crotches).
+func sameChecks(a, b namedParams, glyph string) bool {
+	pa, adva := cachedOutline(a, glyph)
+	pb, advb := cachedOutline(b, glyph)
+	if adva != advb || !pathsEqual(pa, pb) || !pathsEqual(cachedRounded(a, glyph).Path, cachedRounded(b, glyph).Path) {
+		return false
+	}
+	p, q := a.params, b.params
+	e, _ := lookup(glyph)
+	la, ra := e.inkMargins(p)
+	lb, rb := e.inkMargins(q)
+	if clearanceFloor(p) != clearanceFloor(q) || la != lb || ra != rb || p.Acc.Overhang != q.Acc.Overhang {
+		return false
+	}
+	if c := composites[glyph]; c != nil && len(markOutline(p, c.mark, formLower)) != len(markOutline(q, c.mark, formLower)) {
+		return false
+	}
+	if f, ok := sharpCrotches[glyph]; ok && !slices.Equal(f(p), f(q)) {
+		return false
+	}
+	return true
 }
 
 // testStructureGlyph runs the structural checks on one glyph in one parameter
@@ -196,4 +232,11 @@ func TestStructureChecksCatchBreakage(t *testing.T) {
 			t.Errorf("glyph %s: the bounding-box check rejects ink which the side kinds allow: %s", c.glyph, problems[0])
 		}
 	}
+}
+
+// inTier says whether the tests which run over all glyphs check the glyph in
+// the parameter set in this tier: a composed letter in the sets of
+// composedRoutine, every other glyph in all sets.
+func inTier(np namedParams, glyph string) bool {
+	return composites[glyph] == nil || composedRoutine(np.name)
 }

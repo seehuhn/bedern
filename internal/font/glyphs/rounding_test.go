@@ -16,7 +16,8 @@ import (
 
 // The tests of this file compare the rounded outline of every glyph with its
 // unrounded outline after the merging of short segments (cachedMerged), which
-// has the same segments.
+// has the same segments.  The routine tier checks the composed letters on the
+// parameter sets of composedRoutine (inTier).
 
 // roundSmoothTurn is the largest turn, in degrees, of the rounded outline at a
 // node which is smooth before rounding and whose curves have handles at least
@@ -66,6 +67,9 @@ func TestRoundKeepsSmoothNodesSmooth(t *testing.T) {
 		t.Run(np.name, func(t *testing.T) {
 			t.Parallel()
 			for _, e := range table {
+				if !inTier(np, e.name) {
+					continue
+				}
 				exact, rounded := cachedMerged(np, e.name), cachedRounded(np, e.name).Path
 				smoothNodes(exact, func(ci, j, k int) {
 					ct := exact[ci]
@@ -91,6 +95,9 @@ func TestRoundKeepsExtremesLevel(t *testing.T) {
 		t.Run(np.name, func(t *testing.T) {
 			t.Parallel()
 			for _, e := range table {
+				if !inTier(np, e.name) {
+					continue
+				}
 				exact, rounded := cachedMerged(np, e.name), cachedRounded(np, e.name).Path
 				smoothNodes(exact, func(ci, j, k int) {
 					a, b := segCubic(exact[ci], j).tangent(1), segCubic(exact[ci], k).tangent(0)
@@ -215,6 +222,9 @@ func TestBallsAreCircles(t *testing.T) {
 			t.Parallel()
 			found := map[string]bool{}
 			for _, e := range table {
+				if !inTier(np, e.name) {
+					continue
+				}
 				exact, rounded := cachedMerged(np, e.name), cachedRounded(np, e.name).Path
 				for _, run := range circleRuns(exact) {
 					found[e.name] = true

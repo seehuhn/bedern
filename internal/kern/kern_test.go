@@ -20,7 +20,7 @@ import (
 
 // routineSets is the number of parameter sets of designtest.Sets which go test
 // -short checks besides the variants.
-const routineSets = 8
+const routineSets = 4
 
 type named struct {
 	name string
@@ -66,36 +66,79 @@ func computed(p design.Params) *Table {
 // with b moved by its advance and kern, computed from segments and independent
 // of the sampling of Font.Distance.
 func exactDistance(ga, gb glyphs.Glyph, kern float64) float64 {
-	// A segment with its bounding box.
-	type seg struct {
-		s              [2]outline.Point
-		x0, x1, y0, y1 float64
-	}
-	segs := func(p outline.Path, dx float64) []seg {
-		var out []seg
-		for _, c := range p {
-			pts := c.Flatten()
-			for i := range pts {
-				q := pts[(i+1)%len(pts)]
-				a, b := outline.Point{X: pts[i].X + dx, Y: pts[i].Y}, outline.Point{X: q.X + dx, Y: q.Y}
-				out = append(out, seg{[2]outline.Point{a, b}, math.Min(a.X, b.X), math.Max(a.X, b.X), math.Min(a.Y, b.Y), math.Max(a.Y, b.Y)})
-			}
+	return flatten(ga.Path).distanceBelow(flatten(gb.Path), ga.Advance+kern, math.Inf(1))
+}
+
+// A seg is a segment of a flattened outline with its bounding box.
+type seg struct {
+	s              [2]outline.Point
+	x0, x1, y0, y1 float64
+}
+
+// A flat is a flattened outline: its segments and their bounding box.
+type flat struct {
+	segs           []seg
+	x0, x1, y0, y1 float64
+}
+
+// flatten returns the segments of the flattened outline p.
+func flatten(p outline.Path) flat {
+	f := flat{x0: math.Inf(1), x1: math.Inf(-1), y0: math.Inf(1), y1: math.Inf(-1)}
+	for _, c := range p {
+		pts := c.Flatten()
+		for i := range pts {
+			a, b := pts[i], pts[(i+1)%len(pts)]
+			s := seg{[2]outline.Point{a, b}, math.Min(a.X, b.X), math.Max(a.X, b.X), math.Min(a.Y, b.Y), math.Max(a.Y, b.Y)}
+			f.segs = append(f.segs, s)
+			f.x0, f.x1, f.y0, f.y1 = math.Min(f.x0, s.x0), math.Max(f.x1, s.x1), math.Min(f.y0, s.y0), math.Max(f.y1, s.y1)
 		}
-		return out
 	}
-	sa, sb := segs(ga.Path, 0), segs(gb.Path, ga.Advance+kern)
-	best := math.Inf(1)
-	for _, s := range sa {
-		for _, u := range sb {
-			if s.x0-u.x1 > best || u.x0-s.x1 > best || s.y0-u.y1 > best || u.y0-s.y1 > best {
+	return f
+}
+
+// distanceBelow returns the closest distance of a and of b moved by dx, if it
+// is less than limit, and limit otherwise.
+func (a flat) distanceBelow(b flat, dx, limit float64) float64 {
+	best := limit
+	if a.x0-(b.x1+dx) >= best || (b.x0+dx)-a.x1 >= best || a.y0-b.y1 >= best || b.y0-a.y1 >= best {
+		return best
+	}
+	for _, s := range a.segs {
+		if s.x0-(b.x1+dx) > best || (b.x0+dx)-s.x1 > best || s.y0-b.y1 > best || b.y0-s.y1 > best {
+			continue
+		}
+		for _, u := range b.segs {
+			ux0, ux1 := u.x0+dx, u.x1+dx
+			if s.x0-ux1 > best || ux0-s.x1 > best || s.y0-u.y1 > best || u.y0-s.y1 > best {
 				continue
 			}
-			if d := segDist(s.s, u.s); d < best {
+			v := [2]outline.Point{{X: u.s[0].X + dx, Y: u.s[0].Y}, {X: u.s[1].X + dx, Y: u.s[1].Y}}
+			if d := segDist(s.s, v); d < best {
 				best = d
 			}
 		}
 	}
 	return best
+}
+
+// flats holds the flattened outlines of a set of glyphs, each made when it is
+// first asked for.  It is not safe for concurrent use.
+type flats struct {
+	gs   []glyphs.Glyph
+	done []bool
+	fs   []flat
+}
+
+func newFlats(gs []glyphs.Glyph) *flats {
+	return &flats{gs: gs, done: make([]bool, len(gs)), fs: make([]flat, len(gs))}
+}
+
+// of returns the flattened outline of glyph i.
+func (f *flats) of(i int) flat {
+	if !f.done[i] {
+		f.fs[i], f.done[i] = flatten(f.gs[i].Path), true
+	}
+	return f.fs[i]
 }
 
 func segDist(s, u [2]outline.Point) float64 {
@@ -141,12 +184,13 @@ func TestKernKeepsTheFloor(t *testing.T) {
 				t.Fatal("no kerns")
 			}
 			floor := s.p.Kern.Floor
+			fl := newFlats(gs)
 			for _, pr := range tb.Pairs {
 				k := tb.Kern(pr.Left.Index, pr.Right.Index)
 				if k != pr.Kern {
 					t.Fatalf("%s %s: the table gives %d, the pair %d", pr.Left.Name, pr.Right.Name, k, pr.Kern)
 				}
-				if d := exactDistance(gs[pr.Left.Index], gs[pr.Right.Index], float64(k)); d < floor-2 {
+				if d := fl.of(pr.Left.Index).distanceBelow(fl.of(pr.Right.Index), gs[pr.Left.Index].Advance+float64(k), floor-2); d < floor-2 {
 					t.Errorf("%s %s with kern %d: closest distance %.1f, floor %v", pr.Left.Name, pr.Right.Name, k, d, floor)
 				}
 			}
@@ -340,6 +384,7 @@ func TestMarksKeepTheFloor(t *testing.T) {
 			tb := computed(v.Params)
 			f := tb.Font
 			floor := v.Params.Kern.Floor
+			fl := newFlats(gs)
 			for _, a := range f.Glyphs {
 				for _, b := range f.Glyphs {
 					if !(a.Kind == Punct && b.Kind == Lower || a.Kind == Lower && b.Kind == Punct) {
@@ -349,7 +394,7 @@ func TestMarksKeepTheFloor(t *testing.T) {
 					if f.Distance(a, b, float64(k)) > floor+10 {
 						continue
 					}
-					if d := exactDistance(gs[a.Index], gs[b.Index], float64(k)); d < floor-2 {
+					if d := fl.of(a.Index).distanceBelow(fl.of(b.Index), gs[a.Index].Advance+float64(k), floor-2); d < floor-2 {
 						t.Errorf("%s %s with kern %d: closest distance %.1f, floor %v", a.Name, b.Name, k, d, floor)
 					}
 				}

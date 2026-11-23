@@ -304,10 +304,16 @@ func TestSBeakArcsAreThin(t *testing.T) {
 				r := runs(v.Path, y)
 				stop := r[len(r)-1][0]
 				// The outer and the inner edge of the arc on the verticals.
+				memo := map[float64][2]outline.Point{}
 				arc := func(x float64) (outline.Point, outline.Point) {
+					if e, ok := memo[x]; ok {
+						return e[0], e[1]
+					}
 					vr := vruns(v.Path, x)
 					top := vr[len(vr)-1]
-					return outline.Point{X: x, Y: top[1]}, outline.Point{X: x, Y: top[0]}
+					e := [2]outline.Point{{X: x, Y: top[1]}, {X: x, Y: top[0]}}
+					memo[x] = e
+					return e[0], e[1]
 				}
 				for x := v.X; x < stop; x += 2 {
 					out, _ := arc(x)

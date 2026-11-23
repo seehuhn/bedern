@@ -7,6 +7,8 @@ package designtest
 
 import (
 	"math"
+	"slices"
+	"sync"
 
 	"seehuhn.de/go/bedern/internal/font/design"
 )
@@ -74,6 +76,11 @@ func Sets(routine bool, n int) []Set {
 // of r with it, and the upper notch and join of the bowls of p and q.  A change
 // of the stem changes AscenderStem with it.
 func Perturbed() []Set {
+	return slices.Clone(perturbed())
+}
+
+// perturbed builds the sets of Perturbed once.
+var perturbed = sync.OnceValue(func() []Set {
 	var sets []Set
 	add := func(name string, f ...func(p *design.Params)) {
 		p := design.Regular()
@@ -303,4 +310,4 @@ func Perturbed() []Set {
 		q.NotdefThick = 32
 	})
 	return sets
-}
+})

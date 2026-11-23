@@ -24,8 +24,8 @@ func findBalls(path outline.Path, r float64) []outline.Point {
 		if n < m {
 			continue
 		}
+		win := make([]outline.Point, m)
 		for i := 0; i < n; i += 4 {
-			win := make([]outline.Point, m)
 			for k := range win {
 				win[k] = pts[(i+k)%n]
 			}

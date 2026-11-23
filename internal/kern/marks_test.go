@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"seehuhn.de/go/bedern/internal/font/design"
-	"seehuhn.de/go/bedern/internal/font/glyphs"
 	"seehuhn.de/go/bedern/internal/font/glyphs/glyphstest"
 )
 
@@ -26,24 +25,25 @@ func TestMarksKeepTheirFloor(t *testing.T) {
 			f := tb.Font
 			floor := s.p.Acc.MarkFloor
 			n := 0
+			fl := newFlats(gs)
 			for _, d := range f.Glyphs {
 				if d.Like < 0 || len(gs[d.Index].Marks) == 0 {
 					continue
 				}
-				marks := glyphs.Glyph{Path: gs[d.Index].Marks, Advance: d.Advance}
+				marks := flatten(gs[d.Index].Marks)
 				for _, o := range f.Glyphs {
 					if o.Kind == Skip {
 						continue
 					}
 					if k := tb.Kern(o.Index, d.Index); f.markBound(o, d, float64(k)) < floor {
 						n++
-						if dist := exactDistance(gs[o.Index], marks, float64(k)); dist < floor-2 {
+						if dist := fl.of(o.Index).distanceBelow(marks, gs[o.Index].Advance+float64(k), floor-2); dist < floor-2 {
 							t.Errorf("%s %s with kern %d: the mark is %.1f from %s, want at least %v", o.Name, d.Name, k, dist, o.Name, floor)
 						}
 					}
 					if k := tb.Kern(d.Index, o.Index); f.markBound(d, o, float64(k)) < floor {
 						n++
-						if dist := exactDistance(marks, gs[o.Index], float64(k)); dist < floor-2 {
+						if dist := marks.distanceBelow(fl.of(o.Index), d.Advance+float64(k), floor-2); dist < floor-2 {
 							t.Errorf("%s %s with kern %d: the mark is %.1f from %s, want at least %v", d.Name, o.Name, k, dist, o.Name, floor)
 						}
 					}

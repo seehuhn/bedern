@@ -104,13 +104,10 @@ func TestSectionSymmetry(t *testing.T) {
 			all = append(all, sampleContour(ct, 0.5)...)
 		}
 		worst := 0.0
+		grid := newPointGrid(all, 8)
 		for i := 0; i < len(all); i += 7 {
 			q := outline.Point{X: 2*cx - all[i].X, Y: 2*cy - all[i].Y}
-			best := math.Inf(1)
-			for _, o := range all {
-				best = math.Min(best, math.Hypot(o.X-q.X, o.Y-q.Y))
-			}
-			worst = math.Max(worst, best)
+			worst = math.Max(worst, grid.nearest(q))
 		}
 		if worst > sectSymTol {
 			t.Errorf("%s: the outline turned through half a turn lies up to %.2f from itself, want at most %v", np.name, worst, sectSymTol)

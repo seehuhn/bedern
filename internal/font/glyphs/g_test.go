@@ -7,6 +7,7 @@ import (
 	"math"
 	"testing"
 
+	"seehuhn.de/go/bedern/internal/font/design"
 	"seehuhn.de/go/bedern/internal/outline"
 )
 
@@ -17,15 +18,28 @@ import (
 // that the loop stands balanced under the bowl, and that g keeps clear of its
 // neighbours.  The structural checks are inherited (structure_test.go).
 
-// gTestFrame returns the frame of g in the parameter set.
+// gTestFrame returns the frame of g in the parameter set, built once per
+// parameter set and shared; the caller must not change it.
 func gTestFrame(t *testing.T, np namedParams) gFrame {
 	t.Helper()
-	f, err := newGFrame(np.params)
-	if err != nil {
-		t.Fatal(err)
+	r := gFrameCache.get(np.params, "g")
+	if r.err != nil {
+		t.Fatal(r.err)
 	}
-	return f
+	return r.f
 }
+
+// A gFrameResult is what newGFrame returns.
+type gFrameResult struct {
+	f   gFrame
+	err error
+}
+
+// gFrameCache holds the results of newGFrame.
+var gFrameCache = paramCache[gFrameResult]{f: func(p design.Params, _ string) gFrameResult {
+	f, err := newGFrame(p)
+	return gFrameResult{f, err}
+}}
 
 // gSample returns n+1 points of the curve, with the tangent and the curvature at
 // each.

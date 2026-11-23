@@ -23,8 +23,18 @@ import (
 // ballLetters are the letters with a ball terminal.
 var ballLetters = []string{"a", "c", "f", "j", "r", "y"}
 
-// terminalOf returns the ball terminal placed in the letter for p.
+// terminalOf returns the ball terminal placed in the letter for p.  The result
+// is shared and must not be changed.
 func terminalOf(p design.Params, letter string) placedBall {
+	return terminalCache.get(p, letter)
+}
+
+// terminalCache holds the results of terminalOf, once per parameter set and
+// letter.
+var terminalCache = paramCache[placedBall]{f: terminalOfUncached}
+
+// terminalOfUncached computes terminalOf.
+func terminalOfUncached(p design.Params, letter string) placedBall {
 	switch letter {
 	case "a":
 		return aTerminal(p)
@@ -50,8 +60,16 @@ var woundLetters = map[string]bool{"c": true, "f": true, "r": true}
 
 // stalkOf returns the stalk and the ball of a wound letter as its construction
 // draws them, from the foot of the inner edge round the ball to the foot of the
-// outer edge.
+// outer edge.  The chain is shared and must not be changed.
 func stalkOf(p design.Params, letter string) chain {
+	return stalkCache.get(p, letter)
+}
+
+// stalkCache holds the results of stalkOf, once per parameter set and letter.
+var stalkCache = paramCache[chain]{f: stalkOfUncached}
+
+// stalkOfUncached computes stalkOf.
+func stalkOfUncached(p design.Params, letter string) chain {
 	switch letter {
 	case "c":
 		return cStalk(p, newCFrame(p))
@@ -516,6 +534,19 @@ func slidingTurns(pts []outline.Point, s []float64, window float64) (least float
 // and the inner edge from the tip to the stem; the runs are given in the order of
 // the contour.
 func stalkEdges(p design.Params, letter string) (inner, outer [2]outline.Point) {
+	e := stalkEdgeCache.get(p, letter)
+	return e[0], e[1]
+}
+
+// stalkEdgeCache holds the results of stalkEdges, once per parameter set and
+// letter.
+var stalkEdgeCache = paramCache[[2][2]outline.Point]{f: func(p design.Params, letter string) [2][2]outline.Point {
+	in, out := stalkEdgesOf(p, letter)
+	return [2][2]outline.Point{in, out}
+}}
+
+// stalkEdgesOf computes stalkEdges.
+func stalkEdgesOf(p design.Params, letter string) (inner, outer [2]outline.Point) {
 	tb := terminalOf(p, letter)
 	pt := func(x, y float64) outline.Point { return outline.Point{X: x, Y: y} }
 	switch letter {
@@ -548,17 +579,14 @@ func stalkProfile(t *testing.T, p design.Params, letter string, path outline.Pat
 	opts, _ := outerEdge(t, path, out[0], out[1])
 	tipFirst := letter == "a" // on a the inner edge starts at the tip
 	total := is[len(is)-1]
+	grid := newPointGrid(opts, 4)
 	for i, q := range ipts {
 		d := total - is[i]
 		if tipFirst {
 			d = is[i]
 		}
-		best := math.Inf(1)
-		for _, o := range opts {
-			best = math.Min(best, math.Hypot(q.X-o.X, q.Y-o.Y))
-		}
 		s = append(s, d)
-		th = append(th, best)
+		th = append(th, grid.nearest(q))
 	}
 	return s, th
 }
@@ -627,12 +655,11 @@ func ballClearance(t *testing.T, p design.Params, letter string, path outline.Pa
 		others = append(others, sampleContour(ct, 1)...)
 	}
 	best, at := math.Inf(1), outline.Point{}
+	grid := newPointGrid(others, 4)
 	for k := int(s.r / 0.25); k < int(1.4*math.Pi*s.r/0.25); k += 4 {
 		q := pts[((tip+dir*k)%n+n)%n]
-		for _, o := range others {
-			if d := math.Hypot(q.X-o.X, q.Y-o.Y); d < best {
-				best, at = d, q
-			}
+		if d := grid.nearest(q); d < best {
+			best, at = d, q
 		}
 	}
 	return best, at

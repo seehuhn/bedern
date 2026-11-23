@@ -13,10 +13,11 @@ import (
 // asteriskRing returns, for the circle of the radius rho about the centre
 // (cx, cy), the ink at n equally spaced angles from the upward direction.
 func asteriskRing(poly []outline.Point, cx, cy, rho float64, n int) []bool {
+	ix := newBandIndex(poly)
 	ink := make([]bool, n)
 	for i := range ink {
 		a := math.Pi/2 + 2*math.Pi*float64(i)/float64(n)
-		ink[i] = inside(poly, outline.Point{X: cx + rho*math.Cos(a), Y: cy + rho*math.Sin(a)})
+		ink[i] = ix.inside(outline.Point{X: cx + rho*math.Cos(a), Y: cy + rho*math.Sin(a)})
 	}
 	return ink
 }

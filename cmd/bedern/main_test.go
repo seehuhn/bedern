@@ -15,9 +15,15 @@ import (
 	bedern "seehuhn.de/go/bedern/internal/font"
 )
 
+// TestReproducible renders the font twice at the same time, which gives the
+// same bytes, and, without -short, once at another time, which gives other
+// bytes.
 func TestReproducible(t *testing.T) {
 	t.Parallel()
-	secs := []int64{1700000000, 1700000000, 1700000000 + 3*86400}
+	secs := []int64{1700000000, 1700000000}
+	if !testing.Short() {
+		secs = append(secs, 1700000000+3*86400)
+	}
 	out := make([][]byte, len(secs))
 	errs := make([]error, len(secs))
 	var wg sync.WaitGroup
@@ -39,7 +45,7 @@ func TestReproducible(t *testing.T) {
 	if !bytes.Equal(out[0], out[1]) {
 		t.Error("same time gives different bytes")
 	}
-	if bytes.Equal(out[0], out[2]) {
+	if len(out) > 2 && bytes.Equal(out[0], out[2]) {
 		t.Error("different time gives identical bytes")
 	}
 }

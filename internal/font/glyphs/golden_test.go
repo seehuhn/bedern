@@ -11,7 +11,6 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
-	"sync"
 	"testing"
 
 	"seehuhn.de/go/bedern/internal/outline"
@@ -78,24 +77,22 @@ func fingerprint(path outline.Path) string {
 func goldenLines(t *testing.T) []string {
 	sets := goldenParams()
 	parts := make([][]string, len(sets))
-	var wg sync.WaitGroup
+	type job struct{ i, j int }
+	var jobs []job
 	for i, np := range sets {
 		parts[i] = make([]string, len(table))
 		for j, e := range table {
 			if len(np.glyphs) > 0 && !contains(np.glyphs, e.name) {
 				continue
 			}
-			wg.Add(1)
-			go func() {
-				defer wg.Done()
-				gate <- struct{}{}
-				defer func() { <-gate }()
-				g := cachedRounded(np, e.name)
-				parts[i][j] = fmt.Sprintf("%s %s %g %s", np.name, g.Name, g.Advance, fingerprint(g.Path))
-			}()
+			jobs = append(jobs, job{i, j})
 		}
 	}
-	wg.Wait()
+	forEachParallel(len(jobs), func(k int) {
+		i, j := jobs[k].i, jobs[k].j
+		g := cachedRounded(sets[i], table[j].name)
+		parts[i][j] = fmt.Sprintf("%s %s %g %s", sets[i].name, g.Name, g.Advance, fingerprint(g.Path))
+	})
 	var all []string
 	for _, l := range parts {
 		for _, s := range l {

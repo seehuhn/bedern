@@ -23,8 +23,10 @@ import (
 // The error names each glyph which fails, with the stage and the check.
 func Check(p design.Params) error {
 	// The glyphs are checked in parallel; the errors are in the order of the
-	// table.
+	// table.  Each glyph which is not composed is built once, and the composed
+	// letters use the builds of their bases.
 	results := make([]error, len(table))
+	bs := &checkBuilds{p: p, m: map[string]*checkBuild{}}
 	var wg sync.WaitGroup
 	gate := make(chan struct{}, runtime.GOMAXPROCS(0))
 	for i, e := range table {
@@ -33,7 +35,7 @@ func Check(p design.Params) error {
 		go func() {
 			defer wg.Done()
 			defer func() { <-gate }()
-			results[i] = CheckGlyph(p, e.name)
+			results[i] = checkGlyph(p, e.name, bs)
 		}()
 	}
 	wg.Wait()
@@ -42,7 +44,12 @@ func Check(p design.Params) error {
 
 // CheckGlyph is Check for one glyph.  A panic of the construction, such as a
 // terminal which cannot be placed, is returned as an error.
-func CheckGlyph(p design.Params, name string) (err error) {
+func CheckGlyph(p design.Params, name string) error {
+	return checkGlyph(p, name, nil)
+}
+
+// checkGlyph is CheckGlyph with the builds bs, which may be nil.
+func checkGlyph(p design.Params, name string, bs *checkBuilds) (err error) {
 	e, ok := lookup(name)
 	if !ok {
 		return fmt.Errorf("glyphs: no glyph %s", name)
@@ -52,15 +59,67 @@ func CheckGlyph(p design.Params, name string) (err error) {
 			err = fmt.Errorf("glyph %s: the construction fails: %v", name, r)
 		}
 	}()
-	path, adv := e.draw(p)
-	rounded := path.Round()
-	if c := composites[name]; c != nil {
-		rounded = c.roundedFromScratch(p)
+	c := composites[name]
+	var path, rounded outline.Path
+	var adv float64
+	switch {
+	case bs == nil:
+		path, adv = e.draw(p)
+		rounded = path.Round()
+		if c != nil {
+			rounded = c.roundedFromScratch(p)
+		}
+	case c != nil:
+		bp, badv := bs.get(c.base)
+		dx, dy, f := c.place(p, bp)
+		m := markOutline(p, c.mark, f)
+		path, adv = c.assemble(bp, m, dx, dy), badv
+		rounded = c.rounded(bp.Round(), m.Round(), bp, m, dx, dy)
+	default:
+		path, adv = bs.get(name)
+		rounded = path.Round()
 	}
 	if problems := checkStages(p, name, path, adv, rounded); len(problems) > 0 {
 		return fmt.Errorf("glyph %s: %s", name, problems[0])
 	}
 	return nil
+}
+
+// checkBuilds holds the outlines of the glyphs which are not composed, each
+// drawn once for the parameters p when it is first asked for.  It is safe for
+// concurrent use; the outlines are shared and are not changed.
+type checkBuilds struct {
+	p  design.Params
+	mu sync.Mutex
+	m  map[string]*checkBuild
+}
+
+type checkBuild struct {
+	once  sync.Once
+	path  outline.Path
+	adv   float64
+	fault any // what the construction panicked with
+}
+
+// get returns the outline and the advance of the glyph, and panics as its
+// construction panics.
+func (bs *checkBuilds) get(name string) (outline.Path, float64) {
+	bs.mu.Lock()
+	b := bs.m[name]
+	if b == nil {
+		b = new(checkBuild)
+		bs.m[name] = b
+	}
+	bs.mu.Unlock()
+	b.once.Do(func() {
+		defer func() { b.fault = recover() }()
+		e, _ := lookup(name)
+		b.path, b.adv = e.draw(bs.p)
+	})
+	if b.fault != nil {
+		panic(b.fault)
+	}
+	return b.path, b.adv
 }
 
 // checkStages runs all checks on the unrounded and on the rounded outline of a
@@ -334,8 +393,10 @@ func checkScans(c structureCase) []string {
 	}
 	var problems []string
 	var xs, ys []float64
-	for _, ct := range c.path {
-		for _, q := range ct.Flatten() {
+	polys := make([][]outline.Point, len(c.path))
+	for i, ct := range c.path {
+		polys[i] = ct.Flatten()
+		for _, q := range polys[i] {
 			xs = append(xs, q.X)
 			ys = append(ys, q.Y)
 		}
@@ -345,7 +406,7 @@ func checkScans(c structureCase) []string {
 		if n := len(c.path.CrossingsX(y)); n%2 != 0 {
 			problems = append(problems, fmt.Sprintf("the horizontal scan at height %.2f has %d crossings", y, n))
 		}
-		if bad := windingProblem(c.path, y, true); bad != "" {
+		if bad := windingProblem(polys, y, true); bad != "" {
 			problems = append(problems, fmt.Sprintf("the horizontal scan at height %.2f: %s", y, bad))
 		}
 	}
@@ -353,23 +414,23 @@ func checkScans(c structureCase) []string {
 		if n := len(c.path.CrossingsY(x)); n%2 != 0 {
 			problems = append(problems, fmt.Sprintf("the vertical scan at x %.2f has %d crossings", x, n))
 		}
-		if bad := windingProblem(c.path, x, false); bad != "" {
+		if bad := windingProblem(polys, x, false); bad != "" {
 			problems = append(problems, fmt.Sprintf("the vertical scan at x %.2f: %s", x, bad))
 		}
 	}
 	return problems
 }
 
-// windingProblem follows the scan line at v (horizontal if horiz) and returns
-// a description if the winding number leaves {0, 1} or does not end at 0.
-func windingProblem(path outline.Path, v float64, horiz bool) string {
+// windingProblem follows the scan line at v (horizontal if horiz) across the
+// flattened contours polys and returns a description if the winding number
+// leaves {0, 1} or does not end at 0.
+func windingProblem(polys [][]outline.Point, v float64, horiz bool) string {
 	type crossing struct {
 		pos float64
 		dir int
 	}
 	var cs []crossing
-	for _, ct := range path {
-		pts := ct.Flatten()
+	for _, pts := range polys {
 		for i, a := range pts {
 			b := pts[(i+1)%len(pts)]
 			if !horiz {

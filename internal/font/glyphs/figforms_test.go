@@ -83,12 +83,17 @@ type figureBall struct {
 // (radians) which starts at the circle of the radius r, or -1 where the ray
 // leaves the circle into ink (the stalk).
 func whiteRun(path outline.Path, c outline.Point, r, th float64) float64 {
+	return whiteRunIn(pathIndex(path), c, r, th)
+}
+
+// whiteRunIn is whiteRun on the index of the path.
+func whiteRunIn(ix *bandIndex, c outline.Point, r, th float64) float64 {
 	q := func(d float64) outline.Point { return outline.Point{X: c.X + d*math.Cos(th), Y: c.Y + d*math.Sin(th)} }
 	d := r + 1
-	if inkAt(path, q(d)) {
+	if ix.leftOdd(q(d)) {
 		return -1
 	}
-	for d < r+400 && !inkAt(path, q(d)) {
+	for d < r+400 && !ix.leftOdd(q(d)) {
 		d++
 	}
 	return d - r
@@ -99,13 +104,14 @@ func whiteRun(path outline.Path, c outline.Point, r, th float64) float64 {
 // centre, on the side where the white is narrow.
 func figureBalls(path outline.Path, r float64) []figureBall {
 	var out []figureBall
+	ix := pathIndex(path)
 	for _, c := range findBalls(path, r) {
 		if math.IsNaN(c.X) || math.IsNaN(c.Y) {
 			continue
 		}
 		var white [360]float64
 		for a := range white {
-			white[a] = whiteRun(path, c, r, float64(a)*math.Pi/180)
+			white[a] = whiteRunIn(ix, c, r, float64(a)*math.Pi/180)
 		}
 		at := func(a int) float64 { return white[((a%360)+360)%360] }
 		tip, side, narrow := 0, 1, math.Inf(1)

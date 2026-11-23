@@ -41,6 +41,30 @@ type builtGlyph struct {
 // gate bounds the goroutines which a test starts itself.
 var gate = make(chan struct{}, runtime.GOMAXPROCS(0))
 
+// forEachParallel calls f(0), ..., f(n-1) on GOMAXPROCS goroutines, which
+// take the next index as they become free, and returns when all calls have
+// returned.
+func forEachParallel(n int, f func(i int)) {
+	next := make(chan int, n)
+	for i := range n {
+		next <- i
+	}
+	close(next)
+	var wg sync.WaitGroup
+	for range min(n, runtime.GOMAXPROCS(0)) {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			gate <- struct{}{}
+			defer func() { <-gate }()
+			for i := range next {
+				f(i)
+			}
+		}()
+	}
+	wg.Wait()
+}
+
 var (
 	buildMu sync.Mutex
 	builds  = map[buildKey]*builtGlyph{}
@@ -146,4 +170,35 @@ func cachedMerged(np namedParams, glyph string) outline.Path {
 func cachedRounded(np namedParams, glyph string) Glyph {
 	b := built(glyph, np.params)
 	return Glyph{Name: glyph, Rune: b.rune, Advance: b.advance, Path: b.roundedPath()}
+}
+
+// A paramCache holds the values of f, a function of a parameter set and a
+// glyph, each computed once per test binary.  It is safe for parallel tests;
+// the values are shared and must not be changed.
+type paramCache[V any] struct {
+	f  func(p design.Params, glyph string) V
+	mu sync.Mutex
+	m  map[buildKey]*paramCacheEntry[V]
+}
+
+type paramCacheEntry[V any] struct {
+	once sync.Once
+	v    V
+}
+
+// get returns f(p, glyph).
+func (c *paramCache[V]) get(p design.Params, glyph string) V {
+	k := buildKey{glyph, p}
+	c.mu.Lock()
+	if c.m == nil {
+		c.m = map[buildKey]*paramCacheEntry[V]{}
+	}
+	e := c.m[k]
+	if e == nil {
+		e = new(paramCacheEntry[V])
+		c.m[k] = e
+	}
+	c.mu.Unlock()
+	e.once.Do(func() { e.v = c.f(p, glyph) })
+	return e.v
 }

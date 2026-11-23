@@ -22,13 +22,16 @@ func composedNames() []string {
 }
 
 // TestComposedKeepTheBase: a composed letter is its rounded base, unchanged,
-// with the mark.  Where the mark is joined to the base, every node of the base
+// with the mark, in the parameter sets of composedRoutine.  Where the mark is joined to the base, every node of the base
 // which lies more than joinReach from the box of the mark is a node of the
 // letter.
 func TestComposedKeepTheBase(t *testing.T) {
 	t.Parallel()
 	const joinReach = 40
 	for _, np := range allParams() {
+		if !composedRoutine(np.name) {
+			continue
+		}
 		t.Run(np.name, func(t *testing.T) {
 			t.Parallel()
 			for _, name := range composedNames() {
@@ -151,15 +154,19 @@ func TestMarksStandOverTheMiddle(t *testing.T) {
 	}
 }
 
-// TestMarksClearTheBase: in every parameter set the lowest ink of a mark above
-// a letter stands at least minGapLower above the highest ink of a lowercase
-// letter and minGapCap above that of a capital or a letter with an ascender,
-// and a mark below the baseline which is not joined stands at least
-// minGapBelow below the lowest ink of its letter.
+// TestMarksClearTheBase: in every parameter set (in the routine tier the sets
+// of composedRoutine) the lowest ink of a mark above a letter stands at least
+// minGapLower above the highest ink of a lowercase letter and minGapCap above
+// that of a capital or a letter with an ascender, and a mark below the
+// baseline which is not joined stands at least minGapBelow below the lowest
+// ink of its letter.
 func TestMarksClearTheBase(t *testing.T) {
 	t.Parallel()
 	const minGapLower, minGapCap, minGapBelow = 36, 24, 36
 	for _, np := range goldenParams() {
+		if !composedRoutine(np.name) {
+			continue
+		}
 		t.Run(np.name, func(t *testing.T) {
 			t.Parallel()
 			for _, c := range composedList {
