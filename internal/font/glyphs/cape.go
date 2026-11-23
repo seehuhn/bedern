@@ -20,6 +20,14 @@ import (
 func capE(p design.Params) (outline.Path, float64) {
 	c := p.Caps
 	s := capStem{Left: design.CapStemLeft(p), FootLeft: c.SerifJut, HeadLeft: c.SerifJut}
+	return capEOnStem(p, s), design.CapEAdvance(p)
+}
+
+// capEOnStem draws the E on the stem s, with a head serif on the left if
+// s.HeadLeft is not zero and a foot serif on the left if s.FootLeft is not
+// zero.
+func capEOnStem(p design.Params, s capStem) outline.Path {
+	c := p.Caps
 	r := s.right(p)
 
 	bottom := capArmSpec(p, r, r+c.EBottomArm, c.Bar)
@@ -32,12 +40,15 @@ func capE(p design.Params) (outline.Path, float64) {
 	b := capArmBottom(bottom)
 	m := capArmMiddle(middle)
 	t := capArmTop(top)
-	head := capHeadLeft(p, s.Left, p.CapHeight, c.SerifJut)
+	head := lineChain(outline.Point{X: s.Left, Y: p.CapHeight}, outline.Point{X: s.Left, Y: p.CapHeight / 2})
+	if s.HeadLeft > 0 {
+		head = capHeadLeft(p, s.Left, p.CapHeight, s.HeadLeft)
+	}
 	ch := join(
 		lineChain(s.start(), b.start()), b,
 		lineChain(b.end(), m.start()), m,
 		lineChain(m.end(), t.start()), t,
 		lineChain(t.end(), head.start()), head,
 	)
-	return capContour(join(ch, s.down(p, ch.end()))), design.CapEAdvance(p)
+	return capContour(join(ch, s.down(p, ch.end())))
 }

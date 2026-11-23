@@ -368,6 +368,9 @@ func TestSetOrder(t *testing.T) {
 	for _, l := range ligatureList {
 		want = append(want, l.name)
 	}
+	for _, e := range specialList {
+		want = append(want, e.name)
+	}
 	if len(gs) != len(want) {
 		t.Fatalf("%d glyphs, want %d", len(gs), len(want))
 	}

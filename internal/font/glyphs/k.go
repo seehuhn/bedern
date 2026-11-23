@@ -67,7 +67,11 @@ func kStemSpec(p design.Params) stemSpec {
 
 // k draws the lowercase letter k, see the comment above.
 func k(p design.Params) (outline.Path, float64) {
-	stem := kStemSpec(p)
+	return kOnStem(p, kStemSpec(p)), design.KAdvance(p)
+}
+
+// kOnStem draws the k with the stem s: the arm and the leg of k on its right.
+func kOnStem(p design.Params, stem stemSpec) outline.Path {
 	arm, leg := kDiagonals(p)
 	right := stem.right()
 	// Where the edges of the arm reach the right-hand edge of the stem.
@@ -103,5 +107,5 @@ func k(p design.Params) (outline.Path, float64) {
 	c.appendTo(&path)
 	stemCap(&path, p, stem)
 	stemDown(&path, p, stem)
-	return path, design.KAdvance(p)
+	return path
 }

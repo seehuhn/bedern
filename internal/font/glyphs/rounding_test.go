@@ -266,6 +266,9 @@ const shortSeg = 15.0
 // segments shorter than shortSeg between two smooth nodes, and how many.
 var shortSegments = map[string]int{
 	"five": 1,
+	// The letters scaled down in ª and ®.
+	"ordfeminine": 1,
+	"registered":  1,
 }
 
 // In the regular parameters no segment of the rounded outline between two
