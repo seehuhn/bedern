@@ -18,8 +18,8 @@ import (
 // half a turn, with the dot where the upper dot of the colon stands; the low
 // quotation marks are the comma with the side spaces and the pitch of the
 // quotation marks; the ellipsis is three full stops, the middle dot the full
-// stop on the maths axis.  The others are polygons and curves of their own,
-// with the shape constants below.
+// stop on the maths axis.  The daggers are drawn in dagger.go.  The others are
+// polygons and curves of their own, with the shape constants below.
 
 // Shape constants of the further punctuation.
 const (
@@ -33,18 +33,6 @@ const (
 
 	bulletScale = 1.85 // the diameter of the bullet, in diameters of the dot
 	bulletSide  = 95.0 // the side spaces of the bullet
-
-	daggerTop     = 696.0 // the top of the daggers
-	daggerBottom  = -150.0
-	daggerCross   = 0.706 // the middle of the arms of †, in heights from the bottom
-	daggerArmsDbl = 0.24  // the middle of the arms of ‡, from either end, in heights
-	daggerReach   = 0.24  // how far an arm reaches from the middle of the stem, in heights
-	daggerSide    = 50.0  // the side spaces of the daggers
-	daggerEnd     = 0.86  // the stem at its ends, in stems
-	daggerMid     = 0.66  // the stem at the crossing, in stems
-	daggerFoot    = 0.38  // the foot of the stem of †, in stems
-	daggerArmEnd  = 0.95  // an arm at its end, in stems
-	daggerArmMid  = 0.68  // an arm at the stem, in stems
 
 	pilcrowTop    = 670.0 // the top of ¶
 	pilcrowBottom = -150.0
@@ -169,41 +157,6 @@ func bullet(p design.Params) (outline.Path, float64) {
 	r := bulletScale * p.DotDiameter / 2
 	superEllipse(&path, -r, p.Punct.MathAxis-r, r, p.Punct.MathAxis+r, p.DotSuperness, true)
 	return placeInk(path, design.PunctSides{Left: bulletSide, Right: bulletSide})
-}
-
-// daggerArms returns the arms of a dagger which cross the stem at the height
-// y: one polygon, thinnest at the middle and widening to the cut ends.
-func daggerArms(p design.Params, y float64) chain {
-	reach := daggerReach * (daggerTop - daggerBottom)
-	m, e := daggerArmMid*p.Stem/2, daggerArmEnd*p.Stem/2
-	return polygonChain([]outline.Point{
-		xy(-reach, y-e), xy(0, y-m), xy(reach, y-e), xy(reach, y+e), xy(0, y+m), xy(-reach, y+e),
-	})
-}
-
-// daggerStem returns the stem of a dagger: one polygon from the top to the
-// bottom, as wide as wt at the top, wm at the height ym and wb at the bottom.
-func daggerStem(wt, ym, wm, wb float64) chain {
-	return polygonChain([]outline.Point{
-		xy(-wb/2, daggerBottom), xy(wb/2, daggerBottom), xy(wm/2, ym), xy(wt/2, daggerTop), xy(-wt/2, daggerTop), xy(-wm/2, ym),
-	})
-}
-
-// dagger draws the dagger: a stem which narrows from its top to the crossing
-// and on to its foot, crossed by arms which widen from the stem to their ends.
-func dagger(p design.Params) (outline.Path, float64) {
-	y := daggerBottom + daggerCross*(daggerTop-daggerBottom)
-	stem := daggerStem(daggerEnd*p.Stem, y, daggerMid*p.Stem, daggerFoot*p.Stem)
-	return placeInk(chainsPath(union(stem, daggerArms(p, y))...), design.PunctSides{Left: daggerSide, Right: daggerSide})
-}
-
-// daggerdbl draws the double dagger: a stem which narrows from both ends to
-// the middle, crossed by arms near each end.
-func daggerdbl(p design.Params) (outline.Path, float64) {
-	h := daggerTop - daggerBottom
-	stem := daggerStem(daggerEnd*p.Stem, (daggerTop+daggerBottom)/2, daggerMid*p.Stem, daggerEnd*p.Stem)
-	arms := []chain{stem, daggerArms(p, daggerTop-daggerArmsDbl*h), daggerArms(p, daggerBottom+daggerArmsDbl*h)}
-	return placeInk(chainsPath(union(arms...)...), design.PunctSides{Left: daggerSide, Right: daggerSide})
 }
 
 // paragraph draws the pilcrow: two stems from the top to below the baseline
