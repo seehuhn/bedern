@@ -22,6 +22,17 @@ func Union(paths ...outline.Path) outline.Path {
 	return chainsPath(union(parts...)...)
 }
 
+// A Station is a point of the centre line of a stroke, as the symbols use it
+// (symstroke.go): its point, the direction of the stroke and its thickness,
+// with the optional nib, curvature and kind of the run which follows.
+type Station = station
+
+// Stroke returns the closed outline of the stroke through the stations, with
+// both ends cut along the nib (symstroke.go).
+func Stroke(sts []Station) outline.Path {
+	return chainsPath(strokeChain(sts))
+}
+
 // CheckOutline applies the structural checks of Check to an outline which is
 // not a glyph of the table, unrounded and rounded, with the bounding-box rule
 // and the sharp crotches of the glyph like.  The glyph like must be in the
