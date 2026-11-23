@@ -285,7 +285,7 @@ func Perturbed() []Set {
 		q.BracketOver, q.BracketUnder, q.ParenSagitta, q.ParenThick, q.ParenEnd, q.ParenAngle = 70, 30, 190, 84, 54, 52
 		q.BracketStem, q.BracketArm, q.BracketReach = 74, 44, 124
 		q.SlashAngle, q.SlashThick, q.BarThick = 22, 58, 62
-		q.AsteriskSize, q.AsteriskInner, q.AsteriskOuter = 440, 58, 74
+		q.AsteriskSize, q.AsteriskInner, q.AsteriskOuter = 440, 32, 78
 		q.MathWidth, q.MathThick, q.EqualsGap, q.MathAngle, q.MathAngleWidth, q.MathVertexFlat = 600, 60, 150, 27, 560, 44
 		q.NotdefThick = 44
 	})
@@ -298,7 +298,7 @@ func Perturbed() []Set {
 		q.BracketOver, q.BracketUnder, q.ParenSagitta, q.ParenThick, q.ParenEnd, q.ParenAngle = 44, 12, 160, 68, 40, 44
 		q.BracketStem, q.BracketArm, q.BracketReach = 60, 34, 100
 		q.SlashAngle, q.SlashThick, q.BarThick = 18, 46, 50
-		q.AsteriskSize, q.AsteriskInner, q.AsteriskOuter = 370, 46, 60
+		q.AsteriskSize, q.AsteriskInner, q.AsteriskOuter = 380, 26, 64
 		q.MathWidth, q.MathThick, q.EqualsGap, q.MathAngle, q.MathAngleWidth, q.MathVertexFlat = 520, 48, 120, 23, 470, 30
 		q.NotdefThick = 32
 	})
