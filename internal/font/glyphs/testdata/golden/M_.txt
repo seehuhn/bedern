@@ -27,3 +27,4 @@ caps-up M 902 2bdb0c0909c2
 caps-down M 847 b050419521d6
 punct-up M 901 0fd6344d7fc4
 punct-down M 901 0fd6344d7fc4
+bold M 964 a5effe75aaf3

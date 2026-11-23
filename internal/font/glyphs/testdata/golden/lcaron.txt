@@ -27,3 +27,4 @@ caps-up lcaron 270 db043625b0f5
 caps-down lcaron 270 db043625b0f5
 punct-up lcaron 270 12e40836425a
 punct-down lcaron 270 aba8e22372f8
+bold lcaron 319 d9de96c9d653

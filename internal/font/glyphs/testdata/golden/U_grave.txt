@@ -27,3 +27,4 @@ caps-up Ugrave 753 de2a052f45a7
 caps-down Ugrave 683 c6ea6c618fa0
 punct-up Ugrave 747 0a1f9748b049
 punct-down Ugrave 747 0a1f9748b049
+bold Ugrave 808 d23924495f30

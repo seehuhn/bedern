@@ -27,3 +27,4 @@ caps-up zcaron 426 4e5a2f233f37
 caps-down zcaron 426 4e5a2f233f37
 punct-up zcaron 426 4e5a2f233f37
 punct-down zcaron 426 4e5a2f233f37
+bold zcaron 454 09fc38b09e45

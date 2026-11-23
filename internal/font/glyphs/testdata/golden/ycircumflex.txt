@@ -27,3 +27,4 @@ caps-up ycircumflex 508 a386ef6311da
 caps-down ycircumflex 508 a386ef6311da
 punct-up ycircumflex 508 a386ef6311da
 punct-down ycircumflex 508 a386ef6311da
+bold ycircumflex 546 61b0d3a770fb

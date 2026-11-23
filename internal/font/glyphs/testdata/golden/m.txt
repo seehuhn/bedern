@@ -27,3 +27,4 @@ caps-up m 810 b8975150c5e7
 caps-down m 810 b8975150c5e7
 punct-up m 810 b8975150c5e7
 punct-down m 810 b8975150c5e7
+bold m 879 5c06fc817bf1

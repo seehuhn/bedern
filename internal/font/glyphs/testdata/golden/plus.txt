@@ -27,3 +27,4 @@ caps-up plus 670 2fcb5315f26e
 caps-down plus 670 2fcb5315f26e
 punct-up plus 710 22f1f73ed843
 punct-down plus 630 3dd4ea82cec3
+bold plus 670 134a598f7fb2

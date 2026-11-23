@@ -27,3 +27,4 @@ caps-up semicolon 268 4e3e37b46b2e
 caps-down semicolon 268 4e3e37b46b2e
 punct-up semicolon 268 228d5267b119
 punct-down semicolon 268 7f814abcf740
+bold semicolon 308 8550c07877de

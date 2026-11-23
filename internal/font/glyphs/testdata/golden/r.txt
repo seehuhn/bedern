@@ -27,3 +27,4 @@ caps-up r 388 15671e8cd336
 caps-down r 388 15671e8cd336
 punct-up r 388 15671e8cd336
 punct-down r 388 15671e8cd336
+bold r 459 d476d199d512

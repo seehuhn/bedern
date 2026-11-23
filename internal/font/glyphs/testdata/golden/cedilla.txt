@@ -27,3 +27,4 @@ caps-up cedilla 256 a42667b87ab1
 caps-down cedilla 256 a42667b87ab1
 punct-up cedilla 256 a42667b87ab1
 punct-down cedilla 256 a42667b87ab1
+bold cedilla 271 126d8f82b93f

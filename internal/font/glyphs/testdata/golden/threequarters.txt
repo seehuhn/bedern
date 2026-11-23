@@ -27,3 +27,4 @@ caps-up threequarters 664 bad23913be0e
 caps-down threequarters 613 8b981aa90810
 punct-up threequarters 635 cde2492ac24a
 punct-down threequarters 635 cde2492ac24a
+bold threequarters 682 a0357960bcbe

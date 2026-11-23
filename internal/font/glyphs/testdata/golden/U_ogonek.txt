@@ -27,3 +27,4 @@ caps-up Uogonek 753 4702a5ce803e
 caps-down Uogonek 683 c55469928325
 punct-up Uogonek 747 defb04d2f33c
 punct-down Uogonek 747 defb04d2f33c
+bold Uogonek 808 b2245376be4d

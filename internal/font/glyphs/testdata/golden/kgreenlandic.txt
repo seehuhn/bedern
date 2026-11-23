@@ -27,3 +27,4 @@ caps-up kgreenlandic 509 4d5807d79516
 caps-down kgreenlandic 509 4d5807d79516
 punct-up kgreenlandic 509 4d5807d79516
 punct-down kgreenlandic 509 4d5807d79516
+bold kgreenlandic 594 55402e6dd376

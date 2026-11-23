@@ -27,3 +27,4 @@ caps-up icircumflex 270 ff3270e58378
 caps-down icircumflex 270 ff3270e58378
 punct-up icircumflex 270 ff3270e58378
 punct-down icircumflex 270 ff3270e58378
+bold icircumflex 319 d44a9d782c68

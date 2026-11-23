@@ -27,3 +27,4 @@ caps-up p 546 98a4acc6d41e
 caps-down p 546 98a4acc6d41e
 punct-up p 546 98a4acc6d41e
 punct-down p 546 98a4acc6d41e
+bold p 595 e8ba7b6db28f

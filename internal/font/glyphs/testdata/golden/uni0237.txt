@@ -27,3 +27,4 @@ caps-up uni0237 296 4e8f5e0394a4
 caps-down uni0237 296 4e8f5e0394a4
 punct-up uni0237 296 4e8f5e0394a4
 punct-down uni0237 296 4e8f5e0394a4
+bold uni0237 345 64b15ad1e053

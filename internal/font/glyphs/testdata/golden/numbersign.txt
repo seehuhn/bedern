@@ -27,3 +27,4 @@ caps-up numbersign 620 729a0dc9c3f1
 caps-down numbersign 620 2b371f6e5b6a
 punct-up numbersign 620 c1c821d3b654
 punct-down numbersign 620 c1c821d3b654
+bold numbersign 678 e2bc38448a98

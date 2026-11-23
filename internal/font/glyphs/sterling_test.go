@@ -100,6 +100,9 @@ const (
 func TestSterlingBaseIsHeavyInTheMiddle(t *testing.T) {
 	t.Parallel()
 	for _, np := range allParams() {
+		if !boldApplies(t, np) {
+			continue
+		}
 		_, b := measureSterlingBase(t, np)
 		best, at := 0.0, 0.0
 		for i, x := range b.xs {
@@ -218,6 +221,9 @@ const (
 func TestSterlingBar(t *testing.T) {
 	t.Parallel()
 	for _, np := range allParams() {
+		if !boldApplies(t, np) {
+			continue
+		}
 		path, adv := cachedOutline(np, "sterling")
 		s := np.params.Sym
 		xs := path.CrossingsX(s.SterBarY)

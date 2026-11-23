@@ -27,3 +27,4 @@ caps-up multiply 670 4fa10fb67d9d
 caps-down multiply 670 4fa10fb67d9d
 punct-up multiply 710 97625dcb712a
 punct-down multiply 630 d0c210578f86
+bold multiply 670 3ad87f77312e

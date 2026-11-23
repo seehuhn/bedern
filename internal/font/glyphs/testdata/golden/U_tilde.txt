@@ -27,3 +27,4 @@ caps-up Utilde 753 abf451f14024
 caps-down Utilde 683 1a5e321437ed
 punct-up Utilde 747 ceab2fcc2728
 punct-down Utilde 747 ceab2fcc2728
+bold Utilde 808 a08b308cfd8f

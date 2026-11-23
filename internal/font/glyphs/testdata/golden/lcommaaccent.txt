@@ -27,3 +27,4 @@ caps-up lcommaaccent 270 1a404aac08f2
 caps-down lcommaaccent 270 1a404aac08f2
 punct-up lcommaaccent 270 d80f62e5e1a2
 punct-down lcommaaccent 270 728c78d02869
+bold lcommaaccent 319 b5cf3503bc19

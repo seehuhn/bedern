@@ -27,3 +27,4 @@ caps-up c 429 c60377d60596
 caps-down c 429 c60377d60596
 punct-up c 429 c60377d60596
 punct-down c 429 c60377d60596
+bold c 485 5709b23b9ede

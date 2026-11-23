@@ -27,3 +27,4 @@ caps-up IJ 802 09831f8f644c
 caps-down IJ 727 2d8761a546a8
 punct-up IJ 781 9d8558c3c85a
 punct-down IJ 781 9d8558c3c85a
+bold IJ 917 3ab77922b9ff

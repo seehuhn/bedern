@@ -27,3 +27,4 @@ caps-up ordfeminine 386 8c2160c834a4
 caps-down ordfeminine 386 8c2160c834a4
 punct-up ordfeminine 386 8c2160c834a4
 punct-down ordfeminine 386 8c2160c834a4
+bold ordfeminine 424 1120169a9476

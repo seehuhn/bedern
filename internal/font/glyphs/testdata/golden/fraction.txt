@@ -27,3 +27,4 @@ caps-up fraction 524 11b74057b74f
 caps-down fraction 480 f75979aa5939
 punct-up fraction 500 5deadc34c474
 punct-down fraction 500 5deadc34c474
+bold fraction 500 5deadc34c474

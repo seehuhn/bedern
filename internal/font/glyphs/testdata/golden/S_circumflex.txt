@@ -27,3 +27,4 @@ caps-up Scircumflex 558 1a90af163684
 caps-down Scircumflex 508 c7102790378b
 punct-up Scircumflex 533 3ac77a6a15d7
 punct-down Scircumflex 533 3ac77a6a15d7
+bold Scircumflex 585 ee8a59fec881

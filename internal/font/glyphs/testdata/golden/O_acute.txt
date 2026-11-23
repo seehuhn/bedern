@@ -27,3 +27,4 @@ caps-up Oacute 780 76adc029b17f
 caps-down Oacute 710 e883ecb614d7
 punct-up Oacute 746 38d394eb6b63
 punct-down Oacute 746 38d394eb6b63
+bold Oacute 794 dcbe7ba93a6c

@@ -27,3 +27,4 @@ caps-up hbar 540 53fdf0cb38ab
 caps-down hbar 540 53fdf0cb38ab
 punct-up hbar 540 53fdf0cb38ab
 punct-down hbar 540 53fdf0cb38ab
+bold hbar 599 0920cb40bfd0

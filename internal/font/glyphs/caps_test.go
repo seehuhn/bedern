@@ -21,6 +21,9 @@ import (
 // forCaps runs f on every parameter set as a parallel subtest.
 func forCaps(t *testing.T, f func(t *testing.T, np namedParams)) {
 	for _, np := range allParams() {
+		if !boldApplies(t, np) {
+			continue
+		}
 		t.Run(np.name, func(t *testing.T) {
 			t.Parallel()
 			f(t, np)

@@ -27,3 +27,4 @@ caps-up emacron 451 a062187a9a47
 caps-down emacron 451 a062187a9a47
 punct-up emacron 451 a062187a9a47
 punct-down emacron 451 a062187a9a47
+bold emacron 491 e50ecc95aee1

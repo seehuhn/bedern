@@ -27,3 +27,4 @@ caps-up zdotaccent 426 53edd499369a
 caps-down zdotaccent 426 53edd499369a
 punct-up zdotaccent 426 53edd499369a
 punct-down zdotaccent 426 53edd499369a
+bold zdotaccent 454 13134bde5c5c

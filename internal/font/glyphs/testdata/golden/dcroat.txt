@@ -27,3 +27,4 @@ caps-up dcroat 542 ba2b29cc4d6a
 caps-down dcroat 542 ba2b29cc4d6a
 punct-up dcroat 542 ba2b29cc4d6a
 punct-down dcroat 542 ba2b29cc4d6a
+bold dcroat 591 5136166d50d8

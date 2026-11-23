@@ -27,3 +27,4 @@ caps-up Rcaron 738 3af42339dbae
 caps-down Rcaron 635 f4e2d69fde25
 punct-up Rcaron 700 c0b5603d4c8d
 punct-down Rcaron 700 c0b5603d4c8d
+bold Rcaron 802 2516cbe4f239

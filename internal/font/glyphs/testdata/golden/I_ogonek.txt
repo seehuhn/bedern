@@ -27,3 +27,4 @@ caps-up Iogonek 347 c15f2314ba0d
 caps-down Iogonek 327 88e826c1f562
 punct-up Iogonek 337 6250848b6fd0
 punct-down Iogonek 337 6250848b6fd0
+bold Iogonek 388 829158ab1dfe

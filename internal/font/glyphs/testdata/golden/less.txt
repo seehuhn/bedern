@@ -27,3 +27,4 @@ caps-up less 670 a195d1693431
 caps-down less 670 a195d1693431
 punct-up less 710 b8e29b996504
 punct-down less 630 e29f4d7088fb
+bold less 670 683c1001e84d

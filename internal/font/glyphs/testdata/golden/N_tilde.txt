@@ -27,3 +27,4 @@ caps-up Ntilde 777 331c00fa89fb
 caps-down Ntilde 655 2dcaa821cf74
 punct-up Ntilde 747 b777714636df
 punct-down Ntilde 747 b777714636df
+bold Ntilde 800 71c9fdb76727

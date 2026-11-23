@@ -27,3 +27,4 @@ caps-up thorn 546 ffcda0af86a1
 caps-down thorn 546 ffcda0af86a1
 punct-up thorn 546 ffcda0af86a1
 punct-down thorn 546 ffcda0af86a1
+bold thorn 595 df943c876ced

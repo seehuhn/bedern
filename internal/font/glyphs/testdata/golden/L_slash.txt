@@ -27,3 +27,4 @@ caps-up Lslash 607 4a0d2d80eafe
 caps-down Lslash 542 520baf4f53ca
 punct-up Lslash 590 e3ab6c1dc47d
 punct-down Lslash 590 e3ab6c1dc47d
+bold Lslash 625 8ccfe7650461

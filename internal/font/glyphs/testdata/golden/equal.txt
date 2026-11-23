@@ -27,3 +27,4 @@ caps-up equal 670 cf5ca0648bd9
 caps-down equal 670 cf5ca0648bd9
 punct-up equal 710 7b517e12be06
 punct-down equal 630 c8fc98c222f6
+bold equal 670 40564e3bf142

@@ -27,3 +27,4 @@ caps-up Omacron 780 19fa0b2e0ed0
 caps-down Omacron 710 654c7697cb64
 punct-up Omacron 746 b10b737482d8
 punct-down Omacron 746 b10b737482d8
+bold Omacron 794 01381ebfdb3a

@@ -27,3 +27,4 @@ caps-up x 500 9a2d98a6c78a
 caps-down x 500 9a2d98a6c78a
 punct-up x 500 9a2d98a6c78a
 punct-down x 500 9a2d98a6c78a
+bold x 538 cc0f78b40383

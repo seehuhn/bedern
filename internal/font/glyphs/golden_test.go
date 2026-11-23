@@ -126,14 +126,23 @@ func goldenFiles(lines []string) map[string]string {
 }
 
 // TestGolden compares the advance and the rounded outline of every glyph in
-// every variant and parameter set with the files of testdata/golden.
+// every variant and parameter set, and in the full tier on the bold
+// parameters, with the files of testdata/golden.  The routine tier leaves out
+// the lines of the bold.
 // An intended change is accepted with `go test ./internal/glyphs -run
 // TestGolden -update`, which rewrites the files whose content changes and
 // removes the files of glyphs which are gone.  The test fails on a file which belongs to no glyph.
 func TestGolden(t *testing.T) {
 	t.Parallel()
+	if *update && testing.Short() {
+		t.Fatal("-update needs the full tier: run it without -short")
+	}
 	got := goldenLines(t)
 	files := goldenFiles(got)
+	sets := map[string]bool{}
+	for _, np := range goldenParams() {
+		sets[np.name] = true
+	}
 	entries, err := os.ReadDir(goldenDir)
 	if err != nil && !(*update && os.IsNotExist(err)) {
 		t.Fatalf("%v (create the files with -update)", err)
@@ -170,7 +179,11 @@ func TestGolden(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		want = append(want, strings.Split(strings.TrimSuffix(string(data), "\n"), "\n")...)
+		for _, l := range strings.Split(strings.TrimSuffix(string(data), "\n"), "\n") {
+			if set, _, _ := strings.Cut(l, " "); sets[set] {
+				want = append(want, l)
+			}
+		}
 	}
 	if rep := goldenReport(want, got); rep != "" {
 		t.Errorf("outlines or advances differ from the files of %s; accept with -update if intended:\n%s", goldenDir, rep)

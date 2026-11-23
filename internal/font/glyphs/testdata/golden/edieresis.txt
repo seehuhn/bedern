@@ -27,3 +27,4 @@ caps-up edieresis 451 ce463a0db6c2
 caps-down edieresis 451 ce463a0db6c2
 punct-up edieresis 451 ce463a0db6c2
 punct-down edieresis 451 ce463a0db6c2
+bold edieresis 491 d022866b7966

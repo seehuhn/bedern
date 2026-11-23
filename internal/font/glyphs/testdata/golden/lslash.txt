@@ -27,3 +27,4 @@ caps-up lslash 270 e1b086ebb482
 caps-down lslash 270 e1b086ebb482
 punct-up lslash 270 e1b086ebb482
 punct-down lslash 270 e1b086ebb482
+bold lslash 319 0a6b7f25ffac

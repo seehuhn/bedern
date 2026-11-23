@@ -27,3 +27,4 @@ caps-up comma 268 3ae34d29a21d
 caps-down comma 268 3ae34d29a21d
 punct-up comma 268 43edfb6becde
 punct-down comma 268 0b32a8c1ba02
+bold comma 308 c6dd6749fd05

@@ -27,3 +27,4 @@ caps-up omacron 486 7b752db3bf78
 caps-down omacron 486 7b752db3bf78
 punct-up omacron 486 7b752db3bf78
 punct-down omacron 486 7b752db3bf78
+bold omacron 526 8d1c33af27b7

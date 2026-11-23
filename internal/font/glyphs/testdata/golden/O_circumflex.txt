@@ -27,3 +27,4 @@ caps-up Ocircumflex 780 8ba7fcf1028e
 caps-down Ocircumflex 710 ef8882958835
 punct-up Ocircumflex 746 20ac3ea06f24
 punct-down Ocircumflex 746 20ac3ea06f24
+bold Ocircumflex 794 4a7b0da9a90c

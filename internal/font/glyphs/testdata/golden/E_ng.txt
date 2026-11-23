@@ -27,3 +27,4 @@ caps-up Eng 777 f67bee59ca65
 caps-down Eng 655 b63316086f28
 punct-up Eng 747 3bd96c10b1ab
 punct-down Eng 747 3bd96c10b1ab
+bold Eng 800 5c10f35e4d17

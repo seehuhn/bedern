@@ -27,3 +27,4 @@ caps-up cent 515 750a85be79ab
 caps-down cent 470 975b57613f7b
 punct-up cent 490 a7496df56bf9
 punct-down cent 490 a7496df56bf9
+bold cent 530 0c408c85d37b

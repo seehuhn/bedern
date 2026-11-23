@@ -27,3 +27,4 @@ caps-up guilsinglleft 269 cb30d8c1c239
 caps-down guilsinglleft 269 cb30d8c1c239
 punct-up guilsinglleft 269 cb30d8c1c239
 punct-down guilsinglleft 269 cb30d8c1c239
+bold guilsinglleft 269 b44fe2fc0eb6

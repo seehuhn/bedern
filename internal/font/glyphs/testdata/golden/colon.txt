@@ -27,3 +27,4 @@ caps-up colon 268 e8fa33aa8a80
 caps-down colon 268 e8fa33aa8a80
 punct-up colon 268 baf0ee8214e6
 punct-down colon 268 fe0db84e4889
+bold colon 308 fadb25b84d8a

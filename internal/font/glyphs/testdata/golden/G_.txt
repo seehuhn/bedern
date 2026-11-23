@@ -27,3 +27,4 @@ caps-up G 765 36c36b34f016
 caps-down G 693 a70a3b07f004
 punct-up G 727 8c2b6c5977fb
 punct-down G 727 8c2b6c5977fb
+bold G 776 92de5be29d4b

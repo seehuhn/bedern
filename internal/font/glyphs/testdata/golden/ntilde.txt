@@ -27,3 +27,4 @@ caps-up ntilde 540 4424735e2cd8
 caps-down ntilde 540 4424735e2cd8
 punct-up ntilde 540 4424735e2cd8
 punct-down ntilde 540 4424735e2cd8
+bold ntilde 599 ae7bed14f991

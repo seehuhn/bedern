@@ -27,3 +27,4 @@ caps-up four 515 a59da6dff18e
 caps-down four 470 d8eb31b9daf2
 punct-up four 490 a7810e1a3039
 punct-down four 490 a7810e1a3039
+bold four 530 d7684648cd2d

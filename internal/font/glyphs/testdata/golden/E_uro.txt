@@ -27,3 +27,4 @@ caps-up Euro 586 ebaf888d17d1
 caps-down Euro 547 caad74eb5e7f
 punct-up Euro 559 e3ba50021f18
 punct-down Euro 559 e3ba50021f18
+bold Euro 595 5d27dfacfcbf

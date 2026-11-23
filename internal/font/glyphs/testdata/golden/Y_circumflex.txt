@@ -27,3 +27,4 @@ caps-up Ycircumflex 751 621d94bb8ccc
 caps-down Ycircumflex 701 397c9550e87b
 punct-up Ycircumflex 709 0c4bf34aed5b
 punct-down Ycircumflex 709 0c4bf34aed5b
+bold Ycircumflex 749 53012d1acc8f

@@ -27,3 +27,4 @@ caps-up amacron 491 0818005f2442
 caps-down amacron 491 0818005f2442
 punct-up amacron 491 0818005f2442
 punct-down amacron 491 0818005f2442
+bold amacron 549 5935ffef845e

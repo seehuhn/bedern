@@ -27,3 +27,4 @@ caps-up f_j 540 7e704abf1438
 caps-down f_j 540 7e704abf1438
 punct-up f_j 540 7e704abf1438
 punct-down f_j 540 7e704abf1438
+bold f_j 638 7de05084880d

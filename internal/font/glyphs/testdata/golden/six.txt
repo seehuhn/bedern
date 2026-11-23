@@ -27,3 +27,4 @@ caps-up six 515 da34ebef7ec1
 caps-down six 470 4526eba50a7c
 punct-up six 490 f1630062e6a8
 punct-down six 490 f1630062e6a8
+bold six 530 073619889a01

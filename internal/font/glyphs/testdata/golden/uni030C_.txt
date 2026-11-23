@@ -27,3 +27,4 @@ caps-up uni030C 0 363eda8a017a
 caps-down uni030C 0 363eda8a017a
 punct-up uni030C 0 363eda8a017a
 punct-down uni030C 0 363eda8a017a
+bold uni030C 0 4f3bdad26d29

@@ -27,3 +27,4 @@ caps-up Racute 738 3f0db2464ca2
 caps-down Racute 635 1962487ffeb2
 punct-up Racute 700 06e34ec142ff
 punct-down Racute 700 06e34ec142ff
+bold Racute 802 0ba8296b247d

@@ -27,3 +27,4 @@ caps-up degree 355 6080bf11a6e5
 caps-down degree 355 0ab8b938ca41
 punct-up degree 355 1796241a0aab
 punct-down degree 355 1796241a0aab
+bold degree 395 390b3f86534e

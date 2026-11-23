@@ -27,3 +27,4 @@ caps-up ij 546 f8fa04b7df91
 caps-down ij 546 f8fa04b7df91
 punct-up ij 546 f8fa04b7df91
 punct-down ij 546 f8fa04b7df91
+bold ij 644 0c838b388ffd

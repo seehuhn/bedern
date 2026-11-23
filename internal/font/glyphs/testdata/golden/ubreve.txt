@@ -27,3 +27,4 @@ caps-up ubreve 540 3981ccd6f1b7
 caps-down ubreve 540 3981ccd6f1b7
 punct-up ubreve 540 3981ccd6f1b7
 punct-down ubreve 540 3981ccd6f1b7
+bold ubreve 599 44af899ed616

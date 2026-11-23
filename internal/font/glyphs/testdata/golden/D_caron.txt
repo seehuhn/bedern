@@ -27,3 +27,4 @@ caps-up Dcaron 773 2a4807a3ecd1
 caps-down Dcaron 703 58ddee094d62
 punct-up Dcaron 737 bb029292922c
 punct-down Dcaron 737 bb029292922c
+bold Dcaron 792 3cd69a538912

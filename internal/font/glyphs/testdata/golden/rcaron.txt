@@ -27,3 +27,4 @@ caps-up rcaron 388 2416c433651f
 caps-down rcaron 388 2416c433651f
 punct-up rcaron 388 2416c433651f
 punct-down rcaron 388 2416c433651f
+bold rcaron 459 fe1778d7e0f5

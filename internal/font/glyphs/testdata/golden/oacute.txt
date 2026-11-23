@@ -27,3 +27,4 @@ caps-up oacute 486 7d3f91e9d768
 caps-down oacute 486 7d3f91e9d768
 punct-up oacute 486 7d3f91e9d768
 punct-down oacute 486 7d3f91e9d768
+bold oacute 526 0a3bf1f5afdb

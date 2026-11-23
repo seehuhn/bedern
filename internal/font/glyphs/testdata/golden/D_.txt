@@ -27,3 +27,4 @@ caps-up D 773 7a0a3b312034
 caps-down D 703 c72cf320fd46
 punct-up D 737 86d33902252f
 punct-down D 737 86d33902252f
+bold D 792 ffc28964fe72

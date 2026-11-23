@@ -27,3 +27,4 @@ caps-up Otilde 780 39cbdcad3f11
 caps-down Otilde 710 ab1dea77e69f
 punct-up Otilde 746 84b0e0726b92
 punct-down Otilde 746 84b0e0726b92
+bold Otilde 794 da5e19dba4f3

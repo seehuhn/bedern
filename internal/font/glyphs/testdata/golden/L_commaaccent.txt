@@ -27,3 +27,4 @@ caps-up Lcommaaccent 607 6c0d5c029258
 caps-down Lcommaaccent 542 c1f8220fd752
 punct-up Lcommaaccent 590 657815831fa4
 punct-down Lcommaaccent 590 3592a92f73cd
+bold Lcommaaccent 625 0e750576d973

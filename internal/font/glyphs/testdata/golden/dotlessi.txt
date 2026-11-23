@@ -27,3 +27,4 @@ caps-up dotlessi 270 bedbd6493007
 caps-down dotlessi 270 bedbd6493007
 punct-up dotlessi 270 bedbd6493007
 punct-down dotlessi 270 bedbd6493007
+bold dotlessi 319 9ff73b9e36c6

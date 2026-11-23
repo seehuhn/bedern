@@ -27,3 +27,4 @@ caps-up tildecomb 0 deb5cc6511f6
 caps-down tildecomb 0 deb5cc6511f6
 punct-up tildecomb 0 deb5cc6511f6
 punct-down tildecomb 0 deb5cc6511f6
+bold tildecomb 0 08e9e72717a5

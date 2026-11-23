@@ -27,3 +27,4 @@ caps-up q 523 3ca1cbc690f8
 caps-down q 523 3ca1cbc690f8
 punct-up q 523 3ca1cbc690f8
 punct-down q 523 3ca1cbc690f8
+bold q 572 eaa3713630fc

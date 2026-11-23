@@ -27,3 +27,4 @@ caps-up idieresis 270 d39ee30291eb
 caps-down idieresis 270 d39ee30291eb
 punct-up idieresis 270 d39ee30291eb
 punct-down idieresis 270 d39ee30291eb
+bold idieresis 319 4ba27f5c84a3

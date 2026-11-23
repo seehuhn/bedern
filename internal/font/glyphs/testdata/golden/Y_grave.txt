@@ -27,3 +27,4 @@ caps-up Ygrave 751 a276927fe498
 caps-down Ygrave 701 c3603efaffa5
 punct-up Ygrave 709 611b0a465387
 punct-down Ygrave 709 611b0a465387
+bold Ygrave 749 5b33875a5955

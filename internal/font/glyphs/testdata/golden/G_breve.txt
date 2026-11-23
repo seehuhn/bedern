@@ -27,3 +27,4 @@ caps-up Gbreve 765 dd8ddbbea941
 caps-down Gbreve 693 d2656b6b30b5
 punct-up Gbreve 727 51e959df10f2
 punct-down Gbreve 727 51e959df10f2
+bold Gbreve 776 6bec65b6e162

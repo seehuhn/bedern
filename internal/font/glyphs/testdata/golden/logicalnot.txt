@@ -27,3 +27,4 @@ caps-up logicalnot 670 d04273a8b9fb
 caps-down logicalnot 670 d04273a8b9fb
 punct-up logicalnot 710 eebee9bd87be
 punct-down logicalnot 630 5a352fe44457
+bold logicalnot 670 fde929042470

@@ -27,3 +27,4 @@ caps-up Uacute 753 c64a8d004a6e
 caps-down Uacute 683 1284b9b1870f
 punct-up Uacute 747 7f1cfba3cf49
 punct-down Uacute 747 7f1cfba3cf49
+bold Uacute 808 05261d6443ab

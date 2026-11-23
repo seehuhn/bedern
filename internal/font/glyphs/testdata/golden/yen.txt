@@ -27,3 +27,4 @@ caps-up yen 713 fba98510e11b
 caps-down yen 664 78a1b7c853dc
 punct-up yen 672 b9b7678dd6dd
 punct-down yen 672 b9b7678dd6dd
+bold yen 711 bd7e20698b63

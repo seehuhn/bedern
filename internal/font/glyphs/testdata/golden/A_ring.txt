@@ -27,3 +27,4 @@ caps-up Aring 727 285646387a3e
 caps-down Aring 677 709b604c4144
 punct-up Aring 725 a141e8fb1886
 punct-down Aring 725 a141e8fb1886
+bold Aring 755 3d488886746f

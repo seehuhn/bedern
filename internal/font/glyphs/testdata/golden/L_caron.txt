@@ -27,3 +27,4 @@ caps-up Lcaron 607 2607f9eeda44
 caps-down Lcaron 542 3aa3bf688d27
 punct-up Lcaron 590 399ebf896773
 punct-down Lcaron 590 99878e698364
+bold Lcaron 625 dd60cc00b9fa

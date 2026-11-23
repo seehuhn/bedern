@@ -27,3 +27,4 @@ caps-up Ecircumflex 676 f593831a5938
 caps-down Ecircumflex 601 c2091739be48
 punct-up Ecircumflex 641 392fbf4b5203
 punct-down Ecircumflex 641 392fbf4b5203
+bold Ecircumflex 676 b207cd0d60ed

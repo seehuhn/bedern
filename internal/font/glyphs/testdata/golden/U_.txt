@@ -27,3 +27,4 @@ caps-up U 753 3d66981f1e1a
 caps-down U 683 a8a821d6da1d
 punct-up U 747 54f956811f46
 punct-down U 747 54f956811f46
+bold U 808 1f80652be0f8

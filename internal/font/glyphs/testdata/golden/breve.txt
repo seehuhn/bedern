@@ -27,3 +27,4 @@ caps-up breve 340 2d8ba835f68d
 caps-down breve 340 2d8ba835f68d
 punct-up breve 340 2d8ba835f68d
 punct-down breve 340 2d8ba835f68d
+bold breve 362 46408f2b1fa2

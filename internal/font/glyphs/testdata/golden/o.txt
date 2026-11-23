@@ -27,3 +27,4 @@ caps-up o 486 16476a858c61
 caps-down o 486 16476a858c61
 punct-up o 486 16476a858c61
 punct-down o 486 16476a858c61
+bold o 526 e012ed6501b3

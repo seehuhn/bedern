@@ -27,3 +27,4 @@ caps-up ldot 301 f8330e041fd7
 caps-down ldot 301 f8330e041fd7
 punct-up ldot 301 f8330e041fd7
 punct-down ldot 301 f8330e041fd7
+bold ldot 390 8b6fa607f46f

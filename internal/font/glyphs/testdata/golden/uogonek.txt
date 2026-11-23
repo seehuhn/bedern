@@ -27,3 +27,4 @@ caps-up uogonek 540 b2f57a2f4327
 caps-down uogonek 540 b2f57a2f4327
 punct-up uogonek 540 b2f57a2f4327
 punct-down uogonek 540 b2f57a2f4327
+bold uogonek 599 54663d0e885c

@@ -27,3 +27,4 @@ caps-up Hcircumflex 753 1ffffe42a92d
 caps-down Hcircumflex 683 a0e23426d3df
 punct-up Hcircumflex 747 f665030246c0
 punct-down Hcircumflex 747 f665030246c0
+bold Hcircumflex 808 b69a165300f3

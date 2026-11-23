@@ -27,3 +27,4 @@ caps-up W 1019 7b3fd3a04a48
 caps-down W 954 65c0e6e04018
 punct-up W 985 4f7ee45e4f1a
 punct-down W 985 4f7ee45e4f1a
+bold W 1064 8dba465c0f52

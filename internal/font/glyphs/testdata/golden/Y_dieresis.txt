@@ -27,3 +27,4 @@ caps-up Ydieresis 751 174665c443bf
 caps-down Ydieresis 701 60d0d56c8008
 punct-up Ydieresis 709 eab22a9bfbe0
 punct-down Ydieresis 709 eab22a9bfbe0
+bold Ydieresis 749 b34119154b05

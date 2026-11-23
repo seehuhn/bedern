@@ -27,3 +27,4 @@ caps-up bracketleft 300 96181e4a73f0
 caps-down bracketleft 300 f2824017dd15
 punct-up bracketleft 312 4b0dc99f140e
 punct-down bracketleft 274 7ff84fc10a25
+bold bracketleft 344 fa48f4153820

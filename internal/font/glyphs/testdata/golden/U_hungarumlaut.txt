@@ -27,3 +27,4 @@ caps-up Uhungarumlaut 753 245b4b803cf8
 caps-down Uhungarumlaut 683 c014811fe1af
 punct-up Uhungarumlaut 747 0f3d96380290
 punct-down Uhungarumlaut 747 0f3d96380290
+bold Uhungarumlaut 808 0cbcbf2a2d4c

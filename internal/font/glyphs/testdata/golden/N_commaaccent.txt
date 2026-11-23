@@ -27,3 +27,4 @@ caps-up Ncommaaccent 777 af2c5f093de1
 caps-down Ncommaaccent 655 e85846a856e9
 punct-up Ncommaaccent 747 8859334c9ea3
 punct-down Ncommaaccent 747 352c35fc48bc
+bold Ncommaaccent 800 abe9d7947db3

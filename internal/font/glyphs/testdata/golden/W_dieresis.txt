@@ -27,3 +27,4 @@ caps-up Wdieresis 1019 bb12694e0cba
 caps-down Wdieresis 954 837cac372270
 punct-up Wdieresis 985 dbb5e70a008f
 punct-down Wdieresis 985 dbb5e70a008f
+bold Wdieresis 1064 0ddb3b472e28

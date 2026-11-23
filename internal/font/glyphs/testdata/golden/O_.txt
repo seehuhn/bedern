@@ -27,3 +27,4 @@ caps-up O 780 8fb0c76f5140
 caps-down O 710 b452d68b8158
 punct-up O 746 ef388cb2d9a5
 punct-down O 746 ef388cb2d9a5
+bold O 794 86e871a5dd9c

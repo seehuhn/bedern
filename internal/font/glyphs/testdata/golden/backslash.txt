@@ -27,3 +27,4 @@ caps-up backslash 461 0637d637021a
 caps-down backslash 437 ca9b39495b1a
 punct-up backslash 491 275c0549c054
 punct-down backslash 408 bf0151a31839
+bold backslash 482 9e2df996ae6d

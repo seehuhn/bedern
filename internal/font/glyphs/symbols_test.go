@@ -53,6 +53,9 @@ func nodeTurns(ct outline.Contour, f func(at outline.Point, turn float64, before
 func TestSymbolNodes(t *testing.T) {
 	t.Parallel()
 	for _, np := range allParams() {
+		if !boldApplies(t, np) {
+			continue
+		}
 		for _, name := range symbolGlyphs {
 			path, _, _ := outlineOf(name, np.params)
 			for _, ct := range path {
@@ -100,6 +103,9 @@ const (
 func TestQuestionBalance(t *testing.T) {
 	t.Parallel()
 	for _, np := range allParams() {
+		if !boldApplies(t, np) {
+			continue
+		}
 		path, _, _ := outlineOf("question", np.params)
 		if len(path) != 2 {
 			t.Fatalf("%s: %d contours, want the hook and the dot", np.name, len(path))

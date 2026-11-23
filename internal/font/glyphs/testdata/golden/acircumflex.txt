@@ -27,3 +27,4 @@ caps-up acircumflex 491 a5880824163c
 caps-down acircumflex 491 a5880824163c
 punct-up acircumflex 491 a5880824163c
 punct-down acircumflex 491 a5880824163c
+bold acircumflex 549 651649e0716c

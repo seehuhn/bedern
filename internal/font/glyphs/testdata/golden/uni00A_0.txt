@@ -27,3 +27,4 @@ caps-up uni00A0 323 e3b0c44298fc
 caps-down uni00A0 323 e3b0c44298fc
 punct-up uni00A0 323 e3b0c44298fc
 punct-down uni00A0 323 e3b0c44298fc
+bold uni00A0 323 e3b0c44298fc

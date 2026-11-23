@@ -27,3 +27,4 @@ caps-up ecaron 451 a1ca35370e6d
 caps-down ecaron 451 a1ca35370e6d
 punct-up ecaron 451 a1ca35370e6d
 punct-down ecaron 451 a1ca35370e6d
+bold ecaron 491 64b2186e76ee

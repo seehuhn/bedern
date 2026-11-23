@@ -27,3 +27,4 @@ caps-up cdotaccent 429 4ced57f3df9c
 caps-down cdotaccent 429 4ced57f3df9c
 punct-up cdotaccent 429 4ced57f3df9c
 punct-down cdotaccent 429 4ced57f3df9c
+bold cdotaccent 485 7c68497b41e9

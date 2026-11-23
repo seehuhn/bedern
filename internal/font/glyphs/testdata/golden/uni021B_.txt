@@ -27,3 +27,4 @@ caps-up uni021B 355 5173e3ec1bc1
 caps-down uni021B 355 5173e3ec1bc1
 punct-up uni021B 355 acebc2a285e9
 punct-down uni021B 355 da5f7cd1fa07
+bold uni021B 404 2cea3cb3033e

@@ -27,3 +27,4 @@ caps-up parenleft 344 a0595f5a0b7f
 caps-down parenleft 344 c20710c22fd0
 punct-up parenleft 368 510d86106455
 punct-down parenleft 324 0479ce17dbd0
+bold parenleft 362 268faed46ce2

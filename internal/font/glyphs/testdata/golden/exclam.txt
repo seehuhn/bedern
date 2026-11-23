@@ -27,3 +27,4 @@ caps-up exclam 268 f8ff6c680bd5
 caps-down exclam 268 1b593247b271
 punct-up exclam 268 d30446af4a97
 punct-down exclam 268 fcdffd8e049f
+bold exclam 308 e57f0c48e31a

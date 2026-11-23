@@ -27,3 +27,4 @@ caps-up Emacron 676 dd6b1122e683
 caps-down Emacron 601 2cba998991e7
 punct-up Emacron 641 4ccf9015eeb4
 punct-down Emacron 641 4ccf9015eeb4
+bold Emacron 676 f075ee8a5605

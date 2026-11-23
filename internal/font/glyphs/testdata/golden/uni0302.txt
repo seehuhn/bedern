@@ -27,3 +27,4 @@ caps-up uni0302 0 97349847ae91
 caps-down uni0302 0 97349847ae91
 punct-up uni0302 0 97349847ae91
 punct-down uni0302 0 97349847ae91
+bold uni0302 0 72ac62c10348

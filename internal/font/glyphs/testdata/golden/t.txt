@@ -27,3 +27,4 @@ caps-up t 355 1baf78912594
 caps-down t 355 1baf78912594
 punct-up t 355 1baf78912594
 punct-down t 355 1baf78912594
+bold t 404 127571ae9e91

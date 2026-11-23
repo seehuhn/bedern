@@ -27,3 +27,4 @@ caps-up T 702 aa12821189bc
 caps-down T 602 c3a8e6539ea8
 punct-up T 644 a28f673355d0
 punct-down T 644 a28f673355d0
+bold T 675 12708dedc12e

@@ -27,3 +27,4 @@ caps-up uni200A 40 e3b0c44298fc
 caps-down uni200A 40 e3b0c44298fc
 punct-up uni200A 40 e3b0c44298fc
 punct-down uni200A 40 e3b0c44298fc
+bold uni200A 40 e3b0c44298fc

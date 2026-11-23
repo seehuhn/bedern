@@ -27,3 +27,4 @@ caps-up ygrave 508 6ac5ad5346f5
 caps-down ygrave 508 6ac5ad5346f5
 punct-up ygrave 508 6ac5ad5346f5
 punct-down ygrave 508 6ac5ad5346f5
+bold ygrave 546 cec39a8e6907

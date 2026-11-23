@@ -27,3 +27,4 @@ caps-up Idotaccent 347 d49d063f89f7
 caps-down Idotaccent 327 540eb52a2fe9
 punct-up Idotaccent 337 b38d902355f0
 punct-down Idotaccent 337 b38d902355f0
+bold Idotaccent 388 b067155262ff

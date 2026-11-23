@@ -27,3 +27,4 @@ caps-up gbreve 478 390e266b8bf8
 caps-down gbreve 478 390e266b8bf8
 punct-up gbreve 478 390e266b8bf8
 punct-down gbreve 478 390e266b8bf8
+bold gbreve 519 12ba1f6c3091

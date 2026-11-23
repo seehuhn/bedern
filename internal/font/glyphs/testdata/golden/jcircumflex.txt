@@ -27,3 +27,4 @@ caps-up jcircumflex 296 325cb092e768
 caps-down jcircumflex 296 325cb092e768
 punct-up jcircumflex 296 325cb092e768
 punct-down jcircumflex 296 325cb092e768
+bold jcircumflex 345 003065ed9295

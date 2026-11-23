@@ -27,3 +27,4 @@ caps-up two 515 9d8be66d1803
 caps-down two 470 dbf58295d5da
 punct-up two 490 fd5cae326392
 punct-down two 490 fd5cae326392
+bold two 530 b59d09b04e06

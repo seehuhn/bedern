@@ -27,3 +27,4 @@ caps-up Obreve 780 36959717abcd
 caps-down Obreve 710 24ecade9e32b
 punct-up Obreve 746 f9714e6fa79f
 punct-down Obreve 746 f9714e6fa79f
+bold Obreve 794 b599c4763d54

@@ -27,3 +27,4 @@ caps-up dcaron 542 ea4cb5ab0eb4
 caps-down dcaron 542 ea4cb5ab0eb4
 punct-up dcaron 542 8cc5b4305fce
 punct-down dcaron 542 d8257303057c
+bold dcaron 591 c505c6f07b84

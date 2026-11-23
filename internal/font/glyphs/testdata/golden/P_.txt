@@ -27,3 +27,4 @@ caps-up P 651 a31acdd2cc97
 caps-down P 591 c5fc3a75a0b1
 punct-up P 623 45156500c7d9
 punct-down P 623 45156500c7d9
+bold P 678 ddbde5a4b9be

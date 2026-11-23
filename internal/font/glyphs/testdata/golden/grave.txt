@@ -27,3 +27,4 @@ caps-up grave 390 420cafb6deda
 caps-down grave 390 420cafb6deda
 punct-up grave 390 420cafb6deda
 punct-down grave 390 420cafb6deda
+bold grave 390 f1f52aff9160

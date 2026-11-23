@@ -27,3 +27,4 @@ caps-up utilde 540 b394eeb50940
 caps-down utilde 540 b394eeb50940
 punct-up utilde 540 b394eeb50940
 punct-down utilde 540 b394eeb50940
+bold utilde 599 d3fd04027fc4

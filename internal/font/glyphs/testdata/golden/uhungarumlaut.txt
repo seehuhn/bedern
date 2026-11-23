@@ -27,3 +27,4 @@ caps-up uhungarumlaut 540 c17cf5c93805
 caps-down uhungarumlaut 540 c17cf5c93805
 punct-up uhungarumlaut 540 c17cf5c93805
 punct-down uhungarumlaut 540 c17cf5c93805
+bold uhungarumlaut 599 6f40d3e0a22c

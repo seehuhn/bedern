@@ -27,3 +27,4 @@ caps-up S 558 05f22a314e95
 caps-down S 508 7c28f62a3cbe
 punct-up S 533 de9dbacb7837
 punct-down S 533 de9dbacb7837
+bold S 585 771d881d9b71

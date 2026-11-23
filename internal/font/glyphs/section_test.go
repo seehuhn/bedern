@@ -141,6 +141,9 @@ const (
 func TestSectionEye(t *testing.T) {
 	t.Parallel()
 	for _, np := range allParams() {
+		if !boldApplies(t, np) {
+			continue
+		}
 		g := newSectSign(t, np)
 		for _, run := range smoothRuns(outline.Path{g.path[1]}) {
 			if n := signChanges(run); n > 0 {
@@ -324,6 +327,9 @@ const (
 func TestSectionJoints(t *testing.T) {
 	t.Parallel()
 	for _, np := range allParams() {
+		if !boldApplies(t, np) {
+			continue
+		}
 		g := newSectSign(t, np)
 		at, ang := crotches(g.path)
 		n := 0

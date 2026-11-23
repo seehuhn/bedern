@@ -27,3 +27,4 @@ caps-up greater 670 c4d76ae8dea0
 caps-down greater 670 c4d76ae8dea0
 punct-up greater 710 1e9161432bce
 punct-down greater 630 c0ce42367db7
+bold greater 670 d571cfb5aff2

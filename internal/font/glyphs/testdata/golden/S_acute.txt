@@ -27,3 +27,4 @@ caps-up Sacute 558 5db978e1d9e6
 caps-down Sacute 508 cfcb913e6115
 punct-up Sacute 533 00a322b794e7
 punct-down Sacute 533 00a322b794e7
+bold Sacute 585 ae1bfffefb4f

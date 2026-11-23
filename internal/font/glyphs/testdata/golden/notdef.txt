@@ -27,3 +27,4 @@ caps-up .notdef 515 7ec0d5f66333
 caps-down .notdef 470 c1d60b8c828a
 punct-up .notdef 490 652b1dc7757a
 punct-down .notdef 490 2cde168a7a7d
+bold .notdef 530 bd4505187f5c

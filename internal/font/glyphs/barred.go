@@ -39,7 +39,6 @@ const (
 const (
 	capLslashAngle  = 35.0  // the bar of Ł, degrees above the horizontal
 	capLslashCentre = 0.54  // height of the middle of the bar of Ł, in cap heights
-	capLslashLength = 3.69  // horizontal extent of the bar of Ł, in capital stems
 	capDcroatCentre = 0.511 // height of the middle of the bar of Đ, in cap heights
 	capDcroatLength = 3.76  // length of the bar of Đ, in capital stems
 	capHbarCentre   = 0.75  // height of the middle of the second bar of Ħ, in cap heights
@@ -98,9 +97,13 @@ func lslash(p design.Params) (outline.Path, float64) {
 }
 
 // capLslash draws Ł: the L with a bar rising to the right across the stem,
-// from the tip of the left foot serif.
+// from the tip of the left foot serif, Caps.LslashWidth wide or, if that is
+// zero, design.CapLslashStems stems.
 func capLslash(p design.Params) (outline.Path, float64) {
-	w := capLslashLength * p.Caps.Stem
+	w := design.CapLslashStems * p.Caps.Stem
+	if p.Caps.LslashWidth > 0 {
+		w = p.Caps.LslashWidth
+	}
 	x0 := design.CapStemLeft(p) - p.Caps.SerifJut
 	return withBars(p, "L", slantBar(x0+w/2, capLslashCentre*p.CapHeight, w, capLslashAngle, p.Caps.Bar))
 }

@@ -27,3 +27,4 @@ caps-up AE 1068 6be28591f8ba
 caps-down AE 959 8de395c97849
 punct-up AE 1027 1e88961c4d9b
 punct-down AE 1027 1e88961c4d9b
+bold AE 1075 3dc7da7f656d

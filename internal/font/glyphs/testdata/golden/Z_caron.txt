@@ -27,3 +27,4 @@ caps-up Zcaron 564 e97611687ba8
 caps-down Zcaron 524 f45a434580e6
 punct-up Zcaron 564 eeed287f6e90
 punct-down Zcaron 564 eeed287f6e90
+bold Zcaron 609 db81c048d871

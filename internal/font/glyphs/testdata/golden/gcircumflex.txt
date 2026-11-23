@@ -27,3 +27,4 @@ caps-up gcircumflex 478 8da64d61d36b
 caps-down gcircumflex 478 8da64d61d36b
 punct-up gcircumflex 478 8da64d61d36b
 punct-down gcircumflex 478 8da64d61d36b
+bold gcircumflex 519 80321e28b760

@@ -27,3 +27,4 @@ caps-up nacute 540 9030b1ae4de2
 caps-down nacute 540 9030b1ae4de2
 punct-up nacute 540 9030b1ae4de2
 punct-down nacute 540 9030b1ae4de2
+bold nacute 599 9e347718811b

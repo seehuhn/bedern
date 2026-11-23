@@ -27,3 +27,4 @@ caps-up Amacron 727 fcf8cf8ed545
 caps-down Amacron 677 64cd74fc050e
 punct-up Amacron 725 6cf7322f9dfd
 punct-down Amacron 725 6cf7322f9dfd
+bold Amacron 755 ab2835cef0e4

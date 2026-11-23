@@ -27,3 +27,4 @@ caps-up slash 461 741adc998515
 caps-down slash 437 acc1a3d40986
 punct-up slash 491 630f398f5fee
 punct-down slash 408 4c3a30375fd1
+bold slash 482 fab26842e84b

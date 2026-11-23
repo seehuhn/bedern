@@ -27,3 +27,4 @@ caps-up n 540 fc8fe8334745
 caps-down n 540 fc8fe8334745
 punct-up n 540 fc8fe8334745
 punct-down n 540 fc8fe8334745
+bold n 599 9ce77ca0ef98

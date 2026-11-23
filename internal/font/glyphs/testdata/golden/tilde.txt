@@ -27,3 +27,4 @@ caps-up tilde 360 2a1c9a72e86a
 caps-down tilde 360 2a1c9a72e86a
 punct-up tilde 360 2a1c9a72e86a
 punct-down tilde 360 2a1c9a72e86a
+bold tilde 392 6f96c2d40d23

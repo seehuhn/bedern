@@ -27,3 +27,4 @@ caps-up s 386 3f6952e1eb60
 caps-down s 386 3f6952e1eb60
 punct-up s 386 3f6952e1eb60
 punct-down s 386 3f6952e1eb60
+bold s 429 f0b7f3a516d4

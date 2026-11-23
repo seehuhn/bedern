@@ -27,3 +27,4 @@ caps-up Ldot 607 329e395ccad4
 caps-down Ldot 542 619496989f96
 punct-up Ldot 590 419d3dd7c991
 punct-down Ldot 590 419d3dd7c991
+bold Ldot 625 9d2998a10795

@@ -27,3 +27,4 @@ caps-up ring 256 880477760e0a
 caps-down ring 256 880477760e0a
 punct-up ring 256 880477760e0a
 punct-down ring 256 880477760e0a
+bold ring 270 b8f5a72c3de9

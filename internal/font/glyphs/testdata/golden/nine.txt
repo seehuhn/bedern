@@ -27,3 +27,4 @@ caps-up nine 515 8deb00bb6858
 caps-down nine 470 45d85d7a22fa
 punct-up nine 490 f1dc5c7c91db
 punct-down nine 490 f1dc5c7c91db
+bold nine 530 1502306ec287

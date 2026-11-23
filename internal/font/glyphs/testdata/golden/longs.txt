@@ -27,3 +27,4 @@ caps-up longs 305 13bc7a32c0d3
 caps-down longs 305 13bc7a32c0d3
 punct-up longs 305 13bc7a32c0d3
 punct-down longs 305 13bc7a32c0d3
+bold longs 343 1c5cf1cf4cb0

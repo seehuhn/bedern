@@ -27,3 +27,4 @@ caps-up ae 740 8bfbd0b15e8a
 caps-down ae 740 8bfbd0b15e8a
 punct-up ae 740 8bfbd0b15e8a
 punct-down ae 740 8bfbd0b15e8a
+bold ae 789 61f9ba2bb394

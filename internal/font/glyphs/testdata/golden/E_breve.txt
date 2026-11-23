@@ -27,3 +27,4 @@ caps-up Ebreve 676 8f8ee5b86937
 caps-down Ebreve 601 550fae1e1065
 punct-up Ebreve 641 fcfb57a39c46
 punct-down Ebreve 641 fcfb57a39c46
+bold Ebreve 676 e40ab5696847

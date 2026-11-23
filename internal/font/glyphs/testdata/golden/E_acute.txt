@@ -27,3 +27,4 @@ caps-up Eacute 676 7b99971396dd
 caps-down Eacute 601 4d1bd2011b56
 punct-up Eacute 641 fbc332814872
 punct-down Eacute 641 fbc332814872
+bold Eacute 676 edb2a7579a0c

@@ -27,3 +27,4 @@ caps-up underscore 500 9294c9957871
 caps-down underscore 500 9294c9957871
 punct-up underscore 500 94107199069f
 punct-down underscore 500 1e057466e2da
+bold underscore 500 782a252ae778

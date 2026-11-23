@@ -27,3 +27,4 @@ caps-up percent 780 a9aea7d05565
 caps-down percent 780 2511af257795
 punct-up percent 780 55ae0f02db1e
 punct-down percent 780 55ae0f02db1e
+bold percent 820 8dbc88ade342

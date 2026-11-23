@@ -27,3 +27,4 @@ caps-up F 618 91bf507f7f9b
 caps-down F 598 e46f5bcf9743
 punct-up F 608 fa3d81cbb15c
 punct-down F 608 fa3d81cbb15c
+bold F 639 a44ca7583f7e

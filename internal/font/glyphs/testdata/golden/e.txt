@@ -27,3 +27,4 @@ caps-up e 451 a34612bdf2e5
 caps-down e 451 a34612bdf2e5
 punct-up e 451 a34612bdf2e5
 punct-down e 451 a34612bdf2e5
+bold e 491 88718cbc748f

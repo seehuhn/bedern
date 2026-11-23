@@ -27,3 +27,4 @@ caps-up divide 670 6d19427bee16
 caps-down divide 670 6d19427bee16
 punct-up divide 710 d3f09c8f3cf2
 punct-down divide 630 a0b2a8c52f68
+bold divide 670 6645173ac9c8

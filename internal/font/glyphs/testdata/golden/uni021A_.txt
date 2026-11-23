@@ -27,3 +27,4 @@ caps-up uni021A 702 500b3cfbf287
 caps-down uni021A 602 dc4b4a36ec4e
 punct-up uni021A 644 7af0afef9aba
 punct-down uni021A 644 609d9bd03abd
+bold uni021A 675 0ed07371a569

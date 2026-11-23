@@ -27,3 +27,4 @@ caps-up eogonek 451 7d5c93e9abbc
 caps-down eogonek 451 7d5c93e9abbc
 punct-up eogonek 451 7d5c93e9abbc
 punct-down eogonek 451 7d5c93e9abbc
+bold eogonek 491 bf20e45937f8

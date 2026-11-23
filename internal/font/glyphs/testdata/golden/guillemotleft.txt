@@ -27,3 +27,4 @@ caps-up guillemotleft 455 d93e97931408
 caps-down guillemotleft 455 d93e97931408
 punct-up guillemotleft 455 d93e97931408
 punct-down guillemotleft 455 d93e97931408
+bold guillemotleft 455 8fec4c093086

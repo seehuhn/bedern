@@ -27,3 +27,4 @@ caps-up ellipsis 804 96737b447981
 caps-down ellipsis 804 96737b447981
 punct-up ellipsis 804 61afb0e13ddb
 punct-down ellipsis 804 15d81c8dc507
+bold ellipsis 924 d7a1fddde13e

@@ -27,3 +27,4 @@ caps-up bullet 406 5b8bacaf20b1
 caps-down bullet 406 5b8bacaf20b1
 punct-up bullet 406 5b8bacaf20b1
 punct-down bullet 406 5b8bacaf20b1
+bold bullet 480 39c91f19f67b

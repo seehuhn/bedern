@@ -27,3 +27,4 @@ caps-up Scommaaccent 558 ff56e519a1e8
 caps-down Scommaaccent 508 16abbe45a8ad
 punct-up Scommaaccent 533 8a32bc52e956
 punct-down Scommaaccent 533 e49f8c3fd6e1
+bold Scommaaccent 585 f3a6aa04ce09

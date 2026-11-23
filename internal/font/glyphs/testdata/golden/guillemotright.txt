@@ -27,3 +27,4 @@ caps-up guillemotright 455 9af55a75359c
 caps-down guillemotright 455 9af55a75359c
 punct-up guillemotright 455 9af55a75359c
 punct-down guillemotright 455 9af55a75359c
+bold guillemotright 455 c2909f503d6d

@@ -27,3 +27,4 @@ caps-up braceleft 390 ad6ddab2f611
 caps-down braceleft 390 898f6dea0e7b
 punct-up braceleft 390 3eaf6dc8e007
 punct-down braceleft 390 93c8f917e4a2
+bold braceleft 390 625a251aa051

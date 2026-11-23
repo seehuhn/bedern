@@ -27,3 +27,4 @@ caps-up Hbar 753 fd92a3ff0232
 caps-down Hbar 683 20d5abb53c46
 punct-up Hbar 747 133a4d39019e
 punct-down Hbar 747 133a4d39019e
+bold Hbar 808 e91b11f89068

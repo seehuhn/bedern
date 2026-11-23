@@ -27,3 +27,4 @@ caps-up oe 796 2ad194df85b5
 caps-down oe 796 2ad194df85b5
 punct-up oe 796 2ad194df85b5
 punct-down oe 796 2ad194df85b5
+bold oe 826 22f9e514d998

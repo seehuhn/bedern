@@ -27,3 +27,4 @@ caps-up scaron 386 ddefdf07ac45
 caps-down scaron 386 ddefdf07ac45
 punct-up scaron 386 ddefdf07ac45
 punct-down scaron 386 ddefdf07ac45
+bold scaron 429 88e599135c94

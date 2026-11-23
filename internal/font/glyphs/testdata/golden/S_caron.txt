@@ -27,3 +27,4 @@ caps-up Scaron 558 82cb49aed2b8
 caps-down Scaron 508 6207e11c7876
 punct-up Scaron 533 8f2a636f4066
 punct-down Scaron 533 8f2a636f4066
+bold Scaron 585 6b115e39cd81

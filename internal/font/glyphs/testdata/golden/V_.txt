@@ -27,3 +27,4 @@ caps-up V 738 7ea0a1b81216
 caps-down V 688 9e1c46b34c24
 punct-up V 713 7f58201b87d7
 punct-down V 713 7f58201b87d7
+bold V 753 c8fa8f89dcf9

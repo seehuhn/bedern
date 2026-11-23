@@ -27,3 +27,4 @@ caps-up uni2009 162 e3b0c44298fc
 caps-down uni2009 162 e3b0c44298fc
 punct-up uni2009 162 e3b0c44298fc
 punct-down uni2009 162 e3b0c44298fc
+bold uni2009 162 e3b0c44298fc

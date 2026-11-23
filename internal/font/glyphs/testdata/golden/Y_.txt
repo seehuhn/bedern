@@ -27,3 +27,4 @@ caps-up Y 751 ebaf28134340
 caps-down Y 701 c038bf69e7cd
 punct-up Y 709 df837397c7f5
 punct-down Y 709 df837397c7f5
+bold Y 749 78e2e2f86a8b

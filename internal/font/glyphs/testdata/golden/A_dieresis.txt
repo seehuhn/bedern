@@ -27,3 +27,4 @@ caps-up Adieresis 727 71b7d98e2a19
 caps-down Adieresis 677 11244cc16171
 punct-up Adieresis 725 c6a989c509f1
 punct-down Adieresis 725 c6a989c509f1
+bold Adieresis 755 a587afdd2b79

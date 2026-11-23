@@ -27,3 +27,4 @@ caps-up iacute 270 38f3605350a6
 caps-down iacute 270 38f3605350a6
 punct-up iacute 270 38f3605350a6
 punct-down iacute 270 38f3605350a6
+bold iacute 319 860e0458f0f4

@@ -27,3 +27,4 @@ caps-up Thorn 651 b01169b4556a
 caps-down Thorn 591 8d2a65602cdc
 punct-up Thorn 623 1ee9b637586a
 punct-down Thorn 623 1ee9b637586a
+bold Thorn 678 8869d0726b48

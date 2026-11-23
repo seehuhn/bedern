@@ -27,3 +27,4 @@ caps-up Tbar 702 1e885ea0fed8
 caps-down Tbar 602 b0789cce4149
 punct-up Tbar 644 85abea47f710
 punct-down Tbar 644 85abea47f710
+bold Tbar 675 bdf654248e93

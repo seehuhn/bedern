@@ -27,3 +27,4 @@ caps-up aacute 491 ec138a9d168b
 caps-down aacute 491 ec138a9d168b
 punct-up aacute 491 ec138a9d168b
 punct-down aacute 491 ec138a9d168b
+bold aacute 549 032dfc845361

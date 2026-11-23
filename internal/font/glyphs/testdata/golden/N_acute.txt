@@ -27,3 +27,4 @@ caps-up Nacute 777 e9064883c009
 caps-down Nacute 655 f5f345f36c44
 punct-up Nacute 747 a84d263ecda8
 punct-down Nacute 747 a84d263ecda8
+bold Nacute 800 81764d77ec78

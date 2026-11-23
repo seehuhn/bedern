@@ -27,3 +27,4 @@ caps-up igrave 270 3f30edf2f686
 caps-down igrave 270 3f30edf2f686
 punct-up igrave 270 3f30edf2f686
 punct-down igrave 270 3f30edf2f686
+bold igrave 319 c2f22aeae50d

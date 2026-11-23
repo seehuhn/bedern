@@ -27,3 +27,4 @@ caps-up Ecaron 676 1a917950707c
 caps-down Ecaron 601 9ced4f6c0748
 punct-up Ecaron 641 ee52c4df2423
 punct-down Ecaron 641 ee52c4df2423
+bold Ecaron 676 4af29d9f5b0a

@@ -27,3 +27,4 @@ caps-up eight 515 33e90402883b
 caps-down eight 470 9b225c205926
 punct-up eight 490 d0c1b02b630c
 punct-down eight 490 d0c1b02b630c
+bold eight 530 e6e839329526

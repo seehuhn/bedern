@@ -27,3 +27,4 @@ caps-up cacute 429 af2b1c5827ca
 caps-down cacute 429 af2b1c5827ca
 punct-up cacute 429 af2b1c5827ca
 punct-down cacute 429 af2b1c5827ca
+bold cacute 485 44d74b57e186

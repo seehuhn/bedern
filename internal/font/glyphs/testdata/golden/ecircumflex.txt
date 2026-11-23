@@ -27,3 +27,4 @@ caps-up ecircumflex 451 2db7292687db
 caps-down ecircumflex 451 2db7292687db
 punct-up ecircumflex 451 2db7292687db
 punct-down ecircumflex 451 2db7292687db
+bold ecircumflex 491 0a125fabb702

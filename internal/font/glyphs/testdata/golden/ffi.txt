@@ -27,3 +27,4 @@ caps-up ffi 810 863436f1d440
 caps-down ffi 810 863436f1d440
 punct-up ffi 810 863436f1d440
 punct-down ffi 810 863436f1d440
+bold ffi 957 9f9c07879183

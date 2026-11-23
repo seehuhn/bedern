@@ -27,3 +27,4 @@ caps-up Cdotaccent 708 38f4bc4ec89f
 caps-down Cdotaccent 649 f96d7c692c1e
 punct-up Cdotaccent 672 d1705021ec6a
 punct-down Cdotaccent 672 d1705021ec6a
+bold Cdotaccent 720 9cee37f9845d

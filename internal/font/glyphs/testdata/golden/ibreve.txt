@@ -27,3 +27,4 @@ caps-up ibreve 270 33b72f0f25ee
 caps-down ibreve 270 33b72f0f25ee
 punct-up ibreve 270 33b72f0f25ee
 punct-down ibreve 270 33b72f0f25ee
+bold ibreve 319 95f8425dfb4b

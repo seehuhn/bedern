@@ -27,3 +27,4 @@ caps-up daggerdbl 508 1915acf46c49
 caps-down daggerdbl 508 1915acf46c49
 punct-up daggerdbl 508 1915acf46c49
 punct-down daggerdbl 508 1915acf46c49
+bold daggerdbl 508 27cea9f9bf16

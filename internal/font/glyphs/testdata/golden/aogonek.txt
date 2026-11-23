@@ -27,3 +27,4 @@ caps-up aogonek 491 65f0d7401338
 caps-down aogonek 491 65f0d7401338
 punct-up aogonek 491 65f0d7401338
 punct-down aogonek 491 65f0d7401338
+bold aogonek 549 68908ba512fa

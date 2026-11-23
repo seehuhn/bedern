@@ -27,3 +27,4 @@ caps-up b 536 e7f277da376c
 caps-down b 536 e7f277da376c
 punct-up b 536 e7f277da376c
 punct-down b 536 e7f277da376c
+bold b 585 ace8ed3e7486

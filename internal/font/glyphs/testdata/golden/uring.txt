@@ -27,3 +27,4 @@ caps-up uring 540 1e6b4d8bdf02
 caps-down uring 540 1e6b4d8bdf02
 punct-up uring 540 1e6b4d8bdf02
 punct-down uring 540 1e6b4d8bdf02
+bold uring 599 9fb8bfaf1bf3

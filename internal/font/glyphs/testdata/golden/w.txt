@@ -27,3 +27,4 @@ caps-up w 712 567f37ef8f57
 caps-down w 712 567f37ef8f57
 punct-up w 712 567f37ef8f57
 punct-down w 712 567f37ef8f57
+bold w 788 a7157b4a1d2c

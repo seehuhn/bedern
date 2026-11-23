@@ -27,3 +27,4 @@ caps-up gcommaaccent 478 9e3ad2627862
 caps-down gcommaaccent 478 9e3ad2627862
 punct-up gcommaaccent 478 f2176723d61e
 punct-down gcommaaccent 478 aeaa228b27df
+bold gcommaaccent 519 9d76af046403

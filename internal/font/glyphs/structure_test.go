@@ -15,11 +15,11 @@ import (
 )
 
 // The structural checks do not depend on the shape of a letter.  Every glyph
-// of the table is checked, unrounded and rounded, for every variant and every
-// parameter set.  In the other perturbed sets than those of composedRoutine
-// the routine tier leaves out the derived glyphs (derived) and the glyphs
-// whose checks have the same inputs as in the regular set (sameChecks), which
-// give the same result.
+// of the table is checked, unrounded and rounded, for every variant, every
+// parameter set and, in the full tier, the bold parameters.  In the other
+// perturbed sets than those of composedRoutine the routine tier leaves out the
+// derived glyphs (derived) and the glyphs whose checks have the same inputs as
+// in the regular set (sameChecks), which give the same result.
 
 type namedParams struct {
 	name   string
@@ -36,9 +36,45 @@ type namedParams struct {
 const routineSets = 9
 
 // allParams returns the parameter sets on which the property tests run: the
-// variants and, in the routine tier, the first routineSets perturbed sets.
+// variants and, in the routine tier, the first routineSets perturbed sets; the
+// full tier adds the bold parameters.
 func allParams() []namedParams {
-	return paramSets(designtest.Sets(testing.Short(), routineSets))
+	sets := paramSets(designtest.Sets(testing.Short(), routineSets))
+	if !testing.Short() {
+		sets = append(sets, boldParams())
+	}
+	return sets
+}
+
+// boldExempt lists the tests which do not run on the bold parameters.
+var boldExempt = map[string]bool{
+	"TestCapBCountersAreOpen":            true,
+	"TestCapCGWidthsAndOpening":          true,
+	"TestCapRRightSideIsOpen":            true,
+	"TestFigureEdges":                    true,
+	"TestFigureFourFlat":                 true,
+	"TestFigureOuterEdgesWindIn":         true,
+	"TestFigureTwoBowlMiddle":            true,
+	"TestGEar":                           true,
+	"TestGLinkSwells":                    true,
+	"TestHookInnerEdgeHasNoDent":         true,
+	"TestQuestionBalance":                true,
+	"TestQuestionHook":                   true,
+	"TestRoundKeepsSmoothNodesSmooth":    true,
+	"TestSBowlsAreRound":                 true,
+	"TestSectionEye":                     true,
+	"TestSectionJoints":                  true,
+	"TestStalkIsEven":                    true,
+	"TestSterlingBar":                    true,
+	"TestSterlingBaseIsHeavyInTheMiddle": true,
+	"TestSuperiorFigures":                true,
+	"TestSymbolNodes":                    true,
+}
+
+// boldApplies says whether the test t runs on the parameter set np.
+func boldApplies(t *testing.T, np namedParams) bool {
+	name, _, _ := strings.Cut(t.Name(), "/")
+	return np.name != "bold" || !boldExempt[name]
 }
 
 // derivedParams returns the parameter sets on which the tests of the derived
@@ -51,9 +87,20 @@ func derivedParams() []namedParams {
 	return paramSets(designtest.Sets(true, composedRoutineSets))
 }
 
-// goldenParams returns every parameter set, whichever the tier.
+// goldenParams returns every parameter set, whichever the tier, and in the
+// full tier the bold parameters.
 func goldenParams() []namedParams {
-	return paramSets(designtest.Perturbed())
+	sets := paramSets(designtest.Perturbed())
+	if !testing.Short() {
+		sets = append(sets, boldParams())
+	}
+	return sets
+}
+
+// boldParams returns the parameters of Bedern Bold, on which the full tier
+// runs the fingerprints, the structural checks and the tests of the letters.
+func boldParams() namedParams {
+	return namedParams{name: "bold", params: design.Bold()}
 }
 
 func paramSets(perturbed []designtest.Set) []namedParams {
@@ -78,7 +125,7 @@ func TestStructure(t *testing.T) {
 	for _, np := range allParams() {
 		t.Run(np.name, func(t *testing.T) {
 			t.Parallel()
-			all := composedRoutine(np.name)
+			all := composedRoutine(np.name) || np.name == "bold"
 			var names []string
 			for _, e := range table {
 				if len(np.glyphs) > 0 && !slices.Contains(np.glyphs, e.name) {

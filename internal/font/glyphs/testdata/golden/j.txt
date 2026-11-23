@@ -27,3 +27,4 @@ caps-up j 296 3bf379a8132f
 caps-down j 296 3bf379a8132f
 punct-up j 296 3bf379a8132f
 punct-down j 296 3bf379a8132f
+bold j 345 741384212aeb

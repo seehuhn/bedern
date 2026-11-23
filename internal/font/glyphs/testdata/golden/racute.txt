@@ -27,3 +27,4 @@ caps-up racute 388 7ff2ee28b2f4
 caps-down racute 388 7ff2ee28b2f4
 punct-up racute 388 7ff2ee28b2f4
 punct-down racute 388 7ff2ee28b2f4
+bold racute 459 53fbf25659aa

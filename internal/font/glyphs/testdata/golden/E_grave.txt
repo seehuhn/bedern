@@ -27,3 +27,4 @@ caps-up Egrave 676 30c51e0ac74a
 caps-down Egrave 601 db4ef3457c89
 punct-up Egrave 641 bc977b8386c1
 punct-down Egrave 641 bc977b8386c1
+bold Egrave 676 c73c3a901a41

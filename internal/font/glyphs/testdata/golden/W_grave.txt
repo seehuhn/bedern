@@ -27,3 +27,4 @@ caps-up Wgrave 1019 5d3217f8d292
 caps-down Wgrave 954 ec7171965e17
 punct-up Wgrave 985 4add85d9880b
 punct-down Wgrave 985 4add85d9880b
+bold Wgrave 1064 d26c3a26fc41

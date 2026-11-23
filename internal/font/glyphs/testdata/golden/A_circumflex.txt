@@ -27,3 +27,4 @@ caps-up Acircumflex 727 12fdbd339c66
 caps-down Acircumflex 677 e6cb8b166469
 punct-up Acircumflex 725 e31475605526
 punct-down Acircumflex 725 e31475605526
+bold Acircumflex 755 6cbb84c2bd83

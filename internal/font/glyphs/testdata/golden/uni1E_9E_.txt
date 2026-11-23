@@ -27,3 +27,4 @@ caps-up uni1E9E 637 4fc722d8e425
 caps-down uni1E9E 663 3fb325c4eb02
 punct-up uni1E9E 649 9839f3cc1796
 punct-down uni1E9E 649 9839f3cc1796
+bold uni1E9E 743 776f171f3c0f

@@ -27,3 +27,4 @@ caps-up quotesingle 198 b859f40f1484
 caps-down quotesingle 198 b859f40f1484
 punct-up quotesingle 206 51fa7b205c70
 punct-down quotesingle 190 2940276ac865
+bold quotesingle 212 dd8a57b2c322

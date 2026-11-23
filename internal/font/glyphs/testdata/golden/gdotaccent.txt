@@ -27,3 +27,4 @@ caps-up gdotaccent 478 91ff9db78210
 caps-down gdotaccent 478 91ff9db78210
 punct-up gdotaccent 478 91ff9db78210
 punct-down gdotaccent 478 91ff9db78210
+bold gdotaccent 519 1e5a812e579a

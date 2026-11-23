@@ -27,3 +27,4 @@ caps-up Ncaron 777 7863df4efc8d
 caps-down Ncaron 655 94e3c1c8804b
 punct-up Ncaron 747 1e07eed96f8e
 punct-down Ncaron 747 1e07eed96f8e
+bold Ncaron 800 e9a0eec67619

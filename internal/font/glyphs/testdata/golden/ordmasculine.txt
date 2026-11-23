@@ -27,3 +27,4 @@ caps-up ordmasculine 364 6a38872dc873
 caps-down ordmasculine 364 6a38872dc873
 punct-up ordmasculine 364 6a38872dc873
 punct-down ordmasculine 364 6a38872dc873
+bold ordmasculine 392 5a745803d20b

@@ -27,3 +27,4 @@ caps-up ograve 486 60d4f4d2e6c2
 caps-down ograve 486 60d4f4d2e6c2
 punct-up ograve 486 60d4f4d2e6c2
 punct-down ograve 486 60d4f4d2e6c2
+bold ograve 526 844129d02f64

@@ -27,3 +27,4 @@ caps-up onequarter 712 b257f987f347
 caps-down onequarter 659 bc0de8d24cc6
 punct-up onequarter 682 442d2587ee0d
 punct-down onequarter 682 442d2587ee0d
+bold onequarter 729 92909175e801

@@ -27,3 +27,4 @@ caps-up Edotaccent 676 7c69440d7ab4
 caps-down Edotaccent 601 b44acb32ce59
 punct-up Edotaccent 641 5d51d3ff11c9
 punct-down Edotaccent 641 5d51d3ff11c9
+bold Edotaccent 676 bc6750ce87c4

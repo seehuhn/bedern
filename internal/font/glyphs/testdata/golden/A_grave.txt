@@ -27,3 +27,4 @@ caps-up Agrave 727 344924dcbd63
 caps-down Agrave 677 b862a9818855
 punct-up Agrave 725 1f324503acc5
 punct-down Agrave 725 1f324503acc5
+bold Agrave 755 622a95cae4f6

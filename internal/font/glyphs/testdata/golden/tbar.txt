@@ -27,3 +27,4 @@ caps-up tbar 355 bdaaaaa24d59
 caps-down tbar 355 bdaaaaa24d59
 punct-up tbar 355 bdaaaaa24d59
 punct-down tbar 355 bdaaaaa24d59
+bold tbar 404 33a8bebb9e65

@@ -27,3 +27,4 @@ caps-up Ohungarumlaut 780 47d82705f9c7
 caps-down Ohungarumlaut 710 66ab55ff2f32
 punct-up Ohungarumlaut 746 dbb1c16d991a
 punct-down Ohungarumlaut 746 dbb1c16d991a
+bold Ohungarumlaut 794 9d8fdfd9d63a

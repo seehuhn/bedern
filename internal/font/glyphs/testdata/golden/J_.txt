@@ -27,3 +27,4 @@ caps-up J 455 0047bd9923cf
 caps-down J 400 37461255219b
 punct-up J 444 e0f6346c79df
 punct-down J 444 e0f6346c79df
+bold J 529 928b9e5c0164

@@ -27,3 +27,4 @@ caps-up three 515 dde0e9afc920
 caps-down three 470 3201dcb76052
 punct-up three 490 25235351396b
 punct-down three 490 25235351396b
+bold three 530 17c9af71c70d

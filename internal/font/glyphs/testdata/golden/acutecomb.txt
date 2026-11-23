@@ -27,3 +27,4 @@ caps-up acutecomb 0 c547eaa18aba
 caps-down acutecomb 0 c547eaa18aba
 punct-up acutecomb 0 c547eaa18aba
 punct-down acutecomb 0 c547eaa18aba
+bold acutecomb 0 eb7c3081f4ef

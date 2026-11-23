@@ -27,3 +27,4 @@ caps-up umacron 540 6709ad7f340b
 caps-down umacron 540 6709ad7f340b
 punct-up umacron 540 6709ad7f340b
 punct-down umacron 540 6709ad7f340b
+bold umacron 599 7a140e7a0fe4

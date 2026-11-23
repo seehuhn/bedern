@@ -27,3 +27,4 @@ caps-up agrave 491 dcc16a263663
 caps-down agrave 491 dcc16a263663
 punct-up agrave 491 dcc16a263663
 punct-down agrave 491 dcc16a263663
+bold agrave 549 9cd351a13099

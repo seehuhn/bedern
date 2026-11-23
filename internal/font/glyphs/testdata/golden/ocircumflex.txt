@@ -27,3 +27,4 @@ caps-up ocircumflex 486 272df94b2c17
 caps-down ocircumflex 486 272df94b2c17
 punct-up ocircumflex 486 272df94b2c17
 punct-down ocircumflex 486 272df94b2c17
+bold ocircumflex 526 2e8c39f582dd

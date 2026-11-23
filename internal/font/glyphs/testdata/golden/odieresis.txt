@@ -27,3 +27,4 @@ caps-up odieresis 486 08bcd1bf8573
 caps-down odieresis 486 08bcd1bf8573
 punct-up odieresis 486 08bcd1bf8573
 punct-down odieresis 486 08bcd1bf8573
+bold odieresis 526 0da445f20cde

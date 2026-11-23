@@ -27,3 +27,4 @@ caps-up lacute 270 7cfd72674dc2
 caps-down lacute 270 7cfd72674dc2
 punct-up lacute 270 7cfd72674dc2
 punct-down lacute 270 7cfd72674dc2
+bold lacute 319 4f8a8a18fd81

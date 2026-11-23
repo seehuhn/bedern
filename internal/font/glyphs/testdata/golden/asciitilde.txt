@@ -27,3 +27,4 @@ caps-up asciitilde 628 46ae8e5249ae
 caps-down asciitilde 618 a11d1dfaeae0
 punct-up asciitilde 622 b467c6ca135b
 punct-down asciitilde 622 b467c6ca135b
+bold asciitilde 636 3e13b754ea33

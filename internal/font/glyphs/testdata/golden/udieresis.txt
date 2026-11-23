@@ -27,3 +27,4 @@ caps-up udieresis 540 105412486d99
 caps-down udieresis 540 105412486d99
 punct-up udieresis 540 105412486d99
 punct-down udieresis 540 105412486d99
+bold udieresis 599 a096394a2fd1

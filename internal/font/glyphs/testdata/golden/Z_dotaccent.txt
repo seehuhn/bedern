@@ -27,3 +27,4 @@ caps-up Zdotaccent 564 3717823fcec9
 caps-down Zdotaccent 524 f10dda2aa056
 punct-up Zdotaccent 564 98a323db4837
 punct-down Zdotaccent 564 98a323db4837
+bold Zdotaccent 609 4d875a452bea

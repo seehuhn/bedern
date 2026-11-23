@@ -27,3 +27,4 @@ caps-up wacute 712 17dbe0244a10
 caps-down wacute 712 17dbe0244a10
 punct-up wacute 712 17dbe0244a10
 punct-down wacute 712 17dbe0244a10
+bold wacute 788 4806d7192f63

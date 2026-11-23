@@ -27,3 +27,4 @@ caps-up uni030A 0 fa2cb1532a17
 caps-down uni030A 0 fa2cb1532a17
 punct-up uni030A 0 fa2cb1532a17
 punct-down uni030A 0 fa2cb1532a17
+bold uni030A 0 2458af98ec51

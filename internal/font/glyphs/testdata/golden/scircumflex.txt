@@ -27,3 +27,4 @@ caps-up scircumflex 386 efc5b5a4bcef
 caps-down scircumflex 386 efc5b5a4bcef
 punct-up scircumflex 386 efc5b5a4bcef
 punct-down scircumflex 386 efc5b5a4bcef
+bold scircumflex 429 1d755d7585d5

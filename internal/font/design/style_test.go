@@ -21,6 +21,7 @@ func TestStyleValidate(t *testing.T) {
 		ok    bool
 	}{
 		{"regular", RegularStyle(), true},
+		{"bold style", BoldStyle(), true},
 		{"test variant", Style{Family: "Bedern Test", Subfamily: "Fit190", PostScript: "BedernTest-Fit190", Weight: 400}, true},
 		{"bold", with(func(s *Style) { s.Bold = true; s.Weight = 700 }), true},
 		{"empty family", with(func(s *Style) { s.Family = "" }), false},

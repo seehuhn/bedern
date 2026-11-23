@@ -27,3 +27,4 @@ caps-up OE 1028 65686f4e1f83
 caps-down OE 898 bfd2408e4e04
 punct-up OE 967 922fe4326b87
 punct-down OE 967 922fe4326b87
+bold OE 1032 ce68ab5d46d4

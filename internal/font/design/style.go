@@ -33,6 +33,17 @@ func RegularStyle() Style {
 	}
 }
 
+// BoldStyle returns the style of Bedern Bold.
+func BoldStyle() Style {
+	return Style{
+		Family:     "Bedern",
+		Subfamily:  "Bold",
+		PostScript: "Bedern-Bold",
+		Weight:     700,
+		Bold:       true,
+	}
+}
+
 // Validate reports whether the style can be used for a font.
 func (s Style) Validate() error {
 	if s.Family == "" {

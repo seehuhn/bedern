@@ -27,3 +27,4 @@ caps-up Iacute 347 1a44ba044ce7
 caps-down Iacute 327 91476aa0e0de
 punct-up Iacute 337 65d5163a1ac2
 punct-down Iacute 337 65d5163a1ac2
+bold Iacute 388 fb4a2875be31

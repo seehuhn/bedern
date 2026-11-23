@@ -27,3 +27,4 @@ caps-up uni0163 355 63fbe1badc18
 caps-down uni0163 355 63fbe1badc18
 punct-up uni0163 355 63fbe1badc18
 punct-down uni0163 355 63fbe1badc18
+bold uni0163 404 5a15306f01d9

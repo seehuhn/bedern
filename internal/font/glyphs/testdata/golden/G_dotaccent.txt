@@ -27,3 +27,4 @@ caps-up Gdotaccent 765 c5147356970e
 caps-down Gdotaccent 693 c949be0a00ed
 punct-up Gdotaccent 727 e630a7867196
 punct-down Gdotaccent 727 e630a7867196
+bold Gdotaccent 776 4002d26db6aa

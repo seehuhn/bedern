@@ -27,3 +27,4 @@ caps-up Q 780 5487537f3258
 caps-down Q 710 4af2a92ecdc4
 punct-up Q 746 1cc57772ac71
 punct-down Q 746 1cc57772ac71
+bold Q 794 199b19e0dae2

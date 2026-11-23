@@ -27,3 +27,4 @@ caps-up germandbls 524 adcacd817326
 caps-down germandbls 524 adcacd817326
 punct-up germandbls 524 adcacd817326
 punct-down germandbls 524 adcacd817326
+bold germandbls 601 3a92ca2a93c0

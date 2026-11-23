@@ -27,3 +27,4 @@ caps-up circumflex 376 ae20a6fc370c
 caps-down circumflex 376 ae20a6fc370c
 punct-up circumflex 376 ae20a6fc370c
 punct-down circumflex 376 ae20a6fc370c
+bold circumflex 400 db71a86c3768

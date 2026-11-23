@@ -27,3 +27,4 @@ caps-up A 727 e4d17af4794e
 caps-down A 677 9fc7d382d5d5
 punct-up A 725 585af0906f95
 punct-down A 725 585af0906f95
+bold A 755 9843f99c3ddd

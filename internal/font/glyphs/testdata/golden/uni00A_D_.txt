@@ -27,3 +27,4 @@ caps-up uni00AD 323 f8abee234ccf
 caps-down uni00AD 323 f8abee234ccf
 punct-up uni00AD 341 c6a7fc78c9dd
 punct-down uni00AD 301 a81e7c1f1383
+bold uni00AD 323 eeac5139f558

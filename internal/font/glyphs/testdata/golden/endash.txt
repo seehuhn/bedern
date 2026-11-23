@@ -27,3 +27,4 @@ caps-up endash 490 033575f72cb5
 caps-down endash 490 033575f72cb5
 punct-up endash 490 ebf794a4fac3
 punct-down endash 490 5c3b6b47c65d
+bold endash 490 81a0bf73ceb4

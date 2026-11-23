@@ -27,3 +27,4 @@ caps-up ccircumflex 429 d1c323334564
 caps-down ccircumflex 429 d1c323334564
 punct-up ccircumflex 429 d1c323334564
 punct-down ccircumflex 429 d1c323334564
+bold ccircumflex 485 48ca33dfa23e

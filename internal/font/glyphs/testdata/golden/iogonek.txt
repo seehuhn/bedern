@@ -27,3 +27,4 @@ caps-up iogonek 270 c2f8e9c1d778
 caps-down iogonek 270 c2f8e9c1d778
 punct-up iogonek 270 c2f8e9c1d778
 punct-down iogonek 270 c2f8e9c1d778
+bold iogonek 319 69b7e001791d

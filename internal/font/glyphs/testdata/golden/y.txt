@@ -27,3 +27,4 @@ caps-up y 508 a1232f4ba7e9
 caps-down y 508 a1232f4ba7e9
 punct-up y 508 a1232f4ba7e9
 punct-down y 508 a1232f4ba7e9
+bold y 546 e058e446ce86

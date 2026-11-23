@@ -27,3 +27,4 @@ caps-up itilde 270 3df44849ae6a
 caps-down itilde 270 3df44849ae6a
 punct-up itilde 270 3df44849ae6a
 punct-down itilde 270 3df44849ae6a
+bold itilde 319 97dbfb0e273a

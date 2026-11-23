@@ -27,3 +27,4 @@ caps-up Jcircumflex 455 5a7e356be056
 caps-down Jcircumflex 400 34f17e7be776
 punct-up Jcircumflex 444 6adf8df69e77
 punct-down Jcircumflex 444 6adf8df69e77
+bold Jcircumflex 529 748a32366110

@@ -27,3 +27,4 @@ caps-up atilde 491 260333cee159
 caps-down atilde 491 260333cee159
 punct-up atilde 491 260333cee159
 punct-down atilde 491 260333cee159
+bold atilde 549 9f9caf0e4b5e

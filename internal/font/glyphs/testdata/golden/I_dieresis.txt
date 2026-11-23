@@ -27,3 +27,4 @@ caps-up Idieresis 347 4ee6e3e3a9bc
 caps-down Idieresis 327 8afe76f2a4fe
 punct-up Idieresis 337 133a981b7f13
 punct-down Idieresis 337 133a981b7f13
+bold Idieresis 388 e1a87c364ee9

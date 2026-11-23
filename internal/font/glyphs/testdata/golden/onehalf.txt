@@ -27,3 +27,4 @@ caps-up onehalf 794 914be189f164
 caps-down onehalf 747 cfff5afafd06
 punct-up onehalf 763 b1bbbd173666
 punct-down onehalf 763 b1bbbd173666
+bold onehalf 814 a0ccde7eb18c

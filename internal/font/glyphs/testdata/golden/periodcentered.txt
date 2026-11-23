@@ -27,3 +27,4 @@ caps-up periodcentered 268 831a8a3e96d4
 caps-down periodcentered 268 831a8a3e96d4
 punct-up periodcentered 268 831a8a3e96d4
 punct-down periodcentered 268 831a8a3e96d4
+bold periodcentered 308 bb7976b0483d

@@ -27,3 +27,4 @@ caps-up uacute 540 f0cbc2ddd26b
 caps-down uacute 540 f0cbc2ddd26b
 punct-up uacute 540 f0cbc2ddd26b
 punct-down uacute 540 f0cbc2ddd26b
+bold uacute 599 d18470919651

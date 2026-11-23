@@ -27,3 +27,4 @@ caps-up Ograve 780 ed7d4cbfd173
 caps-down Ograve 710 4f43b9fed945
 punct-up Ograve 746 98850c4d333f
 punct-down Ograve 746 98850c4d333f
+bold Ograve 794 dc3331e154e3

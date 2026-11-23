@@ -27,3 +27,4 @@ caps-up h 540 c3a3180d74db
 caps-down h 540 c3a3180d74db
 punct-up h 540 c3a3180d74db
 punct-down h 540 c3a3180d74db
+bold h 599 995993115186

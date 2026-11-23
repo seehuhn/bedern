@@ -27,3 +27,4 @@ caps-up f 305 b6d6b7389a09
 caps-down f 305 b6d6b7389a09
 punct-up f 305 b6d6b7389a09
 punct-down f 305 b6d6b7389a09
+bold f 343 48801685eadb

@@ -27,3 +27,4 @@ caps-up sterling 515 81da509c418c
 caps-down sterling 470 4832e0cd5a39
 punct-up sterling 490 92bc9ff52e77
 punct-down sterling 490 92bc9ff52e77
+bold sterling 530 481f19ede73e

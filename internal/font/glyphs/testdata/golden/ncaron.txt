@@ -27,3 +27,4 @@ caps-up ncaron 540 621e8030f464
 caps-down ncaron 540 621e8030f464
 punct-up ncaron 540 621e8030f464
 punct-down ncaron 540 621e8030f464
+bold ncaron 599 e6589c2b28e8

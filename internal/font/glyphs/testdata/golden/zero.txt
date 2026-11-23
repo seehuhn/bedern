@@ -27,3 +27,4 @@ caps-up zero 515 56f6dbc89208
 caps-down zero 470 bf3d84b2fe35
 punct-up zero 490 6098f9d47716
 punct-down zero 490 6098f9d47716
+bold zero 530 19039aed367f

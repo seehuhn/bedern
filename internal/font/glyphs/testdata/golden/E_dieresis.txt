@@ -27,3 +27,4 @@ caps-up Edieresis 676 5ba967365d60
 caps-down Edieresis 601 9ca607fafb4e
 punct-up Edieresis 641 a3d9bffa79b1
 punct-down Edieresis 641 a3d9bffa79b1
+bold Edieresis 676 02dba6a81f91

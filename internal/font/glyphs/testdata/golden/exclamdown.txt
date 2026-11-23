@@ -27,3 +27,4 @@ caps-up exclamdown 268 5cc261df5182
 caps-down exclamdown 268 c4ebb6b79887
 punct-up exclamdown 268 bb7ed887fab7
 punct-down exclamdown 268 d2698fa289c2
+bold exclamdown 308 f97244324191

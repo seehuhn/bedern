@@ -27,3 +27,4 @@ caps-up asterisk 480 dc0c10a6e412
 caps-down asterisk 480 dc0c10a6e412
 punct-up asterisk 506 6f7a24d9e8b8
 punct-down asterisk 452 4f1ec75ea090
+bold asterisk 482 67a476e689eb

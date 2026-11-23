@@ -27,3 +27,4 @@ caps-up bar 268 76978e6ad500
 caps-down bar 268 fc327280eaed
 punct-up bar 274 a7d7fdc330bd
 punct-down bar 262 94a261495355
+bold bar 302 54e9fd75039d

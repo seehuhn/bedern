@@ -27,3 +27,4 @@ caps-up Aogonek 727 3794b2cfe9cc
 caps-down Aogonek 677 2033e406fe48
 punct-up Aogonek 725 f358fa51167a
 punct-down Aogonek 725 f358fa51167a
+bold Aogonek 755 cb916d476b25

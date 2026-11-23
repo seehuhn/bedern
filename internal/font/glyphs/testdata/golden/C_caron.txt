@@ -27,3 +27,4 @@ caps-up Ccaron 708 0ff1be037aa5
 caps-down Ccaron 649 dd9fa741d879
 punct-up Ccaron 672 4b7e44f5701f
 punct-down Ccaron 672 4b7e44f5701f
+bold Ccaron 720 c16feb32af00

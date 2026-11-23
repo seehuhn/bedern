@@ -27,3 +27,4 @@ caps-up quotedblleft 429 b11bd9e84f40
 caps-down quotedblleft 429 b11bd9e84f40
 punct-up quotedblleft 446 ec28a586e728
 punct-down quotedblleft 415 03a9002653f1
+bold quotedblleft 445 10d2a4692452

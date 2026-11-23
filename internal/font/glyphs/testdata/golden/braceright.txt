@@ -27,3 +27,4 @@ caps-up braceright 390 7ef175af8b6a
 caps-down braceright 390 48153c0d90c8
 punct-up braceright 390 4214e49fe7c7
 punct-down braceright 390 b0c515118053
+bold braceright 390 8fabe4361dc7

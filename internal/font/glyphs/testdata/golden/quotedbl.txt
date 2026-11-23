@@ -27,3 +27,4 @@ caps-up quotedbl 354 1d21abca9a41
 caps-down quotedbl 354 1d21abca9a41
 punct-up quotedbl 362 06348f766029
 punct-down quotedbl 346 634276fbb165
+bold quotedbl 368 8fc4f89ae11c

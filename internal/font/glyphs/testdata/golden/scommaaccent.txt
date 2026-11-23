@@ -27,3 +27,4 @@ caps-up scommaaccent 386 89fa79a53309
 caps-down scommaaccent 386 89fa79a53309
 punct-up scommaaccent 386 40c749fa79af
 punct-down scommaaccent 386 c82b96053e40
+bold scommaaccent 429 d01ab3c01b61

@@ -27,3 +27,4 @@ caps-up hcircumflex 540 ef4640a977df
 caps-down hcircumflex 540 ef4640a977df
 punct-up hcircumflex 540 ef4640a977df
 punct-down hcircumflex 540 ef4640a977df
+bold hcircumflex 599 175fe688be5b

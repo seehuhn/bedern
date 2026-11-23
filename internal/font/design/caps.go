@@ -10,6 +10,10 @@ package design
 // construction is described in internal/glyphs/capstem.go, caparm.go and the
 // files of the letters.
 
+// CapLslashStems is the horizontal extent of the bar of Ł, in stems, where
+// Caps.LslashWidth is zero.
+const CapLslashStems = 3.69
+
 // Caps holds the parameters of the capitals.  All horizontal positions which
 // follow from them are in the functions below.
 type Caps struct {
@@ -22,6 +26,9 @@ type Caps struct {
 	RoundThin float64
 	Bar       float64
 	TBar      float64
+	// LslashWidth is the horizontal extent of the bar of Ł; zero means
+	// CapLslashStems stems.
+	LslashWidth float64
 
 	// Serifs of the stems.  SerifJut is the length of a serif beyond the stem,
 	// the same on both sides and at head and foot; SerifThick the thickness

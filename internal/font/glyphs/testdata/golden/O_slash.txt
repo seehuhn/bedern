@@ -27,3 +27,4 @@ caps-up Oslash 780 b5b846d38d01
 caps-down Oslash 710 4e8b22836714
 punct-up Oslash 746 23152fa56a38
 punct-down Oslash 746 23152fa56a38
+bold Oslash 794 9d0f40c49a5b

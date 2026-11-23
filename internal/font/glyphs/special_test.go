@@ -215,8 +215,9 @@ func eszettForm(t *testing.T, np namedParams) {
 }
 
 // TestSharedStroke asks that the stroke which o and e share in œ, and a and e
-// in æ, is one stroke: at the height of the thickest part of e it is at least
-// as thick as the round stroke of e and at most 1.15 times as thick.
+// in æ, is one stroke: at the height of the thickest part of e, or one unit
+// below the bar of e where the bar stands on it, it is at least as thick as
+// the round stroke of e and at most 1.15 times as thick.
 func TestSharedStroke(t *testing.T) {
 	t.Parallel()
 	for _, np := range allParams() {
@@ -231,7 +232,11 @@ func TestSharedStroke(t *testing.T) {
 			path, _ := cachedOutline(np, c.glyph)
 			x := c.dx + design.EBowlLeft(p) + p.CurveLower/2 // the middle of the left stroke of e
 			w := math.NaN()
-			for _, r := range runs(path, eThickY(p)) {
+			y := eThickY(p)
+			if low, _ := eBar(p); low <= y {
+				y = low - 1
+			}
+			for _, r := range runs(path, y) {
 				if r[0] <= x && r[1] >= x {
 					w = r[1] - r[0]
 				}
@@ -250,6 +255,9 @@ func TestSharedStroke(t *testing.T) {
 func TestSuperiorFigures(t *testing.T) {
 	t.Parallel()
 	for _, np := range derivedParams() {
+		if !boldApplies(t, np) {
+			continue
+		}
 		p := np.params
 		one, _ := cachedOutline(np, "one")
 		sup, _ := cachedOutline(np, "uni00B9")

@@ -27,3 +27,4 @@ caps-up yacute 508 72ed3b027fb1
 caps-down yacute 508 72ed3b027fb1
 punct-up yacute 508 72ed3b027fb1
 punct-down yacute 508 72ed3b027fb1
+bold yacute 546 7c5ec0540677

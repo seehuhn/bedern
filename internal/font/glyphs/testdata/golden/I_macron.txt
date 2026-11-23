@@ -27,3 +27,4 @@ caps-up Imacron 347 4ec837d1ab9c
 caps-down Imacron 327 ee75825ee399
 punct-up Imacron 337 1ab86f2c7891
 punct-down Imacron 337 1ab86f2c7891
+bold Imacron 388 8e17ec1f29e1

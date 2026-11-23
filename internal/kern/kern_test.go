@@ -19,7 +19,8 @@ import (
 // kern.
 
 // routineSets is the number of parameter sets of designtest.Sets which go test
-// -short checks besides the variants.
+// -short checks besides the variants.  Without -short the tests check every
+// set and the bold parameters.
 const routineSets = 3
 
 type named struct {
@@ -34,6 +35,9 @@ func allSets() []named {
 	}
 	for _, s := range designtest.Sets(testing.Short(), routineSets) {
 		sets = append(sets, named{s.Name, s.Params})
+	}
+	if !testing.Short() {
+		sets = append(sets, named{"bold", design.Bold()})
 	}
 	return sets
 }

@@ -27,3 +27,4 @@ caps-up napostrophe 624 aa91638e960f
 caps-down napostrophe 624 aa91638e960f
 punct-up napostrophe 626 89dc06fcf496
 punct-down napostrophe 622 83cdf9797b60
+bold napostrophe 716 b83354c928d9

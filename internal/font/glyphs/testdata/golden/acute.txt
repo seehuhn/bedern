@@ -27,3 +27,4 @@ caps-up acute 250 6e123ab7d4fd
 caps-down acute 250 6e123ab7d4fd
 punct-up acute 250 6e123ab7d4fd
 punct-down acute 250 6e123ab7d4fd
+bold acute 264 419951a03231

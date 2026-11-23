@@ -27,3 +27,4 @@ caps-up gravecomb 0 8077e98861a0
 caps-down gravecomb 0 8077e98861a0
 punct-up gravecomb 0 8077e98861a0
 punct-down gravecomb 0 8077e98861a0
+bold gravecomb 0 3aed61932caa

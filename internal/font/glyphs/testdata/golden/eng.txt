@@ -27,3 +27,4 @@ caps-up eng 540 3d1f510f31ff
 caps-down eng 540 3d1f510f31ff
 punct-up eng 540 3d1f510f31ff
 punct-down eng 540 3d1f510f31ff
+bold eng 599 3e532febbd20

@@ -27,3 +27,4 @@ caps-up questiondown 482 bc998d7a6798
 caps-down questiondown 442 6d9db5d6b375
 punct-up questiondown 462 a18952eb2ede
 punct-down questiondown 462 45f687d4e82b
+bold questiondown 493 9c5a3610569d

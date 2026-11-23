@@ -27,3 +27,4 @@ caps-up K 759 2bdbb91dc204
 caps-down K 714 16f4f64b720f
 punct-up K 736 a49fa2f19c7c
 punct-down K 736 a49fa2f19c7c
+bold K 795 271ab1f91360

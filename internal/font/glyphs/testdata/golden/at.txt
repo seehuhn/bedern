@@ -27,3 +27,4 @@ caps-up at 756 1b742743ab74
 caps-down at 756 88b850d41035
 punct-up at 756 fd18c05534ec
 punct-down at 756 fd18c05534ec
+bold at 796 d0bc3997bb4b

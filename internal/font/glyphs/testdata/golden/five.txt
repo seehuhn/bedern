@@ -27,3 +27,4 @@ caps-up five 515 aac514965070
 caps-down five 470 f97cd56e0371
 punct-up five 490 4d13e7d512a2
 punct-down five 490 4d13e7d512a2
+bold five 530 f367d13ce39b

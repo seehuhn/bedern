@@ -27,3 +27,4 @@ caps-up imacron 270 d250f1d912c0
 caps-down imacron 270 d250f1d912c0
 punct-up imacron 270 d250f1d912c0
 punct-down imacron 270 d250f1d912c0
+bold imacron 319 2c1018599dba

@@ -27,3 +27,4 @@ caps-up l 270 e177c6bd9a75
 caps-down l 270 e177c6bd9a75
 punct-up l 270 e177c6bd9a75
 punct-down l 270 e177c6bd9a75
+bold l 319 b0176acb7684

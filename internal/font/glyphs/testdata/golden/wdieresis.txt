@@ -27,3 +27,4 @@ caps-up wdieresis 712 8ab2b78ff736
 caps-down wdieresis 712 8ab2b78ff736
 punct-up wdieresis 712 8ab2b78ff736
 punct-down wdieresis 712 8ab2b78ff736
+bold wdieresis 788 34da59119ddf

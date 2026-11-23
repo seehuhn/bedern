@@ -27,3 +27,4 @@ caps-up paragraph 571 c650794cf48a
 caps-down paragraph 571 c650794cf48a
 punct-up paragraph 571 c650794cf48a
 punct-down paragraph 571 c650794cf48a
+bold paragraph 571 2191522cba26

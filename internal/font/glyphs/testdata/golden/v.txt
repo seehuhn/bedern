@@ -27,3 +27,4 @@ caps-up v 508 b97f0da5878a
 caps-down v 508 b97f0da5878a
 punct-up v 508 b97f0da5878a
 punct-down v 508 b97f0da5878a
+bold v 546 cc82fde563ac

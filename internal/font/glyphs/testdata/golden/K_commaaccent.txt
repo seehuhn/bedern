@@ -27,3 +27,4 @@ caps-up Kcommaaccent 759 7caa24009efc
 caps-down Kcommaaccent 714 190870eefad1
 punct-up Kcommaaccent 736 0530e20d6573
 punct-down Kcommaaccent 736 637ae424302a
+bold Kcommaaccent 795 8edd46f7d9bc

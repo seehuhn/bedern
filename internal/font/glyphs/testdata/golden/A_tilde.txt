@@ -27,3 +27,4 @@ caps-up Atilde 727 b60bfce6baa7
 caps-down Atilde 677 4824ffb4964f
 punct-up Atilde 725 3c37fd4b064e
 punct-down Atilde 725 3c37fd4b064e
+bold Atilde 755 370411d4660a

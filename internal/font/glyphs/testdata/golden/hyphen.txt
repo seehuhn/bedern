@@ -27,3 +27,4 @@ caps-up hyphen 323 f8abee234ccf
 caps-down hyphen 323 f8abee234ccf
 punct-up hyphen 341 c6a7fc78c9dd
 punct-down hyphen 301 a81e7c1f1383
+bold hyphen 323 eeac5139f558

@@ -27,3 +27,4 @@ caps-up ffl 810 66a6478e200a
 caps-down ffl 810 66a6478e200a
 punct-up ffl 810 66a6478e200a
 punct-down ffl 810 66a6478e200a
+bold ffl 957 794da5e110c4

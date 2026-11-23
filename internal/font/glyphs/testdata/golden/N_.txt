@@ -27,3 +27,4 @@ caps-up N 777 3f8259e2d04c
 caps-down N 655 66d2dded5db6
 punct-up N 747 856be87391ba
 punct-down N 747 856be87391ba
+bold N 800 932b43abb216

@@ -27,3 +27,4 @@ caps-up Ucircumflex 753 406cafd0b2cf
 caps-down Ucircumflex 683 a178e06328df
 punct-up Ucircumflex 747 f42306564b44
 punct-down Ucircumflex 747 f42306564b44
+bold Ucircumflex 808 19313a182cf4

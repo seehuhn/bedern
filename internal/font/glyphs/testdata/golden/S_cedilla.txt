@@ -27,3 +27,4 @@ caps-up Scedilla 558 58d52d0fc333
 caps-down Scedilla 508 5512cce8270f
 punct-up Scedilla 533 25dfa8f7486d
 punct-down Scedilla 533 25dfa8f7486d
+bold Scedilla 585 811303c87ae3

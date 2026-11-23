@@ -27,3 +27,4 @@ caps-up wcircumflex 712 fc988216f21b
 caps-down wcircumflex 712 fc988216f21b
 punct-up wcircumflex 712 fc988216f21b
 punct-down wcircumflex 712 fc988216f21b
+bold wcircumflex 788 9fa979e9d6aa

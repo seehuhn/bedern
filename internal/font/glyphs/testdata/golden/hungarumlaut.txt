@@ -27,3 +27,4 @@ caps-up hungarumlaut 366 433d2872254b
 caps-down hungarumlaut 366 433d2872254b
 punct-up hungarumlaut 366 433d2872254b
 punct-down hungarumlaut 366 433d2872254b
+bold hungarumlaut 388 0fc33580f395

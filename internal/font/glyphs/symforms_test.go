@@ -236,6 +236,9 @@ const (
 func TestQuestionHook(t *testing.T) {
 	t.Parallel()
 	for _, np := range allParams() {
+		if !boldApplies(t, np) {
+			continue
+		}
 		path, _, _ := outlineOf("question", np.params)
 		hook := path[0]
 		pts := sampleContour(hook, 0.5)

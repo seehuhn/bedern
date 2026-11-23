@@ -27,3 +27,4 @@ caps-up ccaron 429 6a79d08eb6e8
 caps-down ccaron 429 6a79d08eb6e8
 punct-up ccaron 429 6a79d08eb6e8
 punct-down ccaron 429 6a79d08eb6e8
+bold ccaron 485 29ca5ac5e470

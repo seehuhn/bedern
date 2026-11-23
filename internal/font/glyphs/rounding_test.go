@@ -64,6 +64,9 @@ func smoothNodes(path outline.Path, f func(ci, j, k int)) {
 func TestRoundKeepsSmoothNodesSmooth(t *testing.T) {
 	t.Parallel()
 	for _, np := range allParams() {
+		if !boldApplies(t, np) {
+			continue
+		}
 		t.Run(np.name, func(t *testing.T) {
 			t.Parallel()
 			for _, e := range table {

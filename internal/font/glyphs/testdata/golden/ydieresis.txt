@@ -27,3 +27,4 @@ caps-up ydieresis 508 e46b585bf2e4
 caps-down ydieresis 508 e46b585bf2e4
 punct-up ydieresis 508 e46b585bf2e4
 punct-down ydieresis 508 e46b585bf2e4
+bold ydieresis 546 775078c3a45f

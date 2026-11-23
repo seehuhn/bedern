@@ -27,3 +27,4 @@ caps-up registered 826 74cd470e53cf
 caps-down registered 744 efd5c83ef976
 punct-up registered 786 cf00f40035fc
 punct-down registered 786 cf00f40035fc
+bold registered 786 a63f63102a07

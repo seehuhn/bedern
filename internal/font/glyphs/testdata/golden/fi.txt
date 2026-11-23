@@ -27,3 +27,4 @@ caps-up fi 540 c199fdb3de2c
 caps-down fi 540 c199fdb3de2c
 punct-up fi 540 c199fdb3de2c
 punct-down fi 540 c199fdb3de2c
+bold fi 638 21b8c1867761

@@ -27,3 +27,4 @@ caps-up currency 515 6f74458ead39
 caps-down currency 470 7f07226abc50
 punct-up currency 490 2d5d10637a6b
 punct-down currency 490 2d5d10637a6b
+bold currency 530 292543a3813f

@@ -27,3 +27,4 @@ caps-up ohungarumlaut 486 e9326d61a679
 caps-down ohungarumlaut 486 e9326d61a679
 punct-up ohungarumlaut 486 e9326d61a679
 punct-down ohungarumlaut 486 e9326d61a679
+bold ohungarumlaut 526 f1bf79c107fd

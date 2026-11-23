@@ -27,3 +27,4 @@ caps-up ampersand 750 53f6f8fbc79e
 caps-down ampersand 750 04982fe09d39
 punct-up ampersand 750 e3f011b99fde
 punct-down ampersand 750 e3f011b99fde
+bold ampersand 790 dcd0a6925c8f

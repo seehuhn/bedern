@@ -27,3 +27,4 @@ caps-up space 323 e3b0c44298fc
 caps-down space 323 e3b0c44298fc
 punct-up space 323 e3b0c44298fc
 punct-down space 323 e3b0c44298fc
+bold space 323 e3b0c44298fc

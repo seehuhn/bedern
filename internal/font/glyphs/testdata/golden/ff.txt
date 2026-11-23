@@ -27,3 +27,4 @@ caps-up ff 575 aac7e7c1de60
 caps-down ff 575 aac7e7c1de60
 punct-up ff 575 aac7e7c1de60
 punct-down ff 575 aac7e7c1de60
+bold ff 662 c0c324995a5b

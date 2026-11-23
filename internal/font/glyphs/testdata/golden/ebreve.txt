@@ -27,3 +27,4 @@ caps-up ebreve 451 91ecd73037a6
 caps-down ebreve 451 91ecd73037a6
 punct-up ebreve 451 91ecd73037a6
 punct-down ebreve 451 91ecd73037a6
+bold ebreve 491 864c5e6896c0

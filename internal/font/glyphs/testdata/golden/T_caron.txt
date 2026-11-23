@@ -27,3 +27,4 @@ caps-up Tcaron 702 1241d1dd365f
 caps-down Tcaron 602 adda92d01a0a
 punct-up Tcaron 644 583deca43a50
 punct-down Tcaron 644 583deca43a50
+bold Tcaron 675 cc2430e75097

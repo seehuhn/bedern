@@ -27,3 +27,4 @@ caps-up macron 350 e42cf68483dd
 caps-down macron 350 e42cf68483dd
 punct-up macron 350 e42cf68483dd
 punct-down macron 350 e42cf68483dd
+bold macron 372 e122611e5a8a

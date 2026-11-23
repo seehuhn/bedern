@@ -27,3 +27,4 @@ caps-up egrave 451 28b84373eaaa
 caps-down egrave 451 28b84373eaaa
 punct-up egrave 451 28b84373eaaa
 punct-down egrave 451 28b84373eaaa
+bold egrave 491 81000629e4ce

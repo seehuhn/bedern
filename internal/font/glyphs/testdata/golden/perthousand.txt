@@ -27,3 +27,4 @@ caps-up perthousand 1110 986753cbd7c4
 caps-down perthousand 1110 4eb43e28df18
 punct-up perthousand 1110 bfbd9de9f4ef
 punct-down perthousand 1110 bfbd9de9f4ef
+bold perthousand 1150 864e5245f9ad

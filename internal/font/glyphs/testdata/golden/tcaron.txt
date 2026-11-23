@@ -27,3 +27,4 @@ caps-up tcaron 355 4e3fa5b36d4b
 caps-down tcaron 355 4e3fa5b36d4b
 punct-up tcaron 355 b5c4e2d056da
 punct-down tcaron 355 5ac24aeb6b5e
+bold tcaron 404 255c2e7d9080

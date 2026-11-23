@@ -27,3 +27,4 @@ caps-up sacute 386 9c520d9e787e
 caps-down sacute 386 9c520d9e787e
 punct-up sacute 386 9c520d9e787e
 punct-down sacute 386 9c520d9e787e
+bold sacute 429 8722469a5fce

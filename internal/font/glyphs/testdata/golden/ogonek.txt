@@ -27,3 +27,4 @@ caps-up ogonek 265 92553c973c3c
 caps-down ogonek 265 92553c973c3c
 punct-up ogonek 265 92553c973c3c
 punct-down ogonek 265 92553c973c3c
+bold ogonek 307 b6e676d4a1ca

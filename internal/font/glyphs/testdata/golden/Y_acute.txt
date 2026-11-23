@@ -27,3 +27,4 @@ caps-up Yacute 751 56cbb5534ab5
 caps-down Yacute 701 661898f49d88
 punct-up Yacute 709 d3e53408b9de
 punct-down Yacute 709 d3e53408b9de
+bold Yacute 749 882e9fbe0d3a

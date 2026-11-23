@@ -27,3 +27,4 @@ caps-up uni0306 0 f9bfda3284d8
 caps-down uni0306 0 f9bfda3284d8
 punct-up uni0306 0 f9bfda3284d8
 punct-down uni0306 0 f9bfda3284d8
+bold uni0306 0 32d8f1913b58

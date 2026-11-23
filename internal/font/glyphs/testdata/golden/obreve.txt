@@ -27,3 +27,4 @@ caps-up obreve 486 f76481c2e56e
 caps-down obreve 486 f76481c2e56e
 punct-up obreve 486 f76481c2e56e
 punct-down obreve 486 f76481c2e56e
+bold obreve 526 304885c8cf87

@@ -27,3 +27,4 @@ caps-up quoteright 239 b518d479cd3e
 caps-down quoteright 239 b518d479cd3e
 punct-up quoteright 246 b4b8e0f56557
 punct-down quoteright 235 d96477f439b8
+bold quoteright 255 26f2a52c1247

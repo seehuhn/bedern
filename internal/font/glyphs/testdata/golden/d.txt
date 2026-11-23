@@ -27,3 +27,4 @@ caps-up d 542 8a26e35bcb21
 caps-down d 542 8a26e35bcb21
 punct-up d 542 8a26e35bcb21
 punct-down d 542 8a26e35bcb21
+bold d 591 e030b7d7a463

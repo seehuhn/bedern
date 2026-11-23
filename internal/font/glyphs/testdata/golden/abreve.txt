@@ -27,3 +27,4 @@ caps-up abreve 491 409d00152926
 caps-down abreve 491 409d00152926
 punct-up abreve 491 409d00152926
 punct-down abreve 491 409d00152926
+bold abreve 549 d964b9388d77

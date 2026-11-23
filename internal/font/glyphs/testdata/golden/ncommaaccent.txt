@@ -27,3 +27,4 @@ caps-up ncommaaccent 540 5c691d59116a
 caps-down ncommaaccent 540 5c691d59116a
 punct-up ncommaaccent 540 173767430f3c
 punct-down ncommaaccent 540 40fcff4a179d
+bold ncommaaccent 599 925764c341c2

@@ -27,3 +27,4 @@ caps-up a 491 2b27bbc9c79d
 caps-down a 491 2b27bbc9c79d
 punct-up a 491 2b27bbc9c79d
 punct-down a 491 2b27bbc9c79d
+bold a 549 9bef19252848

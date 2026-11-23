@@ -27,3 +27,4 @@ caps-up E 676 01e31db347ca
 caps-down E 601 b693c5c8c399
 punct-up E 641 f2dd9b367d7c
 punct-down E 641 f2dd9b367d7c
+bold E 676 0c563c01c81a

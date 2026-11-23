@@ -27,3 +27,4 @@ caps-up Wcircumflex 1019 a7f4ed9fc151
 caps-down Wcircumflex 954 f887182396f0
 punct-up Wcircumflex 985 498e65d9eaa9
 punct-down Wcircumflex 985 498e65d9eaa9
+bold Wcircumflex 1064 de4a796bd163

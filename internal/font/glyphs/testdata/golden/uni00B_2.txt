@@ -27,3 +27,4 @@ caps-up uni00B2 343 2362cb4d9b05
 caps-down uni00B2 313 4162b047b724
 punct-up uni00B2 326 3b8c287f9895
 punct-down uni00B2 326 3b8c287f9895
+bold uni00B2 353 88b34738ad9a

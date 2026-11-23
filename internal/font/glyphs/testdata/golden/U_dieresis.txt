@@ -27,3 +27,4 @@ caps-up Udieresis 753 5f2a56aa221c
 caps-down Udieresis 683 e8d4bb7a39d7
 punct-up Udieresis 747 ae6cfce4da96
 punct-down Udieresis 747 ae6cfce4da96
+bold Udieresis 808 2f2ac52df0fd

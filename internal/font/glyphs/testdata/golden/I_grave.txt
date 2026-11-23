@@ -27,3 +27,4 @@ caps-up Igrave 347 33755bd96c4d
 caps-down Igrave 327 22df724ed22e
 punct-up Igrave 337 4e8390799334
 punct-down Igrave 337 4e8390799334
+bold Igrave 388 18f5917d08f7

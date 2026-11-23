@@ -27,3 +27,4 @@ caps-up edotaccent 451 664b4b7785cf
 caps-down edotaccent 451 664b4b7785cf
 punct-up edotaccent 451 664b4b7785cf
 punct-down edotaccent 451 664b4b7785cf
+bold edotaccent 491 a7b782a2828e

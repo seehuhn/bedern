@@ -27,3 +27,4 @@ caps-up one 515 ad524b71b3af
 caps-down one 470 4b39b2a6f6c6
 punct-up one 490 0e99e12f4677
 punct-down one 490 0e99e12f4677
+bold one 530 77450e3331f8

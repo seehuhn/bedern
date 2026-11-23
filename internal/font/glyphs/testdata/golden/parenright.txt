@@ -27,3 +27,4 @@ caps-up parenright 344 dd0784638b61
 caps-down parenright 344 11826459bd3d
 punct-up parenright 368 8ab849a6e60b
 punct-down parenright 324 33ffacbd6ef6
+bold parenright 362 bdca731ed30c

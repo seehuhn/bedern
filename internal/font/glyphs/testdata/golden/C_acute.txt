@@ -27,3 +27,4 @@ caps-up Cacute 708 59777db756af
 caps-down Cacute 649 8de40bee5a61
 punct-up Cacute 672 aa53918aa3a7
 punct-down Cacute 672 aa53918aa3a7
+bold Cacute 720 ec7dd36377d6

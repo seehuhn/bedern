@@ -27,3 +27,4 @@ caps-up Lacute 607 f12ab17a9f6c
 caps-down Lacute 542 8efa3864c876
 punct-up Lacute 590 4a64986a0bdb
 punct-down Lacute 590 4a64986a0bdb
+bold Lacute 625 f4b1c1ad43e5

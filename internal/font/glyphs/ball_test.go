@@ -705,6 +705,9 @@ var (
 func TestStalkIsEven(t *testing.T) {
 	t.Parallel()
 	for _, np := range allParams() {
+		if !boldApplies(t, np) {
+			continue
+		}
 		t.Run(np.name, func(t *testing.T) {
 			t.Parallel()
 			p := np.params
@@ -890,6 +893,9 @@ func TestHookInnerEdgeHasNoDent(t *testing.T) {
 	const hump = 0.08 // the curvature may exceed that of the part by this fraction
 	reg := design.Regular()
 	for _, np := range allParams() {
+		if !boldApplies(t, np) {
+			continue
+		}
 		t.Run(np.name, func(t *testing.T) {
 			t.Parallel()
 			p := np.params

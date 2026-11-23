@@ -27,3 +27,4 @@ caps-up dagger 508 554a1892f5e8
 caps-down dagger 508 554a1892f5e8
 punct-up dagger 508 554a1892f5e8
 punct-down dagger 508 554a1892f5e8
+bold dagger 508 49e143de3d3c

@@ -27,3 +27,4 @@ caps-up aring 491 58b696b1aad3
 caps-down aring 491 58b696b1aad3
 punct-up aring 491 58b696b1aad3
 punct-down aring 491 58b696b1aad3
+bold aring 549 fd42a23bc8e0

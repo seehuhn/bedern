@@ -27,3 +27,4 @@ caps-up dotaccent 187 d32608c8f9e2
 caps-down dotaccent 187 d32608c8f9e2
 punct-up dotaccent 187 d32608c8f9e2
 punct-down dotaccent 187 d32608c8f9e2
+bold dotaccent 224 453b690879dd

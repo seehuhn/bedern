@@ -27,3 +27,4 @@ caps-up ccedilla 429 f6c24401bfc9
 caps-down ccedilla 429 f6c24401bfc9
 punct-up ccedilla 429 f6c24401bfc9
 punct-down ccedilla 429 f6c24401bfc9
+bold ccedilla 485 e13398d72e8f

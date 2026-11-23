@@ -27,3 +27,4 @@ caps-up k 509 49b6a6c59500
 caps-down k 509 49b6a6c59500
 punct-up k 509 49b6a6c59500
 punct-down k 509 49b6a6c59500
+bold k 594 d7b26bddc4c0

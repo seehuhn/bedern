@@ -27,3 +27,4 @@ caps-up oslash 486 800dacde1b38
 caps-down oslash 486 800dacde1b38
 punct-up oslash 486 800dacde1b38
 punct-down oslash 486 800dacde1b38
+bold oslash 526 076b8ecbf44d

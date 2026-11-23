@@ -27,3 +27,4 @@ caps-up uni0307 0 57a41647fce0
 caps-down uni0307 0 57a41647fce0
 punct-up uni0307 0 57a41647fce0
 punct-down uni0307 0 57a41647fce0
+bold uni0307 0 0d834980d23c

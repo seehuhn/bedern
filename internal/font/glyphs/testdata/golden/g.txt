@@ -27,3 +27,4 @@ caps-up g 478 be6e9f3c9c37
 caps-down g 478 be6e9f3c9c37
 punct-up g 478 be6e9f3c9c37
 punct-down g 478 be6e9f3c9c37
+bold g 519 e5e81d7ce1c1

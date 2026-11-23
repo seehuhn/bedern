@@ -27,3 +27,4 @@ caps-up rcommaaccent 388 c2ada6b00f31
 caps-down rcommaaccent 388 c2ada6b00f31
 punct-up rcommaaccent 388 e4053319f334
 punct-down rcommaaccent 388 3234da8359cc
+bold rcommaaccent 459 952c03a2d699

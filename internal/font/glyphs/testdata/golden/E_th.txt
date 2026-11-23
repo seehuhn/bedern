@@ -27,3 +27,4 @@ caps-up Eth 773 8276b90699c4
 caps-down Eth 703 35e90bbaf3c6
 punct-up Eth 737 6289b492b982
 punct-down Eth 737 6289b492b982
+bold Eth 792 1effeabeae49

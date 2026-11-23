@@ -27,3 +27,4 @@ caps-up L 607 df2494ac034f
 caps-down L 542 e67362ce9d80
 punct-up L 590 4a46ff65d2d9
 punct-down L 590 4a46ff65d2d9
+bold L 625 f85c110d4a9d

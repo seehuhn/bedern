@@ -27,3 +27,4 @@ caps-up uni202F 162 e3b0c44298fc
 caps-down uni202F 162 e3b0c44298fc
 punct-up uni202F 162 e3b0c44298fc
 punct-down uni202F 162 e3b0c44298fc
+bold uni202F 162 e3b0c44298fc

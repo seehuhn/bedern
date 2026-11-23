@@ -27,3 +27,4 @@ caps-up brokenbar 268 1a72b56b0971
 caps-down brokenbar 268 d3ec5a623a88
 punct-up brokenbar 274 bbd9add24f44
 punct-down brokenbar 262 a57ab6e5a42f
+bold brokenbar 302 574f0a224876

@@ -27,3 +27,4 @@ caps-up eacute 451 1d4789d3c92a
 caps-down eacute 451 1d4789d3c92a
 punct-up eacute 451 1d4789d3c92a
 punct-down eacute 451 1d4789d3c92a
+bold eacute 491 da0129dda61a

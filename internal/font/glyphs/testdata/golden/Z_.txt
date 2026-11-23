@@ -27,3 +27,4 @@ caps-up Z 564 fcdd146d4c95
 caps-down Z 524 7055a2b2e4ce
 punct-up Z 564 c6f1b44da5ac
 punct-down Z 564 c6f1b44da5ac
+bold Z 609 2e6651ecd8ab

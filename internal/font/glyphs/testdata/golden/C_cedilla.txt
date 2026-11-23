@@ -27,3 +27,4 @@ caps-up Ccedilla 708 bd5e272640eb
 caps-down Ccedilla 649 03df8b079bfb
 punct-up Ccedilla 672 2a4339ab61af
 punct-down Ccedilla 672 2a4339ab61af
+bold Ccedilla 720 7b920ad49cc8

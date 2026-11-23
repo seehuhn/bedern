@@ -27,3 +27,4 @@ caps-up Wacute 1019 bd13721c673e
 caps-down Wacute 954 25eba8e88a69
 punct-up Wacute 985 0d2638f12711
 punct-down Wacute 985 0d2638f12711
+bold Wacute 1064 a110f9311417

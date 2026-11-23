@@ -27,3 +27,4 @@ caps-up scedilla 386 4cdd4831b0f2
 caps-down scedilla 386 4cdd4831b0f2
 punct-up scedilla 386 4cdd4831b0f2
 punct-down scedilla 386 4cdd4831b0f2
+bold scedilla 429 745210438979

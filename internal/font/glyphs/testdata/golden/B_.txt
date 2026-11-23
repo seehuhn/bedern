@@ -27,3 +27,4 @@ caps-up B 718 45005f035f09
 caps-down B 651 31a92fb40def
 punct-up B 659 53a2470a031a
 punct-down B 659 53a2470a031a
+bold B 710 282159197704

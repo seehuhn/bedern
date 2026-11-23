@@ -27,3 +27,4 @@ caps-up Abreve 727 c8426f0492aa
 caps-down Abreve 677 6dd33af39c0b
 punct-up Abreve 725 b311a1107b36
 punct-down Abreve 725 b311a1107b36
+bold Abreve 755 d35a54cf8dcd

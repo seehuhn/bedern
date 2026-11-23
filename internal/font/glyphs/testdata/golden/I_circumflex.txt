@@ -27,3 +27,4 @@ caps-up Icircumflex 347 690c01e390a0
 caps-down Icircumflex 327 10972eed0934
 punct-up Icircumflex 337 a6031fd77b26
 punct-down Icircumflex 337 a6031fd77b26
+bold Icircumflex 388 d83c10c86704

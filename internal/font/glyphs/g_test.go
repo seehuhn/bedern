@@ -158,6 +158,9 @@ func gNearest(q outline.Point, pts []outline.Point) float64 {
 func TestGLinkSwells(t *testing.T) {
 	t.Parallel()
 	for _, np := range allParams() {
+		if !boldApplies(t, np) {
+			continue
+		}
 		t.Run(np.name, func(t *testing.T) {
 			t.Parallel()
 			f := gTestFrame(t, np)
@@ -218,6 +221,9 @@ func gArea(pts []outline.Point) float64 {
 func TestGEar(t *testing.T) {
 	t.Parallel()
 	for _, np := range allParams() {
+		if !boldApplies(t, np) {
+			continue
+		}
 		t.Run(np.name, func(t *testing.T) {
 			t.Parallel()
 			f := gTestFrame(t, np)

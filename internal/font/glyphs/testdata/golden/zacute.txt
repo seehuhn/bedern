@@ -27,3 +27,4 @@ caps-up zacute 426 65aa6f2f45c6
 caps-down zacute 426 65aa6f2f45c6
 punct-up zacute 426 65aa6f2f45c6
 punct-down zacute 426 65aa6f2f45c6
+bold zacute 454 89219b40459f

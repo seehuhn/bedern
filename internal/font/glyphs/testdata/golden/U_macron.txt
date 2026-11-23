@@ -27,3 +27,4 @@ caps-up Umacron 753 c0729924a4db
 caps-down Umacron 683 f078dd46138d
 punct-up Umacron 747 32806a8c1fb4
 punct-down Umacron 747 32806a8c1fb4
+bold Umacron 808 156931ebd315

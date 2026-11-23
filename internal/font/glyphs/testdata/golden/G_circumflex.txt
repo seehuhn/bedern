@@ -27,3 +27,4 @@ caps-up Gcircumflex 765 d68dfb705033
 caps-down Gcircumflex 693 fe8aedfa5d4f
 punct-up Gcircumflex 727 072aa0c862fc
 punct-down Gcircumflex 727 072aa0c862fc
+bold Gcircumflex 776 c700cb5cc569

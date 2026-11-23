@@ -27,3 +27,4 @@ caps-up minute 292 d0b19877fb36
 caps-down minute 292 d0b19877fb36
 punct-up minute 309 e5354bfec488
 punct-down minute 275 2db9e8a29638
+bold minute 305 557ffa88b80b

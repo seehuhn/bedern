@@ -27,3 +27,4 @@ caps-up Dcroat 773 8276b90699c4
 caps-down Dcroat 703 35e90bbaf3c6
 punct-up Dcroat 737 6289b492b982
 punct-down Dcroat 737 6289b492b982
+bold Dcroat 792 1effeabeae49

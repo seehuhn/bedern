@@ -27,3 +27,4 @@ caps-up seven 515 ff771df86bad
 caps-down seven 470 9b44b9313b88
 punct-up seven 490 9c59a230130d
 punct-down seven 490 9c59a230130d
+bold seven 530 8b6b9043e106

@@ -27,3 +27,4 @@ caps-up Odieresis 780 c90d7de17fbf
 caps-down Odieresis 710 d44b3e50d7a1
 punct-up Odieresis 746 28eb8f37fe42
 punct-down Odieresis 746 28eb8f37fe42
+bold Odieresis 794 571f7703ac6f

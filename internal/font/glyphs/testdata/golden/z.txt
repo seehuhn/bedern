@@ -27,3 +27,4 @@ caps-up z 426 318908da8035
 caps-down z 426 318908da8035
 punct-up z 426 318908da8035
 punct-down z 426 318908da8035
+bold z 454 50d4b7fbf632

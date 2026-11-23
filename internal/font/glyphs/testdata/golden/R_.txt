@@ -27,3 +27,4 @@ caps-up R 738 b03508fcfcf9
 caps-down R 635 0780c282f8ae
 punct-up R 700 2e0ec1dd16a7
 punct-down R 700 2e0ec1dd16a7
+bold R 802 ca1886714ebd

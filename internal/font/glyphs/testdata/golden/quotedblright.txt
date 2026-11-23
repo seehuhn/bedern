@@ -27,3 +27,4 @@ caps-up quotedblright 429 71ac854da5f4
 caps-down quotedblright 429 71ac854da5f4
 punct-up quotedblright 446 c08a6254a213
 punct-down quotedblright 415 90318a7c0fb1
+bold quotedblright 445 775ddd1e8e8e

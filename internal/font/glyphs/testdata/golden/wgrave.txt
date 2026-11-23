@@ -27,3 +27,4 @@ caps-up wgrave 712 b54c47eff033
 caps-down wgrave 712 b54c47eff033
 punct-up wgrave 712 b54c47eff033
 punct-down wgrave 712 b54c47eff033
+bold wgrave 788 6b21b965275e

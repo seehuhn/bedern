@@ -27,3 +27,4 @@ caps-up asciicircum 580 061bfd775570
 caps-down asciicircum 580 6a4cb4e769cb
 punct-up asciicircum 580 f964d6dc3d8a
 punct-down asciicircum 580 f964d6dc3d8a
+bold asciicircum 580 02f2ef412355

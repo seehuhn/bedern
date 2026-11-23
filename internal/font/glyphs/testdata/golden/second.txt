@@ -27,3 +27,4 @@ caps-up second 448 178298388759
 caps-down second 448 178298388759
 punct-up second 465 abf1f0aba578
 punct-down second 431 42d9c60df254
+bold second 461 8a768a09d48c

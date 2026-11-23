@@ -27,3 +27,4 @@ caps-up dieresis 381 be2f45292878
 caps-down dieresis 381 be2f45292878
 punct-up dieresis 381 be2f45292878
 punct-down dieresis 381 be2f45292878
+bold dieresis 432 23fccb54f118

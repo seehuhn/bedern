@@ -27,3 +27,4 @@ caps-up Eogonek 676 4da9f5bb4203
 caps-down Eogonek 601 0c208378d3a7
 punct-up Eogonek 641 d4666b42e96e
 punct-down Eogonek 641 d4666b42e96e
+bold Eogonek 676 42d48c3689fc

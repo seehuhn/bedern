@@ -27,3 +27,4 @@ caps-up Zacute 564 c53b78263329
 caps-down Zacute 524 81aab207d82f
 punct-up Zacute 564 72cefd765270
 punct-down Zacute 564 72cefd765270
+bold Zacute 609 554b8040f0e5

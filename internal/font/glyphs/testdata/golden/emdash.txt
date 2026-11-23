@@ -27,3 +27,4 @@ caps-up emdash 980 bdf0f4bf6adf
 caps-down emdash 980 bdf0f4bf6adf
 punct-up emdash 980 c476145abb70
 punct-down emdash 980 30ca5e740c3b
+bold emdash 980 4ea2615a693c

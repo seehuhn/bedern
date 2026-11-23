@@ -27,3 +27,4 @@ caps-up uni0304 0 4fefd48d0d57
 caps-down uni0304 0 4fefd48d0d57
 punct-up uni0304 0 4fefd48d0d57
 punct-down uni0304 0 4fefd48d0d57
+bold uni0304 0 972def4edd74

@@ -27,3 +27,4 @@ caps-up Ubreve 753 2a176f58cb12
 caps-down Ubreve 683 e98b6bee3033
 punct-up Ubreve 747 1d773a01f824
 punct-down Ubreve 747 1d773a01f824
+bold Ubreve 808 5e280f2d60a7

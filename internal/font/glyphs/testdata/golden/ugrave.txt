@@ -27,3 +27,4 @@ caps-up ugrave 540 e7cd80d13f51
 caps-down ugrave 540 e7cd80d13f51
 punct-up ugrave 540 e7cd80d13f51
 punct-down ugrave 540 e7cd80d13f51
+bold ugrave 599 467c85bcc6d3

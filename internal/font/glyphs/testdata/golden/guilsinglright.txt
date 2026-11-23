@@ -27,3 +27,4 @@ caps-up guilsinglright 269 5578d7ef6e5a
 caps-down guilsinglright 269 5578d7ef6e5a
 punct-up guilsinglright 269 5578d7ef6e5a
 punct-down guilsinglright 269 5578d7ef6e5a
+bold guilsinglright 269 8417c3d13e0a

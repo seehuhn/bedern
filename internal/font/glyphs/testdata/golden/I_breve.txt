@@ -27,3 +27,4 @@ caps-up Ibreve 347 21dd4904ec21
 caps-down Ibreve 327 fc71bc19d92e
 punct-up Ibreve 337 a5eb089019b9
 punct-down Ibreve 337 a5eb089019b9
+bold Ibreve 388 9805a28bd23c

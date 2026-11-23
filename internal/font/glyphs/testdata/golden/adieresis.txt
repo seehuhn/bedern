@@ -27,3 +27,4 @@ caps-up adieresis 491 7a7224264cf6
 caps-down adieresis 491 7a7224264cf6
 punct-up adieresis 491 7a7224264cf6
 punct-down adieresis 491 7a7224264cf6
+bold adieresis 549 21d015d876b4

@@ -27,3 +27,4 @@ caps-up section 458 0bb67db08b54
 caps-down section 429 83e9fe0ef75f
 punct-up section 444 770bd720b43e
 punct-down section 444 770bd720b43e
+bold section 480 309764859036

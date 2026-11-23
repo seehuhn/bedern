@@ -27,3 +27,4 @@ caps-up period 268 bf78f1edd97d
 caps-down period 268 bf78f1edd97d
 punct-up period 268 84589a4ef39e
 punct-down period 268 c6644a9fc4c5
+bold period 308 3158bab44e7f

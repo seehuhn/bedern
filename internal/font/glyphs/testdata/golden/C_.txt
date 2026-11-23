@@ -27,3 +27,4 @@ caps-up C 708 4df8a09ccf9a
 caps-down C 649 e01bbaf5dc0d
 punct-up C 672 361aea0ee4dc
 punct-down C 672 361aea0ee4dc
+bold C 720 f360df29050a

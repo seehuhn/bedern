@@ -27,3 +27,4 @@ caps-up X 733 80812ed2be19
 caps-down X 683 ae831f29d5d0
 punct-up X 709 4ff39b3b8e6b
 punct-down X 709 4ff39b3b8e6b
+bold X 739 79c1a68c042c

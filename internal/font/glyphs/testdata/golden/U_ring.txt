@@ -27,3 +27,4 @@ caps-up Uring 753 0112ea0508f3
 caps-down Uring 683 e0f3abba0b5a
 punct-up Uring 747 52fd07f82c9b
 punct-down Uring 747 52fd07f82c9b
+bold Uring 808 a7e463c27626
