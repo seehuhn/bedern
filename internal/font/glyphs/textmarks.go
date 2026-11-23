@@ -44,7 +44,6 @@ const (
 	dblHyphenHang  = 0.5  // the advance of the double hyphen as a hyphenation character, in advances of the hyphen
 
 	angleLean  = 23.0 // the strokes of an angle bracket, degrees from the vertical
-	angleThick = 0.84 // the strokes of an angle bracket at right angles to them, in stems of the bracket
 	anglePoint = 60.0 // the side space of an angle bracket at its point
 	angleOpen  = 40.0 // the side space of an angle bracket at its open side
 
@@ -165,14 +164,14 @@ func doubleHyphenChar(p design.Params) (outline.Path, float64) {
 }
 
 // angleLeft returns the left angle bracket, its point at the abscissa 0: two
-// strokes from the middle of the height of the brackets to their top and
+// strokes of the thickness of the mathematical signs from the middle of the height of the brackets to their top and
 // foot, leaning angleLean degrees, with horizontal ends.
 func angleLeft(p design.Params) outline.Path {
 	top, bottom := p.BracketTop(), p.BracketBottom()
 	mid := (top + bottom) / 2
 	a := degrees(angleLean)
 	run := (top - mid) * math.Tan(a)
-	w := angleThick * p.Punct.BracketStem / math.Cos(a)
+	w := p.Punct.MathThick / math.Cos(a)
 	var path outline.Path
 	addPolygon(&path,
 		xy(0, mid), xy(run, bottom), xy(run+w, bottom), xy(w, mid), xy(run+w, top), xy(run, top))
@@ -265,18 +264,26 @@ func doubleBar(p design.Params) (outline.Path, float64) {
 // abscissa 0: from the overshoot below the baseline to the overshoot above
 // the cap height, Sym.CircRing (or circRing) thick.
 func circledRing(p design.Params) (outer, counter chain) {
-	bottom, top := -p.OvershootUpper, p.CapHeight+p.OvershootUpper
-	r := (top - bottom) / 2
 	ring := circRing
 	if p.Sym.CircRing > 0 {
 		ring = p.Sym.CircRing
 	}
+	return ringOfThickness(p, ring)
+}
+
+// ringOfThickness returns the ring of the circled letters, ring thick.
+func ringOfThickness(p design.Params, ring float64) (outer, counter chain) {
+	bottom, top := -p.OvershootUpper, p.CapHeight+p.OvershootUpper
+	r := (top - bottom) / 2
 	return ringChains(-r, bottom, r, top, ring, ring, 0.7071, 0.7071)
 }
 
-// largeCircle draws the large circle: the ring of the circled letters with
-// their side spaces.
+// largeCircle draws the large circle: the ring of the circled letters, or
+// Sym.LargeRing thick where that is positive, with their side spaces.
 func largeCircle(p design.Params) (outline.Path, float64) {
+	if p.Sym.LargeRing > 0 {
+		return placeInk(chainsPath(ringOfThickness(p, p.Sym.LargeRing)), design.PunctSides{Left: circSide, Right: circSide})
+	}
 	return placeInk(chainsPath(circledRing(p)), design.PunctSides{Left: circSide, Right: circSide})
 }
 

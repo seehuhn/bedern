@@ -27,4 +27,4 @@ caps-up uni25EF 826 cee4b57679f7
 caps-down uni25EF 744 8bcb5f396b8a
 punct-up uni25EF 786 67481781765b
 punct-down uni25EF 786 67481781765b
-bold uni25EF 786 095d3fe5c99e
+bold uni25EF 786 76e3bc9dec66

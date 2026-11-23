@@ -27,4 +27,4 @@ caps-up u1F12F 826 4c342831e03d
 caps-down u1F12F 744 412869632ab2
 punct-up u1F12F 786 2ca193c7f868
 punct-down u1F12F 786 2ca193c7f868
-bold u1F12F 786 21d41b8e7196
+bold u1F12F 786 2815644fd38d

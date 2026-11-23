@@ -231,7 +231,9 @@ func boldDerive(reg Params, r BoldFactors) Params {
 	add(-dBall/2, &p.AArcReach)
 	// The ink of the diagonal letters.
 	add(out*(dS+dH), &p.VInk, &p.XInk)
-	add(out*(2*dS+2*dH), &p.WInk)
+	// The ink of w is 2 narrower than the sum of these growths: at this width
+	// the rounding of the bracket of the head serif leaves no kink.
+	add(out*(2*dS+2*dH)-2, &p.WInk)
 	add(out*grow(reg.ZDiag, r.Stem), &p.ZInk, &p.ZInkTop)
 	add(out*(grow(reg.KLeg, r.Stem)+dH), &p.KReach)
 
@@ -432,8 +434,12 @@ func boldSigns(p *Params, reg Params, r BoldFactors) {
 		&s.SterStem, &s.PctSlash, &s.QStem)
 	mul(r.Round, &q.ParenThick, &s.BraceArm, &s.BraceTip, &s.BraceEnd,
 		&s.AmpBowlThick, &s.SectHookThick)
-	// The ring of © and ® is 40 units times the factor of the stems.
-	s.CircRing = math.Round(40 * r.Stem)
+	// The ring of the circled signs is 40 units times the factor of the thin
+	// strokes, so that it keeps its ratio to the thin of O; the ring of the
+	// large circle is 44 units times the factor of the stems, 0.55 of the
+	// stem of n.
+	s.CircRing = math.Round(40 * r.Thin)
+	s.LargeRing = math.Round(44 * r.Stem)
 	mul(r.Small, &s.PctZeroThick)
 	mul(r.Stem, &s.AtRing)
 	mul(r.Sign, &s.DollarSpine, &s.DollarSideThick,
@@ -445,7 +451,7 @@ func boldSigns(p *Params, reg Params, r BoldFactors) {
 	// from the stem and the frame of the regular.
 	s.SterStemRef, s.SterInkRef = reg.Sym.SterStem, reg.Sym.SterInk
 	mul(r.Thin, &q.ExclamBottomWidth, &q.CommaTip, &q.ParenEnd, &q.BracketArm,
-		&q.StraightBottomWidth, &q.AsteriskInner, &q.NotdefThick,
+		&q.StraightBottomWidth, &q.PrimeBottomWidth, &q.AsteriskInner, &q.NotdefThick,
 		&s.DegThick, &s.TildeThick, &s.TildeThin, &s.CircThick, &s.GraveTip,
 		&s.PctZeroThin, &s.NumStroke, &s.NumBar, &s.DollarArc,
 		&s.DollarUpperArc, &s.DollarTip, &s.DollarStroke, &s.SterBar, &s.EuroBar,
@@ -456,7 +462,10 @@ func boldSigns(p *Params, reg Params, r BoldFactors) {
 	// The apostrophe after d, l and t may reach beyond the advance by the
 	// growth of its head as well.
 	a.Overhang = math.Round(reg.Acc.Overhang + reg.Acc.ApoScale*grow(reg.Punct.CommaHead, r.Ball))
-	mul(r.Ball, &q.CommaHead, &q.StraightTopWidth, &q.AsteriskOuter,
+	// The top of the straight marks grows with the dot, so that it is 0.7 of
+	// the stem of n, as it is 0.8 in the regular.
+	mul(r.Dot, &q.StraightTopWidth)
+	mul(r.Ball, &q.CommaHead, &q.PrimeTopWidth, &q.AsteriskOuter,
 		&s.GraveHead, &a.AcuteHead, &a.DblHead)
 	mul(r.Sign, &q.HyphenThick, &q.DashThick, &q.UnderThick, &q.MathThick)
 	// The accents and the hooks of the cedilla and the ogonek grow by the

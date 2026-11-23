@@ -27,4 +27,4 @@ caps-up uni2117 826 9a16fe4fdb49
 caps-down uni2117 744 6f0fe02317fe
 punct-up uni2117 786 75cfde7296fb
 punct-down uni2117 786 75cfde7296fb
-bold uni2117 786 1f667612be32
+bold uni2117 786 d11bf76450e4

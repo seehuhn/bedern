@@ -28,11 +28,10 @@ const (
 	estSide     = 0.146 // the sides of the estimated sign, in its width
 	estOpen     = 37.0  // the end of the lower arc of the estimated sign, degrees below the middle
 	estMargin   = 40.0  // the side spaces of the estimated sign
-	recipeCross = 0.245 // the height at which the stroke of the prescription sign crosses the middle of the leg, in cap heights
+	recipeCross = 0.15  // the height at which the stroke of the prescription sign crosses the middle of the leg, in cap heights
 	recipeLean  = 45.0  // the stroke of the prescription sign, degrees above the horizontal
 	recipeUp    = 0.26  // how far the stroke of the prescription sign reaches from the crossing up to the right, in cap heights
-	recipeDown  = 0.2   // how far it reaches from the crossing down to the left, in cap heights, at most
-	recipeClear = 25.0  // the least height of the lower end of that stroke above the tips of the foot serifs
+	recipeBelow = 60.0  // how far the lower end of that stroke stands below the baseline
 )
 
 // numero draws the numero sign: the N; numeroGap to the right of its right
@@ -115,15 +114,15 @@ func estimated(p design.Params) (outline.Path, float64) {
 	return placeInk(chainsPath(round, eye), design.PunctSides{Left: estMargin, Right: estMargin})
 }
 
-// prescription draws the prescription sign: the R with a straight stroke as
-// thick as the stroke of the dollar across its leg, which rises recipeLean
-// degrees to the right, crosses the middle of the leg recipeCross of the cap
-// height above the baseline and reaches recipeUp of the cap height from the
-// crossing up to the right and recipeDown down to the left, less where its
-// lower end would come closer than recipeClear to the height of the tips of
-// the foot serifs.
+// prescription draws the prescription sign: the R with a leg of its own, which
+// ends in a flat cut on the baseline and has no foot serif, and a straight
+// stroke as thick as the stroke of the dollar across the leg, which rises
+// recipeLean degrees to the right, crosses the middle of the leg recipeCross of
+// the cap height above the baseline, reaches recipeUp of the cap height from
+// the crossing up to the right and ends recipeBelow below the baseline at the
+// lower left.
 func prescription(p design.Params) (outline.Path, float64) {
-	path, adv, _ := Outline("R", p)
+	path, adv := capRWith(p, true)
 	leg := capRLeg(p)
 	h := p.CapHeight
 	t := p.Sym.DollarStroke
@@ -131,7 +130,7 @@ func prescription(p design.Params) (outline.Path, float64) {
 	cx, cy := (l.X+r.X)/2, recipeCross*h
 	a := recipeLean * math.Pi / 180
 	up := recipeUp * h
-	down := math.Min(recipeDown*h, (cy-p.Caps.SerifThick-recipeClear-t/2*math.Cos(a))/math.Sin(a))
+	down := (cy + recipeBelow - t/2*math.Cos(a)) / math.Sin(a)
 	stroke := taperBar(
 		outline.Point{X: cx - down*math.Cos(a), Y: cy - down*math.Sin(a)},
 		outline.Point{X: cx + up*math.Cos(a), Y: cy + up*math.Sin(a)}, t)

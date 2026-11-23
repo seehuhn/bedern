@@ -27,4 +27,4 @@ caps-up copyright 826 153dfc3707e6
 caps-down copyright 744 434dedfbdd35
 punct-up copyright 786 0707a2c375d1
 punct-down copyright 786 0707a2c375d1
-bold copyright 786 ff2ddcf86dea
+bold copyright 786 2de02cc2b765

@@ -27,4 +27,4 @@ caps-up wcircumflex 728 a0d7d7093019
 caps-down wcircumflex 728 a0d7d7093019
 punct-up wcircumflex 728 a0d7d7093019
 punct-down wcircumflex 728 a0d7d7093019
-bold wcircumflex 804 903ef4df26d5
+bold wcircumflex 802 11063b0a5ae6

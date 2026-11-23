@@ -75,13 +75,13 @@ func blank(p design.Params) (outline.Path, float64) {
 }
 
 // discount draws the commercial minus: a diagonal of the stroke of the
-// percent sign from the baseline to the height of the figures, with
+// mathematical signs from the baseline to the height of the figures, with
 // horizontal ends, and two dots of the full stop in the corners of its box,
 // the upper one at the left; centred in the advance of the figures.
 func discount(p design.Params) (outline.Path, float64) {
 	h := p.Figures.Height
 	w := math.Round(discountInk * p.Figures.Advance)
-	t := p.Sym.PctSlash
+	t := p.Punct.MathThick
 	// The stroke leans by the angle a from the vertical at which its ink is w
 	// wide: h tan a + t / cos a = w.
 	a := math.Acos(t/math.Hypot(w, h)) - math.Atan2(h, w)

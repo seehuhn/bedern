@@ -64,8 +64,10 @@ func TestOldStyleFigureZones(t *testing.T) {
 		for _, n := range []string{"six", "eight"} {
 			y0, y1 := old(n)
 			l0, l1 := box(n)
-			if y0 != l0 || y1 != l1 {
-				t.Errorf("%s: the old-style %s reaches from %.1f to %.1f, the lining one from %.1f to %.1f", np.name, n, y0, y1, l0, l1)
+			// The old-style figure has the top of the lining one and the
+			// overshoot of o at its round bottom.
+			if math.Abs(y0-oBottom) > 0.5 || y1 != l1 || y0 < l0 {
+				t.Errorf("%s: the old-style %s reaches from %.1f to %.1f, the lining one from %.1f to %.1f, o from %.1f", np.name, n, y0, y1, l0, l1, oBottom)
 			}
 		}
 	})

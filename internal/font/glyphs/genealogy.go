@@ -31,14 +31,14 @@ import (
 // Shape constants of the signs of genealogy.
 const (
 	bornSide  = 5.0  // the side spaces of the star
-	bornNotch = 1.95 // the notches of the star from its middle, in thin strokes of the lowercase
+	bornNotch = 1.80 // the notches of the star from its middle, in thin strokes of the lowercase
 	bornTip   = 0.85 // the flat at the end of a point of the star, in thin strokes of the lowercase
 
 	diedWidth  = 0.70 // the ink width of the cross, in cap heights
 	diedArms   = 0.65 // the middle of the arms of the cross, in cap heights
-	diedWaist  = 1.05 // the stem of the cross at the crossing, in strokes of the mathematical signs
+	diedWaist  = 1.00 // the stem of the cross at the crossing, in strokes of the mathematical signs
 	diedArm    = 1.2  // the arms of the cross at the crossing, in strokes of the mathematical signs
-	diedEnd    = 1.7  // the stem of the cross at its foot and its top, in strokes of the mathematical signs
+	diedEnd    = 1.9  // the stem of the cross at its foot and its top, in strokes of the mathematical signs
 	diedArmEnd = 1.5  // the arms of the cross at their ends, in strokes of the mathematical signs
 
 	marriedOverlap = 0.44 // the overlap of the two rings, in their diameter

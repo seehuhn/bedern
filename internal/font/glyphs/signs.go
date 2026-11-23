@@ -371,19 +371,48 @@ func circledLetter(p design.Params, l outline.Path) (outline.Path, float64) {
 	}
 	outer, counter := ringChains(-r, bottom, r, top, ring, ring, 0.7071, 0.7071)
 	path := chainsPath(outer, counter)
+	l, _ = circledLetterScaled(p, l)
+	path = append(path, shiftInk(l, 0, cy)...)
+	return placeInk(path, design.PunctSides{Left: circSide, Right: circSide})
+}
+
+// circledLetterScaled returns the letter l centred on the middle of the cap
+// height and scaled by supScale, or less where its farthest ink would come
+// closer than circGap to the inside of the ring, and the scale.
+func circledLetterScaled(p design.Params, l outline.Path) (outline.Path, float64) {
+	r := (p.CapHeight + 2*p.OvershootUpper) / 2
+	ring := circRing
+	if p.Sym.CircRing > 0 {
+		ring = p.Sym.CircRing
+	}
 	lx0, _, lx1, _ := l.BBox()
 	l = shiftInk(l, -(lx0+lx1)/2, -p.CapHeight/2)
-	// The letter is scaled by supScale, or less where its farthest ink would
-	// come closer than circGap to the inside of the ring.
 	reach := 0.0
 	for _, c := range l {
 		for _, q := range c.Flatten() {
 			reach = math.Max(reach, math.Hypot(q.X, q.Y))
 		}
 	}
-	l = scaledPath(l, math.Min(supScale, (r-ring-circGap)/reach))
-	path = append(path, shiftInk(l, 0, cy)...)
-	return placeInk(path, design.PunctSides{Left: circSide, Right: circSide})
+	k := math.Min(supScale, (r-ring-circGap)/reach)
+	return scaledPath(l, k), k
+}
+
+// AnalysisScale returns the factor by which the outline of the glyph name is a
+// scaled copy of a construction drawn at its own size: 0.7 for ª and º, the
+// scale of the capital in the ring for © and ®, and 1 for every other glyph.
+// A fairness analysis of the glyph takes the lengths of its windows times
+// this factor.
+func AnalysisScale(p design.Params, name string) float64 {
+	switch name {
+	case "ordfeminine", "ordmasculine":
+		return ordScale
+	case "copyright", "registered":
+		letter := map[string]string{"copyright": "C", "registered": "R"}[name]
+		l, _, _ := Outline(letter, heavierLetters(p, p.Figures.SupWeight/supScale))
+		_, k := circledLetterScaled(p, l)
+		return k
+	}
+	return 1
 }
 
 func copyright(p design.Params) (outline.Path, float64)  { return circled(p, "C") }

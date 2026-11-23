@@ -25,6 +25,6 @@ x-z-k-up uni2034 627 b7f8560e1313
 x-z-k-down uni2034 627 b7f8560e1313
 caps-up uni2034 627 b7f8560e1313
 caps-down uni2034 627 b7f8560e1313
-punct-up uni2034 647 13145ef2290f
-punct-down uni2034 607 2391651f94e4
-bold uni2034 646 1e71076bd17f
+punct-up uni2034 637 b5e1447191e6
+punct-down uni2034 616 321cf8ddb609
+bold uni2034 645 1e71076bd17f

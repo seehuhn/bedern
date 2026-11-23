@@ -91,7 +91,11 @@ func capREaseBracket(out chain, q outline.Point) chain {
 const capRRamp = 15.0
 
 // capR draws the capital R, see above.
-func capR(p design.Params) (outline.Path, float64) {
+func capR(p design.Params) (outline.Path, float64) { return capRWith(p, false) }
+
+// capRWith draws the capital R; with plain the leg ends in a flat cut on the
+// baseline and has no foot serif.
+func capRWith(p design.Params, plain bool) (outline.Path, float64) {
 	c := p.Caps
 	s := capBowlStem(p, true)
 	b := capRBowl(p)
@@ -100,6 +104,19 @@ func capR(p design.Params) (outline.Path, float64) {
 	a := leg.edgeAt(edgeLeft, b.Bottom)
 
 	thick := c.SerifThick
+	if plain {
+		q, rest := capRJoin(b, leg)
+		foot := lineChain(leg.edgeAt(edgeLeft, 0), leg.edgeAt(edgeRight, 0))
+		ch := join(
+			s.up(p, s.start(), b.Bottom),
+			lineChain(pt(b.Edge, b.Bottom), a),
+			lineChain(a, leg.edgeAt(edgeLeft, 0)), foot,
+			lineChain(leg.edgeAt(edgeRight, 0), q), rest,
+			chain{curveSeg(b.outerUpper())},
+			lineChain(pt(b.Flat, b.Top), pt(b.Edge, b.Top)),
+		)
+		return capBowlLetter(p, s, ch, b.counter()), design.CapRAdvance(p)
+	}
 	in := leg.footServif(edgeLeft, 0, diagSerif{Over: c.RLegSerifLeft, Thick: thick, Bracket: design.CapDiagBracket(p)})
 	out := leg.footServif(edgeRight, 0, diagSerif{Over: c.RLegSerifRight, Thick: thick, Bracket: design.CapDiagBracket(p)}).reversed()
 	q, rest := capRJoin(b, leg)

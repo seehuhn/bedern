@@ -25,6 +25,6 @@ x-z-k-up minute 315 28c17a855f23
 x-z-k-down minute 315 28c17a855f23
 caps-up minute 315 28c17a855f23
 caps-down minute 315 28c17a855f23
-punct-up minute 335 97c6543c07a0
-punct-down minute 295 0816cf858436
-bold minute 334 bc5f81861dcc
+punct-up minute 325 6da3faf8787e
+punct-down minute 304 5ae80f640b58
+bold minute 333 bc5f81861dcc

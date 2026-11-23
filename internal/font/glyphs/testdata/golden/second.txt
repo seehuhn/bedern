@@ -25,6 +25,6 @@ x-z-k-up second 471 d2e4c7a8272f
 x-z-k-down second 471 d2e4c7a8272f
 caps-up second 471 d2e4c7a8272f
 caps-down second 471 d2e4c7a8272f
-punct-up second 491 dd6d948d0bd4
-punct-down second 451 55a0e70c161c
-bold second 490 c2efbebd3f7a
+punct-up second 481 250fbb09f717
+punct-down second 460 7055bd42925d
+bold second 489 c2efbebd3f7a

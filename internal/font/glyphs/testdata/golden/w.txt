@@ -27,4 +27,4 @@ caps-up w 728 0244004d47bc
 caps-down w 728 0244004d47bc
 punct-up w 728 0244004d47bc
 punct-down w 728 0244004d47bc
-bold w 804 c8000a3ccc50
+bold w 802 d963d8ae62cd

@@ -292,8 +292,24 @@ func TestCircles(t *testing.T) {
 			p := np.params
 			c, cadv := cachedOutline(np, "copyright")
 			large, ladv := cachedOutline(np, "uni25EF")
-			if len(large) != 2 || len(c) < 2 || ladv != cadv || !samePath(large, c[:2]) {
-				t.Errorf("the large circle is not the ring of the copyright sign")
+			if len(large) != 2 || len(c) < 2 || ladv != cadv {
+				t.Errorf("the large circle is not a ring in the advance of the copyright sign")
+			} else if p.Sym.LargeRing == 0 {
+				if !samePath(large, c[:2]) {
+					t.Errorf("the large circle is not the ring of the copyright sign")
+				}
+			} else {
+				// A ring of its own thickness with the outer edge of the ring of
+				// the copyright sign.
+				lx0, ly0, lx1, ly1 := large.BBox()
+				cx0, cy0, cx1, cy1 := c[:2].BBox()
+				if lx0 != cx0 || ly0 != cy0 || lx1 != cx1 || ly1 != cy1 {
+					t.Errorf("the large circle does not have the outer edge of the ring of the copyright sign")
+				}
+				xs := large.CrossingsX((ly0 + ly1) / 2)
+				if len(xs) != 4 || math.Abs((xs[1]-xs[0])-p.Sym.LargeRing) > 1.5 {
+					t.Errorf("the ring of the large circle is not %.0f thick: %v", p.Sym.LargeRing, xs)
+				}
 			}
 
 			b, badv := cachedOutline(np, "bullet")

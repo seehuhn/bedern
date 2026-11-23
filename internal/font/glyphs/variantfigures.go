@@ -24,7 +24,7 @@ import (
 // with other heights and proportions (oldParams).  The figures 0, 1 and 2
 // stand between the baseline and the x-height; 3, 4, 5, 7 and 9 have their
 // tops at the x-height and descend to design.OldFigureDepth; 6 and 8 are the lining
-// figures.  The flat tops are at the x-height, the round tops OvershootLower
+// figures with the overshoot of the round bottoms of the others.  The flat tops are at the x-height, the round tops OvershootLower
 // above it, and the round bottoms OvershootLower below the baseline or below
 // the depth.
 
@@ -83,7 +83,7 @@ func figure(d int, old, prop bool) func(p design.Params) (outline.Path, float64)
 // figure d draws the old-style figure, and the height by which the figure so
 // drawn is moved.
 //
-// The figures 6 and 8 are the lining figures.  For the others the round tops
+// The figures 6 and 8 are the lining figures with the overshoot of the round bottoms of the others.  For the others the round tops
 // and bottoms overshoot by OvershootLower.  The figures 3, 4, 5, 7 and 9 are
 // drawn as high as they stand, from the feet of 4 and 7 to the x-height,
 // with the heights of their parts in proportion, and moved down to those
@@ -93,7 +93,11 @@ func figure(d int, old, prop bool) func(p design.Params) (outline.Path, float64)
 // which design.FigureLeft gives the figure is a whole number.
 func oldParams(p design.Params, d int) (design.Params, float64) {
 	if d == 6 || d == 8 {
-		return p, 0
+		q := p
+		q.OvershootUpper = p.OvershootLower
+		left := design.FigureLeft(q, d)
+		q.Figures.Shift[d] += math.Round(left) - left
+		return q, 0
 	}
 	q, dy := oldHeights(p, d)
 	left := design.FigureLeft(q, d)

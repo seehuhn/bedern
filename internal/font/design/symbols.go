@@ -107,6 +107,9 @@ type Symbols struct {
 	// CircRing, if positive, is the thickness of the ring of © and ®; zero
 	// for 40.
 	CircRing float64
+	// LargeRing, if positive, is the thickness of the ring of the large
+	// circle; zero for CircRing.
+	LargeRing float64
 
 	// The ampersand: AmpInk wide from AmpBottom to AmpTop; the diagonal
 	// AmpThick where it is heaviest, the left side of the lower bowl
