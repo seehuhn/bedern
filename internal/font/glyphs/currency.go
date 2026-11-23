@@ -11,8 +11,7 @@ import (
 )
 
 // The currency signs dollar, sterling and euro.  All three stand at the figure
-// height; the dollar and the sterling on the common advance of the figures
-// (Figures.Advance), the euro on its own (design.EuroAdvance).
+// height on the common advance of the figures (Figures.Advance).
 
 // dollarParams returns p with the values of the S of the dollar in place of
 // those of the capital S, at the figure height, for the curve code of S
@@ -306,11 +305,11 @@ func euroParams(p design.Params, x float64) design.Params {
 // further right than the lower.  The outline is the union of the round and the
 // bars.
 //
-// Side kinds: open; the ink stands EuroSideLeft and EuroSideRight from the
-// edges of its own advance (design.EuroAdvance).
+// Side kinds: open; the ink (design.EuroInk) is centred in the advance of
+// the figures.
 func euro(p design.Params) (outline.Path, float64) {
 	s := p.Sym
-	x0 := s.EuroSideLeft
+	x0 := (p.Figures.Advance - design.EuroInk(p)) / 2
 	q := euroParams(p, x0+s.EuroReach)
 	f := capRound(q)
 	round := join(capRoundLeft(f), capCTail(q, f), capRoundLeftInner(f), capUpperBeakEased(q, f))
@@ -322,5 +321,5 @@ func euro(p design.Params) (outline.Path, float64) {
 		a, b, c, d := outline.Point{X: x0, Y: y0}, end(y0), end(y1), outline.Point{X: x0, Y: y1}
 		return chain{lineSeg(a, b), lineSeg(b, c), lineSeg(c, d), lineSeg(d, a)}
 	}
-	return chainsPath(union(round, bar(mid-s.EuroBarGap/2), bar(mid+s.EuroBarGap/2))...), design.EuroAdvance(p)
+	return chainsPath(union(round, bar(mid-s.EuroBarGap/2), bar(mid+s.EuroBarGap/2))...), p.Figures.Advance
 }

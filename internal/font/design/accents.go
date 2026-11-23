@@ -36,8 +36,11 @@ type Accents struct {
 
 	// The tilde: TildeWidth wide and TildeHeight high (TildeHeightCap on the
 	// capitals), TildeThick in the middle and TildeThin at the crest and the
-	// trough.
+	// trough.  The crest stands TildeCrest of the width from the left end of
+	// the centre line, and the middle falls TildeSteep times as steeply as
+	// the chord from the crest to the trough.
 	TildeWidth, TildeHeight, TildeHeightCap, TildeThick, TildeThin float64
+	TildeCrest, TildeSteep                                         float64
 
 	// The diaeresis and the dot above: dots DotScale times the dot of i
 	// across; the two dots of the diaeresis have their centres DiaPitch apart,
@@ -116,11 +119,13 @@ func regularAccents() Accents {
 		CircHeight:    150,
 		CircHeightCap: 134,
 
-		TildeWidth:     280,
-		TildeHeight:    92,
-		TildeHeightCap: 92,
-		TildeThick:     50,
-		TildeThin:      38,
+		TildeWidth:     310,
+		TildeHeight:    104,
+		TildeHeightCap: 104,
+		TildeThick:     58,
+		TildeThin:      34,
+		TildeCrest:     0.24,
+		TildeSteep:     2.6,
 
 		DotScale:       0.88,
 		DiaPitch:       198,

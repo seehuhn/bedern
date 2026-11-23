@@ -126,7 +126,7 @@ func markChains(p design.Params, k markKind, f markForm) []chain {
 	case markCaron:
 		return []chain{circumflexChain(a.CircWidth, pick(a.CircHeight, a.CircHeightCap), a.CircThin, a.CircThick, true)}
 	case markTilde:
-		return []chain{tildeChain(a.TildeWidth, pick(a.TildeHeight, a.TildeHeightCap), a.TildeThick, a.TildeThin)}
+		return []chain{tildeChain(a.TildeWidth, pick(a.TildeHeight, a.TildeHeightCap), a.TildeThick, a.TildeThin, a.TildeCrest, a.TildeSteep)}
 	case markDieresis:
 		d := a.DotScale * p.DotDiameter
 		pitch := a.DiaPitch
@@ -203,28 +203,29 @@ func circumflexChain(w, h, thin, thick float64, caron bool) chain {
 	return pathChains(path)[0]
 }
 
-// tildeChain returns the tilde, w wide and h high on the height 0: one stroke
-// which rises from the left, crests, falls through the middle, where it is
-// thick, passes a trough and rises to the right, the same turned through half
-// a turn about its centre; thin at the crest and the trough, with the ends cut
-// at right angles to the stroke and the handles of a circular arc there.
-func tildeChain(w, h, thick, thin float64) chain {
-	a := (h - thin) / 2 // the amplitude of the centre line
+// tildeChain returns the tilde, w wide and h high on the height 0, centred on
+// the abscissa 0: one stroke which rises from the left, crests, falls through
+// the middle, where it is thick, passes a trough and rises to the right, the
+// same turned through half a turn about its centre.  It is thin at the crest
+// and the trough and tildeEnd times as thick as the middle at its ends, so
+// that it is thin where it rises and thick where it falls; its edges arrive at
+// the ends straight, and each end is round (roundEnd).
+func tildeChain(w, h, thick, thin, crest, steep float64) chain {
+	end := tildeEnd * thick
+	a := (h - end) / 2 // the amplitude of the centre line
 	cy := h / 2
 	x0 := -w / 2
 	// The centre line falls through the middle at the angle of its chord from
-	// the crest to the trough, made steeper by tildeSteep, and the ends rise at
+	// the crest to the trough, made steeper by steep, and the ends rise at
 	// that angle.
-	fall := math.Atan(tildeSteep*2*a/(0.46*w)) * 180 / math.Pi
-	end := 0.5 * (thick + thin)
-	// The ends are cut where the edge of the stroke reaches the box.
+	fall := math.Atan(steep*2*a/((1-2*crest)*w)) * 180 / math.Pi
 	rise := fall
 	sts := []station{
-		{X: x0 + end/2*math.Sin(rise*math.Pi/180), Y: cy - 0.5*a, Dir: rise, W: end, ArcEnd: true},
-		{X: x0 + 0.27*w, Y: cy + a, Dir: 0, W: thin},
+		{X: x0, Y: cy - 0.5*a, Dir: rise, W: end, K: straightEnd},
+		{X: x0 + crest*w, Y: cy + a, Dir: 0, W: thin},
 		{X: x0 + 0.5*w, Y: cy, Dir: -fall, W: thick},
-		{X: x0 + 0.73*w, Y: cy - a, Dir: 0, W: thin},
-		{X: -x0 - end/2*math.Sin(rise*math.Pi/180), Y: cy + 0.5*a, Dir: rise, W: end, ArcEnd: true},
+		{X: -x0 - crest*w, Y: cy - a, Dir: 0, W: thin},
+		{X: -x0, Y: cy + 0.5*a, Dir: rise, W: end, K: straightEnd},
 	}
 	for _, i := range []int{1, 3} {
 		t := sts[i].dir()
@@ -238,12 +239,24 @@ func tildeChain(w, h, thick, thin float64) chain {
 		}
 		sts[i].K = k
 	}
-	return strokeChain(sts)
+	right, left := strokeOpen(sts)
+	last := sts[len(sts)-1]
+	c := join(right, roundEnd(last, last.dir()), left, roundEnd(sts[0], neg(sts[0].dir())))
+	// The ink is set w wide and h high on the height 0 about the abscissa 0.
+	bx0, by0, bx1, by1 := chainBBox(c)
+	return c.mapPoints(func(q outline.Point) outline.Point {
+		return outline.Point{X: (q.X - (bx0+bx1)/2) * w / (bx1 - bx0), Y: (q.Y - by0) * h / (by1 - by0)}
+	})
 }
 
-// tildeSteep is the factor by which the middle of the tilde is steeper than
-// the chord from the crest to the trough.
-const tildeSteep = 2.4
+// straightEnd is the curvature of the centre line at an end of the tilde,
+// which leaves the edges there no curvature.
+const straightEnd = 1e-12
+
+// Shape constants of the tilde.
+const (
+	tildeEnd = 0.6 // the stroke at the ends, in thicknesses of the middle
+)
 
 // markDotChain returns a dot of the diameter d centred at (cx, cy), with the
 // squareness of the dot of i.

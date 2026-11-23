@@ -53,14 +53,16 @@ const (
 	centTop     = 560.0 // the top of the stroke of ¢
 	centBottom  = -30.0 // the foot of the stroke of ¢
 	yenScale    = 0.975 // the Y of ¥, in sizes of Y: the height of the figures
-	yenBarLow   = 0.22  // the middle of the lower bar of ¥, in its height
-	yenBarHigh  = 0.39  // the middle of the upper bar of ¥, in its height
+	yenFork     = 0.59  // the crotch of ¥, in its height
+	yenBarLow   = 0.33  // the middle of the lower bar of ¥, in its height
+	yenBarHigh  = 0.49  // the middle of the upper bar of ¥, in its height
 	yenBar      = 0.85  // the bars of ¥, in crossbars of the capitals
-	yenBarWidth = 0.64  // the bars of ¥, in its ink width
-	curDiam     = 0.62  // the outer diameter of the ring of ¤, in its ink width
-	curWidth    = 0.66  // the ink width of ¤, in figure heights
+	yenBarWidth = 0.70  // the bars of ¥, in its ink width
+	curDiam     = 0.86  // the outer diameter of the ring of ¤, in its ink width
+	curWidth    = 0.62  // the ink width of ¤, in figure heights
 	curMiddle   = 0.686 // the middle of ¤, in x-heights
-	curSpoke    = 38.0  // the spokes of ¤
+	curSide     = 0.74  // the ring of ¤ at its sides, in stems
+	curTop      = 1.05  // the ring of ¤ at its top and bottom, in rings of the degree sign
 )
 
 // scaledPath returns the path scaled by s about the origin.
@@ -143,8 +145,8 @@ func logicalnot(p design.Params) (outline.Path, float64) {
 }
 
 // mu draws µ: the u whose left stem runs on below the baseline to the
-// descender line, where it is cut flat; the outer edge of the bowl leaves the
-// stem at its right-hand edge.
+// descender line, where it ends round (roundEnd); the outer edge of the bowl
+// leaves the stem at its right-hand edge.
 func mu(p design.Params) (outline.Path, float64) {
 	left := stemSpec{
 		Left: p.SideStemLeft, Width: p.Stem, Top: p.XHeight,
@@ -180,8 +182,9 @@ func mu(p design.Params) (outline.Path, float64) {
 	path.LineTo(right.Left, p.UJoin)
 	turn(archUnder(nArchShape, arch)).appendTo(&path)
 	stemCap(&path, p, left)
-	path.LineTo(left.Left, -p.Descender)
-	path.LineTo(left.right(), -p.Descender)
+	end := station{X: left.Left + p.Stem/2, Y: -p.Descender + roundEndReach(p.Stem), W: p.Stem}
+	path.LineTo(left.Left, end.Y)
+	roundEnd(end, outline.Point{X: 0, Y: -1}).appendTo(&path)
 	path.LineTo(rest.start().X, rest.start().Y)
 	rest.appendTo(&path)
 	path.LineTo(right.start())
@@ -389,10 +392,15 @@ func cent(p design.Params) (outline.Path, float64) {
 	return chainsPath(union(parts...)...), adv
 }
 
-// yen draws ¥: the Y scaled by yenScale, so that it is as high as the
-// figures, with two bars of the crossbar of the capitals across its stem.
+// yen draws ¥: the Y drawn with its ink as wide as the advance of the figures
+// and its crotch at yenFork of its height, scaled by yenScale, so that it is
+// as high as the figures, with two bars of the crossbar of the capitals
+// across its stem below the crotch; centred in the advance of the figures.
 func yen(p design.Params) (outline.Path, float64) {
-	y, _, _ := Outline("Y", p)
+	q := p
+	q.CapDiag.YInk = p.Figures.Advance / yenScale
+	q.CapDiag.YJunction = yenFork * p.CapHeight
+	y, _ := capY(q)
 	y = scaledPath(y, yenScale)
 	x0, _, x1, top := y.BBox()
 	cx, w := (x0+x1)/2, yenBarWidth*(x1-x0)
@@ -402,24 +410,33 @@ func yen(p design.Params) (outline.Path, float64) {
 		parts = append(parts, rectChain(cx-w/2, yy-yenBar*p.Caps.Bar/2, cx+w/2, yy+yenBar*p.Caps.Bar/2))
 	}
 	path := chainsPath(union(parts...)...)
-	return placeInk(path, design.PunctSides{})
+	return placeCentred(path, p.Figures.Advance)
 }
 
-// currency draws ¤: a ring, curDiam of the ink width across, with four spokes
-// on its diagonals, centred at curMiddle of the x-height in the advance of the
-// figures.
+// currencyWeights returns the ring of ¤ at its sides and at its top and
+// bottom, and its spokes, in whole units.
+func currencyWeights(p design.Params) (side, top, spoke float64) {
+	return math.Round(curSide * p.Stem), math.Round(curTop * p.Sym.DegThick), p.Punct.MathThick
+}
+
+// currency draws ¤: a ring, curDiam of the ink width across, curSide stems
+// thick at its sides and curTop rings of the degree sign at its top and
+// bottom, with four short spokes of the stroke of the mathematical signs on
+// its diagonals out to the corners of the ink, centred at curMiddle of the
+// x-height in the advance of the figures.
 func currency(p design.Params) (outline.Path, float64) {
 	w := curWidth * p.Figures.Height
 	d := curDiam * w
 	cy := curMiddle * p.XHeight
-	outer, counter := ringChains(-d/2, cy-d/2, d/2, cy+d/2, p.Figures.Thin, p.Figures.Thin, 0.7071, 0.7071)
+	side, top, spoke := currencyWeights(p)
+	outer, counter := ringChains(-d/2, cy-d/2, d/2, cy+d/2, side, top, 0.7071, 0.7071)
 	parts := []chain{outer, counter}
 	// A spoke runs from inside the ring out to the corner of the ink.
-	reach := (w - curSpoke/math.Sqrt2) / 2
+	reach := (w - spoke/math.Sqrt2) / 2
 	for _, s := range [][2]float64{{1, 1}, {-1, 1}, {-1, -1}, {1, -1}} {
-		a := outline.Point{X: s[0] * (d/2 - p.Figures.Thin/2) / math.Sqrt2, Y: cy + s[1]*(d/2-p.Figures.Thin/2)/math.Sqrt2}
+		a := outline.Point{X: s[0] * (d/2 - top/2) / math.Sqrt2, Y: cy + s[1]*(d/2-top/2)/math.Sqrt2}
 		b := outline.Point{X: s[0] * reach, Y: cy + s[1]*reach}
-		parts = append(parts, taperBar(a, b, curSpoke))
+		parts = append(parts, taperBar(a, b, spoke))
 	}
 	return placeCentred(chainsPath(union(parts...)...), p.Figures.Advance)
 }

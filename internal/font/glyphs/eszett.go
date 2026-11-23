@@ -10,10 +10,9 @@ import (
 	"seehuhn.de/go/bedern/internal/outline"
 )
 
-// The letters ß and ẞ.
+// The letter ß.
 //
-// Both are one construction with the sizes of the lowercase or of the
-// capitals: a stem on the left with a foot serif on the left, which rises into
+// A stem on the left with a foot serif on the left, which rises into
 // a round shoulder and over the top into a smaller upper bowl on the right;
 // the upper bowl comes back to the left into a short middle stroke, the
 // waist, which ends in a straight cut, and the middle stroke runs on into a
@@ -32,7 +31,7 @@ import (
 // notch, round the outer edge of the upper bowl over the top and down the
 // left-hand edge of the stem to the foot serif.
 
-// An eszettFrame holds the sizes of ß or ẞ.
+// An eszettFrame holds the sizes of ß or ẞ (capeszett.go).
 type eszettFrame struct {
 	name               string
 	stem, width, jut   float64 // the left-hand edge and the width of the stem, the foot serif
@@ -47,23 +46,20 @@ type eszettFrame struct {
 	ballLeft           float64 // the leftmost ink of the ball
 	ball               ballPart
 	advance            float64
-	capital            bool // the foot serif is that of the capitals
 }
 
-// Shape constants of ß and ẞ.
+// Shape constants of ß, and of ẞ where they are shared.
 const (
-	eszettUpper      = 0.90  // the right extreme of the upper bowl, in ink widths from the left of the ink
-	eszettWaist      = 0.87  // the middle of the middle stroke of ß, in x-heights
-	capEszettInk     = 1.22  // the ink width of ẞ, in ink widths of ß
-	capEszettWaist   = 0.553 // the middle of the middle stroke of ẞ, in heights of its top
-	eszettOverlap    = 10.0  // ThreeOverlap of the bowls of ß
-	eszettOpen       = 50.0  // ThreeOpen of the lower bowl of ß
-	capEszettOpen    = 60.0  // ThreeOpen of the lower bowl of ẞ
-	eszettBallGap    = 24.0  // the white between the stem and the ball of ß
-	eszettLowerLeft  = 40.0  // how far the left extreme of the lower bowl lies left of the ball
-	eszettCutSlope   = 40.0  // the edge of the lower counter at the cut of the middle stroke, degrees from the horizontal
-	eszettCutRun     = 20.0  // the least distance of the cut of the middle stroke from the bottom of the upper counter
-	eszettUpperThick = 0.9   // the thick part of the upper bowl, in thick parts of the lower
+	eszettUpper      = 0.90 // the right extreme of the upper bowl, in ink widths from the left of the ink
+	eszettWaist      = 0.87 // the middle of the middle stroke of ß, in x-heights
+	eszettOverlap    = 10.0 // ThreeOverlap of the bowls of ß
+	eszettOpen       = 50.0 // ThreeOpen of the lower bowl of ß
+	capEszettOpen    = 60.0 // ThreeOpen of the lower bowl of ẞ
+	eszettBallGap    = 24.0 // the white between the stem and the ball of ß
+	eszettLowerLeft  = 40.0 // how far the left extreme of the lower bowl lies left of the ball
+	eszettCutSlope   = 40.0 // the edge of the lower counter at the cut of the middle stroke, degrees from the horizontal
+	eszettCutRun     = 20.0 // the least distance of the cut of the middle stroke from the bottom of the upper counter
+	eszettUpperThick = 0.9  // the thick part of the upper bowl, in thick parts of the lower
 )
 
 // newEszettFrame returns the frame of ß.
@@ -87,45 +83,13 @@ func newEszettFrame(p design.Params) eszettFrame {
 	return f
 }
 
-// newCapEszettFrame returns the frame of ẞ: that of ß with the stem, the
-// serif, the heights and the weights of the capitals, and capEszettInk times
-// as wide.
-func newCapEszettFrame(p design.Params) eszettFrame {
-	lc := newEszettFrame(p)
-	c := p.Caps
-	s := design.CapStemLeft(p)
-	x0 := s - c.SerifJut
-	w := capEszettInk * (lc.right - (lc.stem - lc.jut))
-	scale := w / (lc.right - (lc.stem - lc.jut))
-	top := p.CapHeight + p.OvershootUpper
-	f := eszettFrame{
-		name: "uni1E9E", stem: s, width: c.Stem, jut: c.SerifJut,
-		bracket: c.BracketHeight, serifThick: c.SerifThick, reach: c.BracketReach,
-		bottom: -p.OvershootUpper, top: top, waist: capEszettWaist * top,
-		right: math.Round(x0 + w), upperRight: math.Round(x0 + eszettUpper*w),
-		thin: c.RoundThin, middle: c.Bar, bowl: c.Round, upperBowl: eszettUpperThick * c.Round,
-		overlap: scale * eszettOverlap, open: capEszettOpen,
-		ball: newBallPart(p), capital: true,
-	}
-	f.ballLeft = s + c.Stem + eszettBallGap
-	f.lowerLeft = f.ballLeft - eszettLowerLeft
-	f.advance = math.Round(f.right + c.SideRoundRight)
-	return f
-}
-
 // eszett draws ß.
 func eszett(p design.Params) (outline.Path, float64) {
 	f := newEszettFrame(p)
 	return eszettOutline(p, f), f.advance
 }
 
-// capEszett draws ẞ.
-func capEszett(p design.Params) (outline.Path, float64) {
-	f := newCapEszettFrame(p)
-	return eszettOutline(p, f), f.advance
-}
-
-// eszettOutline draws ß or ẞ with the frame f, see the comment above.
+// eszettOutline draws ß with the frame f, see the comment above.
 func eszettOutline(p design.Params, f eszettFrame) outline.Path {
 	sr := f.stem + f.width
 	w, g, ov := f.waist, f.middle, f.overlap
@@ -168,9 +132,6 @@ func eszettOutline(p design.Params, f eszettFrame) outline.Path {
 		curveSeg(cubic{pt(f.stem, bh), pt(f.stem, th+(bh-th)/2), pt(f.stem-br/2, th), pt(f.stem-br, th)}),
 	}
 	foot = join(foot, lineChain(pt(f.stem-br, th), pt(f.stem-f.jut, th)), lineChain(pt(f.stem-f.jut, th), pt(f.stem-f.jut, 0)))
-	if f.capital {
-		foot = capFootLeft(p, f.stem, f.jut)
-	}
 	c := join(
 		lineChain(foot.end(), pt(sr, 0)),
 		lineChain(pt(sr, 0), innerLeft.P0),

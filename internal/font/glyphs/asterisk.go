@@ -237,3 +237,61 @@ func asteriskPath(p design.Params) outline.Path {
 func asterisk(p design.Params) (outline.Path, float64) {
 	return placeInk(asteriskPath(p), p.Punct.Asterisk)
 }
+
+// roundEnd returns the round end of a stroke at the station s, whose edges
+// arrive there straight, with no curvature, in the direction outward: from
+// the edge on the right of the outward direction round the end to the edge on
+// its left.  Each edge runs on into the circle of the end on the spiral of the
+// asterisk, which leaves the edge with no curvature and joins the circle with
+// its curvature; the circle is as large as makes the edges meet the spirals
+// parallel to the stroke, a little narrower than the stroke; the end reaches
+// roundEndReach beyond the station.
+func roundEnd(s station, outward outline.Point) chain {
+	r, xc := roundEndCircle(s.W)
+	cp := newAsteriskCap(r, xc, 0, s.W/2)
+	th := math.Atan2(outward.Y, outward.X)
+	n := outline.Point{X: -outward.Y, Y: outward.X}
+	glob := func(v outline.Point) outline.Point {
+		return outline.Point{X: s.X + v.X*outward.X + v.Y*n.X, Y: s.Y + v.X*outward.Y + v.Y*n.Y}
+	}
+	cuts := cp.cuts(th)
+	var c chain
+	for i := 1; i < len(cuts); i++ {
+		pa, ha, ka := cp.at(cuts[i-1])
+		pb, hb, kb := cp.at(cuts[i])
+		ga, gb := glob(pa), glob(pb)
+		ta, tb := dirOf(th+ha), dirOf(th+hb)
+		var cc cubic
+		var err error
+		if kb != 0 {
+			cc, err = g2Cubic(ga, ta, ka, gb, tb, kb)
+		} else {
+			cc, err = g2Cubic(gb, neg(tb), -kb, ga, neg(ta), -ka)
+			cc = cubic{cc.P3, cc.P2, cc.P1, cc.P0}
+		}
+		if err != nil {
+			panic(fmt.Sprintf("glyphs: a round end: %v", err))
+		}
+		c = append(c, curveSeg(cc))
+	}
+	// The end starts and ends on the edges.
+	c[0].P0 = outline.Point{X: s.X - s.W/2*n.X, Y: s.Y - s.W/2*n.Y}
+	c[len(c)-1].P3 = outline.Point{X: s.X + s.W/2*n.X, Y: s.Y + s.W/2*n.Y}
+	return c
+}
+
+// roundEndCircle returns the radius of the circle of the round end of a
+// stroke w wide and the distance of its centre beyond the station.
+func roundEndCircle(w float64) (r, xc float64) {
+	unitCap := asteriskCap{R: 1, L: (asteriskSpiralPower + 1) * asteriskSpiralTurn}
+	e := unitCap.spiralPoint(outline.Point{}, 0, unitCap.L)
+	r = w / 2 / (e.Y + math.Cos(asteriskSpiralTurn))
+	return r, r * (e.X - math.Sin(asteriskSpiralTurn))
+}
+
+// roundEndReach returns how far the round end of a stroke w wide reaches
+// beyond its station.
+func roundEndReach(w float64) float64 {
+	r, xc := roundEndCircle(w)
+	return xc + r
+}

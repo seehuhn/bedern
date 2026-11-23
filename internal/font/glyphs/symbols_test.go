@@ -183,10 +183,10 @@ func TestEuroBarsCentred(t *testing.T) {
 // the bottom of the cut and the tip of the tail are those of C within
 // euroFeatureTolerance units.
 const (
-	euroRoundFactor      = 0.78
+	euroRoundFactor      = 0.73
 	euroRoundBand        = 0.02
-	euroSignLow          = 0.84
-	euroSignHigh         = 0.90
+	euroSignLow          = 0.78
+	euroSignHigh         = 0.84
 	euroCutBand          = 0.01
 	euroFeatureTolerance = 4.0
 )

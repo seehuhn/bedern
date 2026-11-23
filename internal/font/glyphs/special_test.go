@@ -156,11 +156,12 @@ func TestOslashCutsTheCounter(t *testing.T) {
 	}
 }
 
-// TestEszettForm asks that ß and ẞ keep their form: three runs of ink just
-// above the baseline (the stem, the ball and the lower bowl), with the white
-// between the stem and the ball at least the clearance floor; the waist on the
-// right between 0.57 and 0.76 of the ink width from the left of the ink; and
-// the upper bowl narrower than the lower one.
+// TestEszettForm asks that ß keeps its form: three runs of ink just above the
+// baseline (the stem, the ball and the lower bowl), with the white between the
+// stem and the ball at least the clearance floor; the waist on the right
+// between 0.57 and 0.76 of the ink width from the left of the ink; and the
+// upper bowl narrower than the lower one.  ẞ has the three runs as well (see
+// TestCapEszettForm).
 func TestEszettForm(t *testing.T) {
 	t.Parallel()
 	for _, np := range allParams() {
@@ -171,45 +172,114 @@ func TestEszettForm(t *testing.T) {
 	}
 }
 
+// eszettFeet asks for three runs of ink at 0.1 of the x-height, with the
+// clearance floor between the stem and the ball.
+func eszettFeet(t *testing.T, np namedParams, name string, path outline.Path) {
+	rs := runs(path, 0.1*np.params.XHeight)
+	if len(rs) != 3 {
+		t.Errorf("%s: %s has %d runs of ink at 0.1 of the x-height, want 3", np.name, name, len(rs))
+	} else if gap := rs[1][0] - rs[0][1]; gap < design.ClearanceFloor(np.params) {
+		t.Errorf("%s: the ball of %s is %.1f from the stem", np.name, name, gap)
+	}
+}
+
 func eszettForm(t *testing.T, np namedParams) {
-	{
+	f := newEszettFrame(np.params)
+	path, _ := cachedOutline(np, f.name)
+	x0, _, x1, _ := path.BBox()
+	eszettFeet(t, np, f.name, path)
+	waist, upper, lower := math.Inf(1), 0.0, 0.0
+	for y := 0.3 * f.top; y < 0.9*f.top; y += 5 {
+		rs := runs(path, y)
+		if len(rs) == 0 {
+			continue
+		}
+		r := rs[len(rs)-1][1]
+		waist = math.Min(waist, r)
+	}
+	for y := f.waist; y < f.top-20; y += 5 {
+		if rs := runs(path, y); len(rs) > 0 {
+			upper = math.Max(upper, rs[len(rs)-1][1])
+		}
+	}
+	for y := 20.0; y < f.waist; y += 5 {
+		if rs := runs(path, y); len(rs) > 0 {
+			lower = math.Max(lower, rs[len(rs)-1][1])
+		}
+	}
+	w := (waist - x0) / (x1 - x0)
+	t.Logf("%s: %s: waist at %.3f of the ink, upper bowl %.1f, lower %.1f", np.name, f.name, w, upper, lower)
+	if w < 0.57 || w > 0.76 {
+		t.Errorf("%s: the waist of %s lies at %.3f of the ink width, want 0.57 to 0.76", np.name, f.name, w)
+	}
+	if upper >= lower {
+		t.Errorf("%s: the upper bowl of %s reaches %.1f, the lower %.1f", np.name, f.name, upper, lower)
+	}
+}
+
+// The form of ẞ.  At capTopHeight of the
+// cap height the top reaches at least capTopReach of the ink width from its
+// left; between capDiagLow and capDiagHigh of the cap height the scan meets
+// the stem and the diagonal only, and the centre of the diagonal rises at
+// capDiagMin to capDiagMax degrees from the horizontal; the advance is
+// capAdvLow to capAdvHigh of that of H.
+const (
+	capTopHeight = 0.97
+	capTopReach  = 0.80
+	capDiagLow   = 0.62
+	capDiagHigh  = 0.85
+	capDiagMin   = 53.0
+	capDiagMax   = 59.0
+	capAdvLow    = 0.86
+	capAdvHigh   = 0.99
+)
+
+// TestCapEszettForm asks that ẞ has a flat top and a diagonal and is
+// neither a B nor an enlarged ß: the three runs of ß just above the baseline;
+// a flat top which reaches to the right (capTopReach); a straight diagonal
+// from the top into the lower bowl (capDiagMin to capDiagMax), which with the
+// stem is all the scan meets in its band; nothing joined to the stem, whose
+// right-hand edge bounds the first run of ink from above the bracket of the
+// foot serif up to the inner corner under the top, so that no upper bowl
+// closes on the stem and no waist joins it; and the advance of the capitals
+// (capAdvLow to capAdvHigh of H).
+func TestCapEszettForm(t *testing.T) {
+	t.Parallel()
+	for _, np := range allParams() {
 		p := np.params
-		for _, f := range []eszettFrame{newEszettFrame(p), newCapEszettFrame(p)} {
-			path, _ := cachedOutline(np, f.name)
-			x0, _, x1, _ := path.BBox()
-			rs := runs(path, 0.1*p.XHeight)
-			if len(rs) != 3 {
-				t.Errorf("%s: %s has %d runs of ink at 0.1 of the x-height, want 3", np.name, f.name, len(rs))
-			} else if gap := rs[1][0] - rs[0][1]; gap < design.ClearanceFloor(p) {
-				t.Errorf("%s: the ball of %s is %.1f from the stem", np.name, f.name, gap)
+		f := newCapEszettFrame(p)
+		path, adv := cachedOutline(np, f.name)
+		x0, _, x1, _ := path.BBox()
+		eszettFeet(t, np, f.name, path)
+		ch := p.CapHeight
+		if rs := runs(path, capTopHeight*ch); len(rs) != 1 || (rs[0][1]-x0)/(x1-x0) < capTopReach {
+			t.Errorf("%s: the top of ẞ at %.2f of the cap height is %v, want one run to %.2f of the ink width", np.name, capTopHeight, rs, capTopReach)
+		}
+		var ys, cs []float64
+		for y := capDiagLow * ch; y <= capDiagHigh*ch; y += 5 {
+			rs := runs(path, y)
+			if len(rs) != 2 {
+				t.Errorf("%s: ẞ has %d runs of ink at %.0f, want the stem and the diagonal", np.name, len(rs), y)
+				continue
 			}
-			waist, upper, lower := math.Inf(1), 0.0, 0.0
-			for y := 0.3 * f.top; y < 0.9*f.top; y += 5 {
-				rs := runs(path, y)
-				if len(rs) == 0 {
-					continue
-				}
-				r := rs[len(rs)-1][1]
-				waist = math.Min(waist, r)
+			ys, cs = append(ys, y), append(cs, (rs[1][0]+rs[1][1])/2)
+		}
+		if n := len(ys); n >= 2 {
+			a := math.Atan2(ys[n-1]-ys[0], cs[n-1]-cs[0]) * 180 / math.Pi
+			if a < capDiagMin || a > capDiagMax {
+				t.Errorf("%s: the diagonal of ẞ rises at %.1f degrees, want %.0f to %.0f", np.name, a, capDiagMin, capDiagMax)
 			}
-			for y := f.waist; y < f.top-20; y += 5 {
-				if rs := runs(path, y); len(rs) > 0 {
-					upper = math.Max(upper, rs[len(rs)-1][1])
-				}
+		}
+		sr := f.stem + f.width
+		for y := p.Caps.BracketHeight + 1; y < f.top-f.middle-capEszettInner; y += 5 {
+			rs := runs(path, y)
+			if len(rs) < 2 || math.Abs(rs[0][1]-sr) > 0.5 {
+				t.Errorf("%s: at %.0f the first run of ẞ is %v, want the stem to %.1f with white beside it", np.name, y, rs, sr)
+				break
 			}
-			for y := 20.0; y < f.waist; y += 5 {
-				if rs := runs(path, y); len(rs) > 0 {
-					lower = math.Max(lower, rs[len(rs)-1][1])
-				}
-			}
-			w := (waist - x0) / (x1 - x0)
-			t.Logf("%s: %s: waist at %.3f of the ink, upper bowl %.1f, lower %.1f", np.name, f.name, w, upper, lower)
-			if w < 0.57 || w > 0.76 {
-				t.Errorf("%s: the waist of %s lies at %.3f of the ink width, want 0.57 to 0.76", np.name, f.name, w)
-			}
-			if upper >= lower {
-				t.Errorf("%s: the upper bowl of %s reaches %.1f, the lower %.1f", np.name, f.name, upper, lower)
-			}
+		}
+		if r := adv / design.CapHAdvance(p); r < capAdvLow || r > capAdvHigh {
+			t.Errorf("%s: the advance of ẞ is %.3f of H, want %.2f to %.2f", np.name, r, capAdvLow, capAdvHigh)
 		}
 	}
 }
