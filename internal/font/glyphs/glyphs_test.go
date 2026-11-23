@@ -343,7 +343,7 @@ func TestL(t *testing.T) {
 
 func TestSetOrder(t *testing.T) {
 	t.Parallel()
-	gs := Set(design.Regular())
+	gs := regularSet()
 	want := []string{".notdef", "space", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"}
 	// The 26 capitals follow the lowercase, in alphabetical order.
 	want = append(want, strings.Split("ABCDEFGHIJKLMNOPQRSTUVWXYZ", "")...)
@@ -369,6 +369,34 @@ func TestSetOrder(t *testing.T) {
 		want = append(want, l.name)
 	}
 	for _, e := range specialList {
+		want = append(want, e.name)
+	}
+	// The glyphs which complete TS1 follow.
+	for _, e := range caseList {
+		want = append(want, e.name)
+	}
+	for _, e := range textMarksList {
+		want = append(want, e.name)
+	}
+	for _, e := range textSignsList {
+		want = append(want, e.name)
+	}
+	for _, e := range figureList {
+		want = append(want, e.name)
+	}
+	for _, e := range currencyList {
+		want = append(want, e.name)
+	}
+	for _, e := range letterlikeList {
+		want = append(want, e.name)
+	}
+	for _, e := range pictureList {
+		want = append(want, e.name)
+	}
+	for _, e := range tieList {
+		want = append(want, e.name)
+	}
+	for _, e := range signList {
 		want = append(want, e.name)
 	}
 	if len(gs) != len(want) {

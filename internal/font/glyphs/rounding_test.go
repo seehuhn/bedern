@@ -269,6 +269,10 @@ const shortSeg = 15.0
 // segments shorter than shortSeg between two smooth nodes, and how many.
 var shortSegments = map[string]int{
 	"five": 1,
+	// The other forms of 5, which have its bracket.
+	"five.prop":        1,
+	"five.taboldstyle": 1,
+	"five.oldstyle":    1,
 	// The letters scaled down in ª and ®.
 	"ordfeminine": 1,
 	"registered":  1,

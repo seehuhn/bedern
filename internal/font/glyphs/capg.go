@@ -6,6 +6,7 @@ package glyphs
 import (
 	"fmt"
 	"math"
+	"sync"
 
 	"seehuhn.de/go/bedern/internal/font/design"
 	"seehuhn.de/go/bedern/internal/outline"
@@ -53,8 +54,19 @@ const (
 	capGDrop = 30
 )
 
-// capGChain returns the contour of G as a closed chain.
+// capGChains holds the contours of G by the parameters, so that G and the
+// sign which is made of it draw it once.
+var capGChains sync.Map // design.Params -> func() chain
+
+// capGChain returns the contour of G as a closed chain.  The chain is shared
+// and must not be changed.
 func capGChain(p design.Params) chain {
+	f, _ := capGChains.LoadOrStore(p, sync.OnceValue(func() chain { return drawCapGChain(p) }))
+	return f.(func() chain)()
+}
+
+// drawCapGChain draws the contour of G.
+func drawCapGChain(p design.Params) chain {
 	c, g := p.Caps, p.Caps.CGSJQ
 	f := capRound(p)
 	xR := f.beakX(p)

@@ -108,6 +108,7 @@ func SetLike(p, ref design.Params) (gs []Glyph, failed map[string]error) {
 		if k, ok := combiningKind(e.name); ok {
 			gs[i].Anchors = []Anchor{markAnchor(p, k)}
 		}
+		gs[i].Height = inklessHeight(p, e.name)
 	}
 	return gs, failed
 }

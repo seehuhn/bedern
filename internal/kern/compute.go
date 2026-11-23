@@ -164,7 +164,10 @@ func Compute(p design.Params, gs []glyphs.Glyph) *Table {
 
 // floorOnly holds the marks which keep only the floor distance to a letter:
 // the brackets.
-var floorOnly = map[rune]bool{'(': true, ')': true, '[': true, ']': true, '{': true, '}': true}
+var floorOnly = map[rune]bool{
+	'(': true, ')': true, '[': true, ']': true, '{': true, '}': true,
+	'〈': true, '〉': true, '⟦': true, '⟧': true, '⁅': true, '⁆': true,
+}
 
 // minDepth returns the smallest depth of a profile over all bands, which bounds
 // the horizontal distance of the ink of the side from the edge of the advance.

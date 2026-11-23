@@ -20,11 +20,7 @@ import (
 
 // withoutGlyph names the entries of the table of the Private Use Area for
 // which the fonts have no glyph.
-var withoutGlyph = []string{
-	"cwmascender", "cwmcapital", "died", "leaf",
-	"tieaccentcapital", "tieaccentlowercase", "Orogate", "orogate",
-	"threequartersemdash", "twelveudash", "born",
-}
+var withoutGlyph = []string{}
 
 // TestPrivateUse checks the character map of every font against the table of
 // the Private Use Area: a code point of that area has a glyph only if the

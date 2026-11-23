@@ -396,6 +396,24 @@ func boldFigures(p *Params, reg Params, r BoldFactors) {
 	// The strokes of the superior figures grow by the factor of the signs
 	// over that of the stems.
 	f.SupWeight = reg.Figures.SupWeight * r.Sign / r.Stem
+
+	// The old-style figures 0, 1 and 2 follow the rules of the lining ones,
+	// and the side spaces of the proportional figures those of the letters.
+	o := &f.Old
+	mul(r.Round, &o.ZeroRound)
+	mul(r.Thin, &o.ZeroThin)
+	add(2*r.RoundOut*dR, &o.TwoInk, &o.TwoBase)
+	mul(r.Jut, &o.OneFoot)
+	mul(r.Ball, &o.TwoBall)
+	heavy := o.TwoHeavy
+	mul(r.Round, &o.TwoHeavy)
+	add((o.TwoHeavy-heavy)/2, &o.TwoRise)
+	add(o.TwoHeavy-heavy, &o.TwoBaseEnd)
+	// The diagonal of the old-style 2 thickens with the thin strokes.
+	add((f.Thin-reg.Figures.Thin)/math.Cos(o.TwoDiagAngle*math.Pi/180), &o.TwoDiagFoot)
+	for i := range o.Left {
+		mul(r.Side, &o.Left[i], &o.Right[i], &o.LiningLeft[i], &o.LiningRight[i])
+	}
 }
 
 // boldSigns applies the factors to the punctuation, the symbols and the

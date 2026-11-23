@@ -6,6 +6,7 @@ package glyphs
 import (
 	"fmt"
 	"math"
+	"sync"
 
 	"seehuhn.de/go/bedern/internal/font/design"
 	"seehuhn.de/go/bedern/internal/outline"
@@ -26,10 +27,22 @@ import (
 // tail, CTailReach beyond the cut of the upper beak and CSideRight from the
 // edge.
 func capC(p design.Params) (outline.Path, float64) {
-	adv := design.CapCAdvance(p)
-	p = capCParams(p)
-	f := capRound(p)
-	return capContour(join(capRoundLeft(f), capCTail(p, f), capRoundLeftInner(f), capUpperBeakEased(p, f))), adv
+	return capContour(capCChain(p)), design.CapCAdvance(p)
+}
+
+// capCChains holds the contours of C by the parameters, so that C and the
+// signs which are made of it draw it once.
+var capCChains sync.Map // design.Params -> func() chain
+
+// capCChain returns the contour of C as a closed chain.  The chain is shared
+// and must not be changed.
+func capCChain(p design.Params) chain {
+	f, _ := capCChains.LoadOrStore(p, sync.OnceValue(func() chain {
+		q := capCParams(p)
+		f := capRound(q)
+		return join(capRoundLeft(f), capCTail(q, f), capRoundLeftInner(f), capUpperBeakEased(q, f))
+	}))
+	return f.(func() chain)()
 }
 
 // capCParams returns p with the end of the upper beak of C in the place of that

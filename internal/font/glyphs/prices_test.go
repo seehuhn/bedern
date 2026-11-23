@@ -17,7 +17,7 @@ func TestPriceSignsHaveTheFiguresAdvance(t *testing.T) {
 	t.Parallel()
 	for _, np := range derivedParams() {
 		fa := np.params.Figures.Advance
-		for _, name := range []string{"yen", "Euro", "dollar", "sterling", "cent"} {
+		for _, name := range []string{"yen", "Euro", "dollar", "sterling", "cent", "lira", "dollar.oldstyle", "cent.oldstyle"} {
 			path, adv, _ := outlineOf(name, np.params)
 			if adv != fa {
 				t.Errorf("%s: %s has the advance %.0f, the figures %.0f", np.name, name, adv, fa)

@@ -32,6 +32,11 @@ type Glyph struct {
 	// Parts names, for a ligature, the letters for which it stands, in order
 	// (liga.go); it is nil for the other glyphs.
 	Parts []string
+
+	// Height is the height which a glyph without ink has in the font metrics
+	// of TeX: the compound word marks have the x-height, the cap height and
+	// the height of the ascenders.  It is zero for all other glyphs.
+	Height float64
 }
 
 // An Anchor is a point at which a combining mark is attached to a letter:
@@ -115,6 +120,11 @@ const (
 	// The side kind of a combining mark, which has no advance: its ink may
 	// stand anywhere.
 	sideMark
+
+	// The side kind of the right side of a tie, which stands as an accent
+	// over the first of two letters: its ink reaches beyond the advance,
+	// over the letter which follows, as far as it likes.
+	sideTie
 )
 
 // An entry describes how one glyph is made: the code which draws it and the
@@ -165,6 +175,8 @@ func (k sideKind) space(p design.Params, left bool) float64 {
 		return p.ATailSideRight
 	case k == sideOverhang:
 		return -p.MaxOverhang
+	case k == sideHang:
+		return -hang(p)
 	case k == sideBarF:
 		return design.FInkLeft(p)
 	case k == sideBarT:
@@ -253,8 +265,11 @@ func (e entry) inkMargins(p design.Params) (left, right float64) {
 		case sideCapBowlStem:
 			m -= p.Caps.SerifJut
 		}
-		if k == sideOverhang {
+		if k == sideOverhang || k == sideHang {
 			return m // negative: the ink may stand beyond the edge by this much
+		}
+		if k == sideTie {
+			return math.Inf(-1)
 		}
 		return math.Max(m, 0)
 	}
@@ -320,17 +335,18 @@ var table = []entry{
 	{"Y", 'Y', sideCapY, sideCapY, capY},
 	{"Z", 'Z', sideCapZ, sideCapZ, capZ},
 
-	// The figures.
-	{"zero", '0', sideFigure, sideFigure, figZero},
-	{"one", '1', sideFigure, sideFigure, figOne},
-	{"two", '2', sideFigure, sideFigure, figTwo},
-	{"three", '3', sideFigure, sideFigure, figThree},
-	{"four", '4', sideFigure, sideFigure, figFour},
-	{"five", '5', sideFigure, sideFigure, figFive},
-	{"six", '6', sideFigure, sideFigure, figSix},
-	{"seven", '7', sideFigure, sideFigure, figSeven},
-	{"eight", '8', sideFigure, sideFigure, figEight},
-	{"nine", '9', sideFigure, sideFigure, figNine},
+	// The figures, lining and tabular (figures.go); their other forms are
+	// those of variantfigures.go.
+	{"zero", '0', sideFigure, sideFigure, figure(0, false, false)},
+	{"one", '1', sideFigure, sideFigure, figure(1, false, false)},
+	{"two", '2', sideFigure, sideFigure, figure(2, false, false)},
+	{"three", '3', sideFigure, sideFigure, figure(3, false, false)},
+	{"four", '4', sideFigure, sideFigure, figure(4, false, false)},
+	{"five", '5', sideFigure, sideFigure, figure(5, false, false)},
+	{"six", '6', sideFigure, sideFigure, figure(6, false, false)},
+	{"seven", '7', sideFigure, sideFigure, figure(7, false, false)},
+	{"eight", '8', sideFigure, sideFigure, figure(8, false, false)},
+	{"nine", '9', sideFigure, sideFigure, figure(9, false, false)},
 	// The basic punctuation and the signs of ASCII mathematics (punct.go).
 	{"period", '.', sidePeriod, sidePeriod, period},
 	{"comma", ',', sideComma, sideComma, comma},

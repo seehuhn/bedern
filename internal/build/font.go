@@ -70,6 +70,8 @@ func FontWith(p design.Params, style design.Style, gs []glyphs.Glyph, now time.T
 
 	outlines := &cff.Outlines{}
 	cm := cmap.Format4{}
+	full := cmap.Format12{}
+	beyond := false
 	for i, g := range gs {
 		cg := cff.NewGlyph(g.Name, g.Advance)
 		for _, c := range g.Path {
@@ -84,10 +86,12 @@ func FontWith(p design.Params, style design.Style, gs []glyphs.Glyph, now time.T
 		}
 		outlines.Glyphs = append(outlines.Glyphs, cg)
 		if g.Rune != 0 {
+			full[uint32(g.Rune)] = glyph.ID(i)
 			if g.Rune > 0xFFFF {
-				return nil, fmt.Errorf("glyph %s: code point %U is outside the BMP", g.Name, g.Rune)
+				beyond = true
+			} else {
+				cm[uint16(g.Rune)] = glyph.ID(i)
 			}
-			cm[uint16(g.Rune)] = glyph.ID(i)
 		}
 	}
 	outlines.Private = []*type1.PrivateDict{PrivateDict(p)}
@@ -142,6 +146,16 @@ func FontWith(p design.Params, style design.Style, gs []glyphs.Glyph, now time.T
 	}
 	if err := font.InstallCMap(cm); err != nil {
 		return nil, err
+	}
+	// A font with a code point beyond the Basic Multilingual Plane has a
+	// second subtable, of format 12, which maps every code point.
+	if beyond {
+		data, err := full.Encode(0)
+		if err != nil {
+			return nil, err
+		}
+		font.CMapTable[cmap.Key{PlatformID: 0, EncodingID: 4}] = data
+		font.CMapTable[cmap.Key{PlatformID: 3, EncodingID: 10}] = data
 	}
 	// The code page range is Windows Latin 1 and the Unicode range is Basic
 	// Latin, with the ranges and code pages of the accented letters where the

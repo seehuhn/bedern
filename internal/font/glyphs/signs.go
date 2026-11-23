@@ -353,6 +353,13 @@ func brokenbar(p design.Params) (outline.Path, float64) {
 // heavier and scaled as a superior figure, centred, and scaled less where it
 // would come closer than circGap to the ring.
 func circled(p design.Params, letter string) (outline.Path, float64) {
+	l, _, _ := Outline(letter, heavierLetters(p, p.Figures.SupWeight/supScale))
+	return circledLetter(p, l)
+}
+
+// circledLetter draws the ring of © and ® round the outline l of a capital
+// drawn heavier, which it scales and centres as circled does.
+func circledLetter(p design.Params, l outline.Path) (outline.Path, float64) {
 	bottom, top := -p.OvershootUpper, p.CapHeight+p.OvershootUpper
 	r := (top - bottom) / 2
 	cy := (top + bottom) / 2
@@ -362,7 +369,6 @@ func circled(p design.Params, letter string) (outline.Path, float64) {
 	}
 	outer, counter := ringChains(-r, bottom, r, top, ring, ring, 0.7071, 0.7071)
 	path := chainsPath(outer, counter)
-	l, _, _ := Outline(letter, heavierLetters(p, p.Figures.SupWeight/supScale))
 	lx0, _, lx1, _ := l.BBox()
 	l = shiftInk(l, -(lx0+lx1)/2, -p.CapHeight/2)
 	// The letter is scaled by supScale, or less where its farthest ink would

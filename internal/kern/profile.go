@@ -187,10 +187,11 @@ func samplePoints(path outline.Path) ([]outline.Point, []float64) {
 }
 
 // KernPunct lists the punctuation which is kerned against letters: the full
-// stop, comma, colon and semicolon, the question and exclamation marks and the
-// inverted ones, the quotation marks, the guillemets and the apostrophe, the
-// hyphens and dashes, and the brackets, which keep only the floor.
-const KernPunct = ".,:;!?¡¿'\"‘’‚“”„«»‹›-‐‑‒–—―()[]{}"
+// stop, comma, colon and semicolon, the question and exclamation marks, the
+// interrobang and the inverted ones, the quotation marks, the guillemets and
+// the apostrophe, the hyphens and dashes with the dashes of two thirds and of
+// three quarters of an em, and the brackets, which keep only the floor.
+const KernPunct = ".,:;!?¡¿‽⸘'\"‘’‚“”„«»‹›-‐‑‒–—―()[]{}〈〉⟦⟧⁅⁆"
 
 // profile fills in the profiles and the sample points of one glyph.
 func (f *Font) profile(g *Glyph, path outline.Path) {

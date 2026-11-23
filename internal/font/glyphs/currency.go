@@ -5,6 +5,7 @@ package glyphs
 
 import (
 	"math"
+	"sync"
 
 	"seehuhn.de/go/bedern/internal/font/design"
 	"seehuhn.de/go/bedern/internal/outline"
@@ -39,15 +40,36 @@ func dollarParams(p design.Params) design.Params {
 // Side kinds: open; the S is centred on the advance of the figures.
 func dollar(p design.Params) (outline.Path, float64) {
 	s := p.Sym
-	q := dollarParams(p)
-	f := newCapSFrame(q)
-	var path outline.Path
-	path.MoveTo(f.C.X+f.LowerE.Inner[0].P0.X, f.C.Y+f.LowerE.Inner[0].P0.Y)
-	f.circuit(&path, f.LowerE, 1)
-	f.circuit(&path, f.UpperE, -1)
-	cx := math.Round(q.Caps.CGSJQ.SSideLeft + s.DollarLowerWidth/2)
+	letter, cx := dollarS(p)
 	bar := rectChain(cx-s.DollarStroke/2, s.DollarBottom, cx+s.DollarStroke/2, s.DollarTop)
-	return chainsPath(union(append(pathChains(path), bar)...)...), p.Figures.Advance
+	return chainsPath(union(append(append([]chain(nil), letter...), bar)...)...), p.Figures.Advance
+}
+
+// A dollarLetter is the S of the dollar as closed chains and the abscissa of
+// the middle of its ink.
+type dollarLetter struct {
+	chains []chain
+	cx     float64
+}
+
+// dollarLetters holds the S of the dollar by the parameters, so that the
+// dollar and the dollar of the old-style figures draw it once.
+var dollarLetters sync.Map // design.Params -> func() dollarLetter
+
+// dollarS returns the S of the dollar and the abscissa of the middle of its
+// ink.  The chains are shared and must not be changed.
+func dollarS(p design.Params) ([]chain, float64) {
+	f, _ := dollarLetters.LoadOrStore(p, sync.OnceValue(func() dollarLetter {
+		q := dollarParams(p)
+		f := newCapSFrame(q)
+		var path outline.Path
+		path.MoveTo(f.C.X+f.LowerE.Inner[0].P0.X, f.C.Y+f.LowerE.Inner[0].P0.Y)
+		f.circuit(&path, f.LowerE, 1)
+		f.circuit(&path, f.UpperE, -1)
+		return dollarLetter{chains: pathChains(path), cx: math.Round(q.Caps.CGSJQ.SSideLeft + p.Sym.DollarLowerWidth/2)}
+	}))
+	l := f.(func() dollarLetter)()
+	return l.chains, l.cx
 }
 
 // sterling draws the pound sterling: one stroke and a bar.  The stroke starts
@@ -67,23 +89,19 @@ func dollar(p design.Params) (outline.Path, float64) {
 //
 // Side kinds: open; the ink is centred on the advance of the figures.
 func sterling(p design.Params) (outline.Path, float64) {
+	return sterlingBars(p, p.Sym.SterBarLen, p.Sym.SterBarY)
+}
+
+// sterlingBars draws the sterling with a bar of the given length at each of
+// the heights ys in place of its bar at SterBarY.
+func sterlingBars(p design.Params, length float64, ys ...float64) (outline.Path, float64) {
 	s := p.Sym
-	w := s.SterInk
-	x0 := math.Round((p.Figures.Advance - w) / 2)
-	top := p.Figures.Height + p.OvershootLower
-	right, left := sterlingEdges(p, x0, top)
-	re, le := edgeOf(right), edgeOf(left).reversed()
-	r := p.BallDiameter / 2
-	x1 := x0 + w
-	ys, angles := span(0.70*top, 0.82*top, 0.01*top), span(-40, 60, 2)
-	if s.SterStemRef != 0 {
-		ys, angles = span(0.60*top, 0.90*top, 0.01*top), span(-60, 80, 2)
+	st := sterlingStroke(p)
+	parts := []chain{st.stroke}
+	for _, y := range ys {
+		parts = append(parts, rectChain(st.barLeft, y-s.SterBar/2, st.barLeft+length, y+s.SterBar/2))
 	}
-	ball := ballStart("sterling", p, re, le, x1-0.10*w-r, ys, angles, false)
-	stroke := join(re, lineChain(re.end(), le.start()), le, ball)
-	bx := x0 + 0.04*w
-	bar := rectChain(bx, s.SterBarY-s.SterBar/2, bx+s.SterBarLen, s.SterBarY+s.SterBar/2)
-	cs := union(stroke, bar)
+	cs := union(parts...)
 	lo, hi := math.Inf(1), math.Inf(-1)
 	for _, c := range cs {
 		for _, q := range c {
@@ -95,6 +113,39 @@ func sterling(p design.Params) (outline.Path, float64) {
 		cs[i] = cs[i].shifted(dx, 0)
 	}
 	return chainsPath(cs...), p.Figures.Advance
+}
+
+// A sterlingPart is the stroke of the sterling as a closed chain, in its
+// frame, and the left end of its bar.
+type sterlingPart struct {
+	stroke  chain
+	barLeft float64
+}
+
+// sterlingStrokes holds the strokes of the sterling by the parameters, so
+// that the sterling and the lira draw the stroke once.
+var sterlingStrokes sync.Map // design.Params -> func() sterlingPart
+
+// sterlingStroke returns the stroke of the sterling with its ball terminal.
+// The chain is shared and must not be changed.
+func sterlingStroke(p design.Params) sterlingPart {
+	f, _ := sterlingStrokes.LoadOrStore(p, sync.OnceValue(func() sterlingPart {
+		s := p.Sym
+		w := s.SterInk
+		x0 := math.Round((p.Figures.Advance - w) / 2)
+		top := p.Figures.Height + p.OvershootLower
+		right, left := sterlingEdges(p, x0, top)
+		re, le := edgeOf(right), edgeOf(left).reversed()
+		r := p.BallDiameter / 2
+		x1 := x0 + w
+		ys, angles := span(0.70*top, 0.82*top, 0.01*top), span(-40, 60, 2)
+		if s.SterStemRef != 0 {
+			ys, angles = span(0.60*top, 0.90*top, 0.01*top), span(-60, 80, 2)
+		}
+		ball := ballStart("sterling", p, re, le, x1-0.10*w-r, ys, angles, false)
+		return sterlingPart{stroke: join(re, lineChain(re.end(), le.start()), le, ball), barLeft: x0 + 0.04*w}
+	}))
+	return f.(func() sterlingPart)()
 }
 
 // sterlingEdges returns the nodes of the right-hand and the left-hand edge of

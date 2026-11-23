@@ -206,6 +206,10 @@ type Figures struct {
 	EightWaistThin  float64
 	EightSpine      float64
 	EightJoin       float64
+
+	// Old holds the parameters of the old-style figures and of the
+	// proportional figures.
+	Old OldFigures
 }
 
 // regularFigures returns the parameters of the figures of Bedern Regular.
@@ -309,6 +313,8 @@ func regularFigures() Figures {
 		EightWaistThin:  14,
 		EightSpine:      16,
 		EightJoin:       36,
+
+		Old: regularOldFigures(),
 	}
 }
 

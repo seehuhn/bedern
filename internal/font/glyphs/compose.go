@@ -291,7 +291,7 @@ func like(name string) string {
 		return "hyphen"
 	case "figuredash":
 		return "endash"
-	case "uni2015":
+	case "uni2015", "twelveudash", "threequartersemdash":
 		return "emdash"
 	}
 	if c := composites[name]; c != nil {
@@ -699,6 +699,10 @@ func finishSet(p design.Params, gs []Glyph, raws []outline.Path) {
 		if k, ok := combiningKind(e.name); ok {
 			gs[i].Anchors = []Anchor{markAnchor(p, k)}
 		}
+		if _, ok := capitalCombiningKind(e.name); ok {
+			gs[i].Anchors = []Anchor{capitalMarkAnchor(p)}
+		}
+		gs[i].Height = inklessHeight(p, e.name)
 	}
 }
 

@@ -7,6 +7,7 @@ import (
 	"maps"
 	"math"
 	"slices"
+	"strings"
 
 	"golang.org/x/text/language"
 
@@ -30,10 +31,24 @@ var loclLanguages = []string{"tr-Latn", "az-Latn", "crh-Latn"}
 // they have in the name table.
 var StylisticSetNames = map[name.ID]string{
 	ss01NameID: "Capital sharp s as two letters S",
+	ss02NameID: "Rounder ties",
 }
 
-// ss01NameID is the ID of the name of the first stylistic set.
-const ss01NameID = 256
+// ss01NameID and ss02NameID are the IDs of the names of the first and the
+// second stylistic set.
+const (
+	ss01NameID = 256
+	ss02NameID = 257
+)
+
+// figureNames are the names of the figures at their code points, which are
+// lining and tabular.  The other forms of a figure have its name with a
+// suffix: .prop (lining, proportional), .taboldstyle (old-style, tabular) and
+// .oldstyle (old-style, proportional).
+var figureNames = []string{"zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"}
+
+// caseSuffix is the suffix of the name of the capital form of a glyph.
+const caseSuffix = ".case"
 
 // gsubInfo returns the GSUB table for the scripts latn and DFLT, or nil if the
 // font has none of its features.  The lookups are applied in this order.
@@ -45,27 +60,50 @@ const ss01NameID = 256
 //	single substitution, type 1).
 //	liga: the ligatures (type 4), one lookup whose ligatures are tried in the
 //	order of the number of their letters, the longest first.
+//	case: a glyph which has a capital form, named with the suffix .case,
+//	becomes that form (type 1): the spacing accents and the combining marks
+//	which stand above a letter.
+//	onum, pnum, lnum, tnum: the figures become old-style, proportional,
+//	lining and tabular (type 1 each); each lookup keeps the other property
+//	of a figure, and lnum and tnum, which come last, undo onum and pnum.
 //	ss01: the capital sharp s becomes the two letters S (type 1).
+//	ss02: the ties become their rounder forms, named with the suffix .new
+//	(type 1).
+//
+// The lookup of ccmp also gives a combining mark above its capital form after
+// a letter whose top anchor stands higher than that of n.
 func gsubInfo(gs []glyphs.Glyph) *gtab.Info {
 	index := make(map[string]glyph.ID, len(gs))
 	for i, g := range gs {
 		index[g.Name] = glyph.ID(i)
 	}
 	info := &gtab.Info{}
-	single := func(from, to string) *gtab.LookupTable {
-		a, okA := index[from]
-		b, okB := index[to]
-		if !okA || !okB {
+	// singles returns the single substitution of the pairs of glyph names
+	// whose glyphs the font has, or nil if it has none of them.  The coverage
+	// indices follow the order of the glyphs.
+	singles := func(pairs ...[2]string) *gtab.LookupTable {
+		target := map[glyph.ID]glyph.ID{}
+		for _, pr := range pairs {
+			a, okA := index[pr[0]]
+			b, okB := index[pr[1]]
+			if okA && okB {
+				target[a] = b
+			}
+		}
+		if len(target) == 0 {
 			return nil
 		}
+		sub := &gtab.Gsub1_2{Cov: coverage.Table{}}
+		for _, a := range slices.Sorted(maps.Keys(target)) {
+			sub.Cov[a] = len(sub.SubstituteGlyphIDs)
+			sub.SubstituteGlyphIDs = append(sub.SubstituteGlyphIDs, target[a])
+		}
 		return &gtab.LookupTable{
-			Meta: &gtab.LookupMetaInfo{LookupType: 1},
-			Subtables: []gtab.Subtable{&gtab.Gsub1_2{
-				Cov:                coverage.Table{a: 0},
-				SubstituteGlyphIDs: []glyph.ID{b},
-			}},
+			Meta:      &gtab.LookupMetaInfo{LookupType: 1},
+			Subtables: []gtab.Subtable{sub},
 		}
 	}
+	single := func(from, to string) *gtab.LookupTable { return singles([2]string{from, to}) }
 	add := func(l *gtab.LookupTable) gtab.LookupIndex {
 		info.LookupList = append(info.LookupList, l)
 		return gtab.LookupIndex(len(info.LookupList) - 1)
@@ -105,20 +143,68 @@ func gsubInfo(gs []glyphs.Glyph) *gtab.Info {
 			above[glyph.ID(i)] = true
 		}
 	}
+	var ccmp []gtab.LookupIndex
 	if len(in) > 0 && len(above) > 0 {
 		sub := add(&gtab.LookupTable{
 			Meta:      &gtab.LookupMetaInfo{LookupType: 1},
 			Subtables: []gtab.Subtable{&dotless},
 		})
-		chain := add(&gtab.LookupTable{
+		ccmp = append(ccmp, add(&gtab.LookupTable{
 			Meta: &gtab.LookupMetaInfo{LookupType: 6},
 			Subtables: []gtab.Subtable{&gtab.ChainedSeqContext3{
 				Input:     []coverage.Set{in},
 				Lookahead: []coverage.Set{above},
 				Actions:   []gtab.SeqLookup{{SequenceIndex: 0, LookupListIndex: sub}},
 			}},
-		})
-		feature(&common, &gtab.Feature{Tag: "ccmp", Lookups: []gtab.LookupIndex{chain}})
+		}))
+	}
+
+	// The capital forms: of the marks, which ccmp sets after a high letter,
+	// and of every glyph which has one, which case sets.
+	var caseMarks, caseAll [][2]string
+	for _, g := range gs {
+		base, ok := strings.CutSuffix(g.Name, caseSuffix)
+		if !ok {
+			continue
+		}
+		j, ok := index[base]
+		if !ok {
+			continue
+		}
+		caseAll = append(caseAll, [2]string{base, g.Name})
+		if isMark(g) && isMark(gs[j]) && above[j] && g.Anchors[0].Class == "top" {
+			caseMarks = append(caseMarks, [2]string{base, g.Name})
+		}
+	}
+	if l := singles(caseMarks...); l != nil {
+		high := coverage.Set{}
+		if n, ok := index["n"]; ok {
+			if top, ok := topAnchor(gs[n]); ok {
+				for i, g := range gs {
+					if y, ok := topAnchor(g); ok && !isMark(g) && y > top {
+						high[glyph.ID(i)] = true
+					}
+				}
+			}
+		}
+		marks := coverage.Set{}
+		for _, pr := range caseMarks {
+			marks[index[pr[0]]] = true
+		}
+		if len(high) > 0 {
+			sub := add(l)
+			ccmp = append(ccmp, add(&gtab.LookupTable{
+				Meta: &gtab.LookupMetaInfo{LookupType: 6},
+				Subtables: []gtab.Subtable{&gtab.ChainedSeqContext3{
+					Backtrack: []coverage.Set{high},
+					Input:     []coverage.Set{marks},
+					Actions:   []gtab.SeqLookup{{SequenceIndex: 0, LookupListIndex: sub}},
+				}},
+			}))
+		}
+	}
+	if len(ccmp) > 0 {
+		feature(&common, &gtab.Feature{Tag: "ccmp", Lookups: ccmp})
 	}
 
 	type lig struct {
@@ -165,10 +251,46 @@ func gsubInfo(gs []glyphs.Glyph) *gtab.Info {
 		feature(&common, &gtab.Feature{Tag: "liga", Lookups: []gtab.LookupIndex{l}})
 	}
 
+	if l := singles(caseAll...); l != nil {
+		feature(&common, &gtab.Feature{Tag: "case", Lookups: []gtab.LookupIndex{add(l)}})
+	}
+
+	// The forms of the figures: a lookup changes one property of a figure,
+	// lining or old-style, tabular or proportional, and keeps the other.
+	figures := func(fromA, toA, fromB, toB string) *gtab.LookupTable {
+		var pairs [][2]string
+		for _, f := range figureNames {
+			pairs = append(pairs, [2]string{f + fromA, f + toA}, [2]string{f + fromB, f + toB})
+		}
+		return singles(pairs...)
+	}
+	for _, f := range []struct {
+		tag                    string
+		fromA, toA, fromB, toB string
+	}{
+		{"onum", "", ".taboldstyle", ".prop", ".oldstyle"},
+		{"pnum", "", ".prop", ".taboldstyle", ".oldstyle"},
+		{"lnum", ".taboldstyle", "", ".oldstyle", ".prop"},
+		{"tnum", ".prop", "", ".oldstyle", ".taboldstyle"},
+	} {
+		if l := figures(f.fromA, f.toA, f.fromB, f.toB); l != nil {
+			feature(&common, &gtab.Feature{Tag: f.tag, Lookups: []gtab.LookupIndex{add(l)}})
+		}
+	}
+
 	if l := single("uni1E9E", "S_S"); l != nil {
 		feature(&common, &gtab.Feature{
 			Tag: "ss01", Lookups: []gtab.LookupIndex{add(l)},
 			Params: &gtab.FeatureParamsStylisticSet{UINameID: ss01NameID},
+		})
+	}
+	ties := singles(
+		[2]string{"tieaccentlowercase", "tieaccentlowercase.new"},
+		[2]string{"tieaccentcapital", "tieaccentcapital.new"})
+	if ties != nil {
+		feature(&common, &gtab.Feature{
+			Tag: "ss02", Lookups: []gtab.LookupIndex{add(ties)},
+			Params: &gtab.FeatureParamsStylisticSet{UINameID: ss02NameID},
 		})
 	}
 
@@ -187,6 +309,17 @@ func gsubInfo(gs []glyphs.Glyph) *gtab.Info {
 		}
 	}
 	return info
+}
+
+// topAnchor returns the height of the anchor of the glyph for the marks
+// above a letter.
+func topAnchor(g glyphs.Glyph) (float64, bool) {
+	for _, a := range g.Anchors {
+		if a.Class == "top" {
+			return a.Y, true
+		}
+	}
+	return 0, false
 }
 
 // ligatureCarets returns the caret list of the ligatures, or nil if there are
