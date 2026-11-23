@@ -17,7 +17,11 @@ type Figures struct {
 	// does.  Advance is the advance of every figure.
 	Height  float64
 	OverTop float64
-	Advance float64
+	// SupWeight is the thickness of the strokes of a superior figure, in
+	// strokes of the figure, and of the letters of © and ®, in strokes of
+	// the letters.
+	SupWeight float64
+	Advance   float64
 
 	// Strokes.  Stem is the stem of 1 and 4; Round the sides of 0 and Thin the
 	// thin parts of the round figures (the top and bottom of 0, 3, 5, 6, 8 and
@@ -207,9 +211,10 @@ type Figures struct {
 // regularFigures returns the parameters of the figures of Bedern Regular.
 func regularFigures() Figures {
 	return Figures{
-		Height:  666,
-		OverTop: 8,
-		Advance: 490,
+		Height:    666,
+		OverTop:   8,
+		Advance:   490,
+		SupWeight: 0.72,
 
 		Stem:  83,
 		Round: 94,

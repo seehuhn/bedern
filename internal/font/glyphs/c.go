@@ -121,8 +121,9 @@ func c(p design.Params) (outline.Path, float64) {
 func cOutline(p design.Params) outline.Path {
 	f := newCFrame(p)
 	top := p.XHeight + p.OvershootLower
-	terminal := lowerTerminal(f.outerD.cubic(3, true), p.CTipHeight, p.ETerminalTip,
-		outline.Point{X: f.cx, Y: f.innerBottomY}, eShape)
+	terminal := lowerTerminalMatched(f.outerD.cubic(3, true), p.CTipHeight, p.ETerminalTip,
+		outline.Point{X: f.cx, Y: f.innerBottomY}, eShape,
+		f.innerD.cubic(1, false).endCurvature(false), p.TerminalMatch)
 
 	var path outline.Path
 	path.MoveTo(f.cx, top)

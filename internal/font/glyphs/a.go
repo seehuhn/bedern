@@ -196,7 +196,7 @@ const aLowerRun = 0.385
 // above the baseline, the low point lies 42 beyond the stem and the inner low
 // point 12 to the left of it, the radii are 25 at the low point, 20 at the
 // inner low point and 15 at the highest point of the tip.
-func aTailShape(bowl bowlSpec) tFootShape {
+func aTailShape(p design.Params, bowl bowlSpec) tFootShape {
 	sh := tFoot
 	sh.OuterStart = bowl.NotchLower
 	sh.InnerTop = 65
@@ -206,6 +206,12 @@ func aTailShape(bowl bowlSpec) tFootShape {
 	sh.InnerRadius = 20
 	sh.OuterCorner = true
 	sh.TopRadius = 15
+	if k := p.ATailScale; k > 0 {
+		sh.TipRound *= k
+		sh.RightRadius *= k
+		sh.TopRadius *= k
+		sh.LowRadius *= k
+	}
 	return sh
 }
 
@@ -215,7 +221,7 @@ func aTailShape(bowl bowlSpec) tFootShape {
 // notch: it is the outer edge of the curve of the tail, which leaves the notch
 // vertically.
 func aTailChain(p design.Params, bowl bowlSpec, stem stemSpec) chain {
-	return footChain(p, stem.Left, stem.right(), p.ATailReach, p.ATailTipHeight, p.ATailTipThick, aTailShape(bowl))
+	return footChain(p, stem.Left, stem.right(), p.ATailReach, p.ATailTipHeight, p.ATailTipThick, aTailShape(p, bowl))
 }
 
 // aBowl returns the bowl of a.  Its free side has the thin part, the overshoot

@@ -52,7 +52,6 @@ type eszettFrame struct {
 
 // Shape constants of ß and ẞ.
 const (
-	eszettInk        = 0.956 // the ink width of ß, in ink widths of n
 	eszettUpper      = 0.90  // the right extreme of the upper bowl, in ink widths from the left of the ink
 	eszettWaist      = 0.87  // the middle of the middle stroke of ß, in x-heights
 	capEszettInk     = 1.22  // the ink width of ẞ, in ink widths of ß
@@ -72,7 +71,7 @@ func newEszettFrame(p design.Params) eszettFrame {
 	nInk := design.NAdvance(p) - p.SideStemLeft - p.SideStemRight + 2*p.SerifJut
 	s := p.SideStemLeft
 	x0 := s - p.SerifJut
-	w := eszettInk * nInk
+	w := p.EszettInk * nInk
 	f := eszettFrame{
 		name: "germandbls", stem: s, width: p.Stem, jut: p.SerifJut,
 		bracket: p.BracketHeight, serifThick: p.SerifThick, reach: p.BracketReach,

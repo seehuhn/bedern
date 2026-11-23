@@ -75,6 +75,11 @@ type Symbols struct {
 	// baseline; a bar SterBar thick at SterBarY, from the left of the frame
 	// SterBarLen long.
 	SterInk, SterStem, SterBar, SterBarY, SterBarLen, SterBase float64
+	// SterStemRef and SterInkRef are the stem width and the frame width for
+	// which the loop and the base are laid out; where SterStemRef is not zero,
+	// the loop and the foot follow the edges of the stem as it moves and grows
+	// against them.  Zero means no following.
+	SterStemRef, SterInkRef float64
 
 	// The euro: the capital C (the round of O, the upper beak and the tail)
 	// scaled from the height of C to the figure height with the overshoots of

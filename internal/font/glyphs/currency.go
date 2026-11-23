@@ -76,7 +76,11 @@ func sterling(p design.Params) (outline.Path, float64) {
 	re, le := edgeOf(right), edgeOf(left).reversed()
 	r := p.BallDiameter / 2
 	x1 := x0 + w
-	ball := ballStart("sterling", p, re, le, x1-0.10*w-r, span(0.70*top, 0.82*top, 0.01*top), span(-40, 60, 2), false)
+	ys, angles := span(0.70*top, 0.82*top, 0.01*top), span(-40, 60, 2)
+	if s.SterStemRef != 0 {
+		ys, angles = span(0.60*top, 0.90*top, 0.01*top), span(-60, 80, 2)
+	}
+	ball := ballStart("sterling", p, re, le, x1-0.10*w-r, ys, angles, false)
 	stroke := join(re, lineChain(re.end(), le.start()), le, ball)
 	bx := x0 + 0.04*w
 	bar := rectChain(bx, s.SterBarY-s.SterBar/2, bx+s.SterBarLen, s.SterBarY+s.SterBar/2)
@@ -145,6 +149,14 @@ func sterlingEdges(p design.Params, x0, top float64) (right, left []edgeNode) {
 	flat := func(x, y, dir float64) edgeNode {
 		return edgeNode{At: outline.Point{X: x0 + x, Y: y}, Dir: dir, Fix: true}
 	}
+	// g is the distance by which each edge of the stem lies further out than
+	// at SterStemRef.
+	g := 0.0
+	if s.SterStemRef != 0 {
+		g = (s.SterStem - s.SterStemRef) / 2
+	}
+	// sh moves the nodes by dx to the right.
+	sh := func(n edgeNode, dx float64) edgeNode { n.At.X += dx; return n }
 	lineStart := func(n edgeNode) edgeNode { n.Line = true; return n }
 	right = []edgeNode{
 		{At: outline.Point{X: hx, Y: top}, Dir: 180, K: 1.0 / 110},
@@ -179,6 +191,30 @@ func sterlingEdges(p design.Params, x0, top float64) (right, left []edgeNode) {
 		at(235, t, 0, 260),
 		at(345, t+24.4, 25, 0),
 		at(380, t+50, 47, 70),
+	}
+	if s.SterStemRef != 0 {
+		// The stem centre moves with the frame by dc, its edges out by g.
+		dc := 0.30 * (w - s.SterInkRef)
+		dl := dc - g
+		// The hook spans from the stem to the top of the frame: its inner
+		// and outer arcs scale with the width between the stem edge and the
+		// top of the hook.
+		ki := (0.27*w - s.SterStem/2) / (0.27*s.SterInkRef - s.SterStemRef/2)
+		ko := (0.27*w + s.SterStem/2) / (0.27*s.SterInkRef + s.SterStemRef/2)
+		right[0].K /= ko
+		right[1].At = outline.Point{X: hx - 89*ko, Y: top - 41*ko}
+		left[1].At = outline.Point{X: hx - 52.7*ki, Y: top - p.Figures.Thin - 21.8*ki}
+		for _, i := range []int{4, 5, 6, 7, 8, 9, 10} {
+			right[i] = sh(right[i], dl)
+		}
+		right[11] = sh(right[11], dl)
+		left[4] = sh(left[4], dc+g/2)
+		for _, i := range []int{5, 6, 7, 8, 9} {
+			left[i] = sh(left[i], dl)
+		}
+		left[10] = sh(left[10], dl)
+		left[11] = sh(left[11], dl)
+		right[12] = sh(right[12], dl)
 	}
 	return right, left
 }

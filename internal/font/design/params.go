@@ -152,6 +152,14 @@ type Params struct {
 	// of the bowl is that of the o, with the same thin parts, overshoot and
 	// squareness.
 	BowlJoinThick float64
+	// BowlMatch is how far the connection of the bowls of b, d, p and q takes
+	// the curvature of the free side at the extremes at top and bottom: 0 for
+	// the handles of the parabola, 1 for the curvature of the free side.
+	BowlMatch float64
+	// TerminalMatch is how far the upper edge of the lower terminal of c and e
+	// takes the curvature of the inner edge of the bowl at its lowest point:
+	// 0 for the handle of the terminal shape, 1 for that curvature.
+	TerminalMatch float64
 	DBowl         Bowl
 	ABowl         Bowl
 	BBowl         Bowl
@@ -222,6 +230,9 @@ type Params struct {
 	ATailTipHeight float64
 	ATailTipThick  float64
 	ATailSideRight float64
+	// ATailScale, if positive, multiplies the radii of the tail of a at its low
+	// point and at its tip; zero for 1.
+	ATailScale float64
 
 	// The letter s.  The spine is SSpineThick thick, measured at right angles
 	// to it at its centre, and runs down to the right at SSpineAngle degrees
@@ -263,6 +274,9 @@ type Params struct {
 	// The inner foot serifs are those of n (SerifJutInner) and keep the
 	// distance MCounter - 2 SerifJutInner between their tips.
 	MCounter float64
+
+	// EszettInk is the ink width of ß, in ink widths of n.
+	EszettInk float64
 
 	// The letter u: the arch of n turned through half a turn between two stems.
 	// UCounter is the width of its counter.  The heights are measured from the
@@ -656,6 +670,8 @@ func Regular() Params {
 		SSideRight:     29,
 
 		MCounter: 189,
+
+		EszettInk: 0.956,
 
 		UCounter:       189,
 		UJoin:          126,

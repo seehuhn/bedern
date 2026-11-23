@@ -75,7 +75,12 @@ type bowlShape struct {
 // horizontally.  Its handles are the fractions fs and fe of those of the
 // parabola with the same ends and tangents, whose control point is where the
 // ray from the stem meets the horizontal through the extreme.
-func joinCurve(x0, y0, c, s, xt, y1, fs, fe float64) cubic {
+//
+// If match is positive, the handle at the extreme is set so that the curve
+// arrives there with the curvature kappa of the curve which continues it, to
+// the extent match gives (1 for all of it), within half to double the handle
+// of the parabola.
+func joinCurve(x0, y0, c, s, xt, y1, fs, fe, kappa, match float64) cubic {
 	pt := func(x, y float64) outline.Point { return outline.Point{X: x, Y: y} }
 	run := x0 - xt
 	rise := math.Abs(y1 - y0)
@@ -87,7 +92,29 @@ func joinCurve(x0, y0, c, s, xt, y1, fs, fe float64) cubic {
 	d := math.Hypot(x0-qx, rise)
 	hs := fs * 2 / 3 * d
 	he := fe * 2 / 3 * (qx - xt)
-	return cubic{pt(x0, y0), pt(x0+hs*(qx-x0)/d, y0+hs*(y1-y0)/d), pt(xt+he, y1), pt(xt, y1)}
+	p1 := pt(x0+hs*(qx-x0)/d, y0+hs*(y1-y0)/d)
+	if match > 0 && kappa > 0 {
+		want := math.Sqrt(2 * math.Abs(p1.Y-y1) / (3 * kappa))
+		want = math.Min(math.Max(want, he/2), math.Min(2*he, 0.95*(p1.X-xt)))
+		he += match * (want - he)
+	}
+	return cubic{pt(x0, y0), p1, pt(xt+he, y1), pt(xt, y1)}
+}
+
+// endCurvature returns the curvature of the curve at its start, or at its
+// end if atEnd is set.
+func (c cubic) endCurvature(atEnd bool) float64 {
+	a, b, d := c.P0, c.P1, c.P2
+	if atEnd {
+		a, b, d = c.P3, c.P2, c.P1
+	}
+	ux, uy := b.X-a.X, b.Y-a.Y
+	vx, vy := d.X-b.X, d.Y-b.Y
+	n := math.Hypot(ux, uy)
+	if n == 0 {
+		return 0
+	}
+	return 2.0 / 3 * math.Abs(ux*vy-uy*vx) / (n * n * n)
 }
 
 // A bowlSpec describes a bowl on the left of a stem, or on the right of it if
@@ -112,6 +139,7 @@ type bowlSpec struct {
 	NotchLower     float64 // height at which the outer edge of the lower stroke meets the stem
 	JoinLower      float64 // height at which the counter edge of the lower stroke meets the stem
 	JoinThick      float64 // thickness at right angles to the stroke where it meets the stem
+	Match          float64 // how far the connection takes the curvature of the free side at the extremes at top and bottom; zero for none
 	SupernessOuter float64 // squareness of the outer contour on the free side
 	SupernessInner float64 // squareness of the counter on the free side
 	ThickPos       float64 // height of the free extreme as a fraction of the height of the bowl; the middle (0.5) if zero
@@ -209,10 +237,10 @@ func bowlOuterCurves(sh bowlShape, b bowlSpec) [4]cubic {
 	pt := func(x, y float64) outline.Point { return outline.Point{X: x, Y: y} }
 	if sh.Parabolic {
 		return [4]cubic{
-			joinCurve(b.X, b.NotchUpper, cu, su, xt, b.Top, sh.OuterStemHandle, sh.OuterExtremeHandle),
+			joinCurve(b.X, b.NotchUpper, cu, su, xt, b.Top, sh.OuterStemHandle, sh.OuterExtremeHandle, up.cubic(1, true).endCurvature(false), b.Match),
 			up.cubic(1, true),
 			down.cubic(2, true),
-			joinCurve(b.X, b.NotchLower, cl, sl, xt, b.Bottom, sh.OuterStemHandle, sh.OuterExtremeHandle).reversed(),
+			joinCurve(b.X, b.NotchLower, cl, sl, xt, b.Bottom, sh.OuterStemHandle, sh.OuterExtremeHandle, down.cubic(2, true).endCurvature(true), b.Match).reversed(),
 		}
 	}
 	return [4]cubic{
@@ -274,10 +302,10 @@ func bowlCounter(sh bowlShape, b bowlSpec) chain {
 	if sh.Parabolic {
 		return chain{
 			lineSeg(pt(b.X, b.JoinUpper), pt(b.X, b.JoinLower)),
-			curveSeg(joinCurve(b.X, b.JoinLower, cl, sl, xt, bottom, sh.InnerStemHandle, sh.InnerExtremeHandle)),
+			curveSeg(joinCurve(b.X, b.JoinLower, cl, sl, xt, bottom, sh.InnerStemHandle, sh.InnerExtremeHandle, down.cubic(1, false).endCurvature(false), b.Match)),
 			curveSeg(down.cubic(1, false)),
 			curveSeg(up.cubic(2, false)),
-			curveSeg(joinCurve(b.X, b.JoinUpper, cu, su, xt, top, sh.InnerStemHandle, sh.InnerExtremeHandle).reversed()),
+			curveSeg(joinCurve(b.X, b.JoinUpper, cu, su, xt, top, sh.InnerStemHandle, sh.InnerExtremeHandle, up.cubic(2, false).endCurvature(true), b.Match).reversed()),
 		}
 	}
 	return chain{
@@ -307,6 +335,7 @@ func bowlFrom(p design.Params, b design.Bowl, x, left float64) bowlSpec {
 		NotchUpper: b.NotchUpper, JoinUpper: b.JoinUpper,
 		NotchLower: b.NotchLower, JoinLower: b.JoinLower,
 		JoinThick:      p.BowlJoinThick,
+		Match:          p.BowlMatch,
 		SupernessOuter: p.SupernessOuter, SupernessInner: p.SupernessInner,
 		ThickPos: b.ThickPos,
 	}

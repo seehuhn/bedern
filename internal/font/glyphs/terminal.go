@@ -35,19 +35,34 @@ var eShape = eShapeSpec{
 // the inner edge, where it is horizontal.  The chain starts at the start of
 // outer and ends at low.
 func lowerTerminal(outer cubic, yTip, tip float64, low outline.Point, sh eShapeSpec) chain {
+	return lowerTerminalMatched(outer, yTip, tip, low, sh, 0, 0)
+}
+
+// lowerTerminalMatched is lowerTerminal with the handle of the upper edge at
+// the point low drawn towards the curvature kappa of the curve which continues
+// it, to the extent match gives (1 for all of it), within half to double the
+// handle of the shape.
+func lowerTerminalMatched(outer cubic, yTip, tip float64, low outline.Point, sh eShapeSpec, kappa, match float64) chain {
 	tTip := outer.tAtY(yTip)
 	tipOuter := outer.at(tTip)
 	dir := outer.tangent(tTip)
 	tipInner := outline.Point{X: tipOuter.X - tip*dir.Y, Y: tipOuter.Y + tip*dir.X}
 	chord := math.Hypot(tipInner.X-low.X, tipInner.Y-low.Y)
 	cut := outer.sub(0, tTip)
+	hb := sh.InnerBottomHandle * chord
+	p1 := outline.Point{X: tipInner.X - sh.InnerTipHandle*chord*dir.X, Y: tipInner.Y - sh.InnerTipHandle*chord*dir.Y}
+	if match > 0 && kappa > 0 {
+		want := math.Sqrt(2 * math.Abs(p1.Y-low.Y) / (3 * kappa))
+		want = math.Min(math.Max(want, hb/2), 2*hb)
+		hb += match * (want - hb)
+	}
 	return chain{
 		curveSeg(cut),
 		lineSeg(cut.P3, tipInner),
 		curveSeg(cubic{
 			P0: tipInner,
-			P1: outline.Point{X: tipInner.X - sh.InnerTipHandle*chord*dir.X, Y: tipInner.Y - sh.InnerTipHandle*chord*dir.Y},
-			P2: outline.Point{X: low.X + sh.InnerBottomHandle*chord, Y: low.Y},
+			P1: p1,
+			P2: outline.Point{X: low.X + hb, Y: low.Y},
 			P3: low,
 		}),
 	}

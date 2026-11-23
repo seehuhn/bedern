@@ -121,8 +121,9 @@ func e(p design.Params) (outline.Path, float64) {
 	toUnderside := outline.Point{X: innerL.P0.X, Y: f.barLow}
 
 	// The terminal, cut at the height of its tip below the underside of the bar.
-	terminal := lowerTerminal(f.outerD.cubic(3, true), // bottom to the right extreme
-		f.barLow-p.EAperture, p.ETerminalTip, outline.Point{X: f.cx, Y: f.innerBottomY}, eShape)
+	terminal := lowerTerminalMatched(f.outerD.cubic(3, true), // bottom to the right extreme
+		f.barLow-p.EAperture, p.ETerminalTip, outline.Point{X: f.cx, Y: f.innerBottomY}, eShape,
+		f.innerD.cubic(1, false).endCurvature(false), p.TerminalMatch)
 
 	var path outline.Path
 	path.MoveTo(toUnderside.X, toUnderside.Y)

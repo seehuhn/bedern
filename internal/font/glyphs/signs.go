@@ -15,19 +15,18 @@ import (
 // The mathematical signs are drawn with the strokes of plus and minus
 // (Punct.MathThick) on the maths axis and share their advance.  The superior
 // figures are the figures drawn with heavier strokes and scaled down: every
-// stroke of the figures is supWeight/supScale times as thick, and the figure
-// is then scaled by supScale, so that its strokes are supWeight of those of
-// the figures where a plain scaling would leave supScale.  The fractions are
+// stroke of the figures is Figures.SupWeight/supScale times as thick, and the
+// figure is then scaled by supScale, so that its strokes are Figures.SupWeight
+// of those of the figures where a plain scaling would leave supScale.  The fractions are
 // a superior figure, the fraction slash and a superior figure on the
 // baseline.  The other signs are made of the letters, scaled, with bars and
 // rings of their own.
 
 // Shape constants of the signs.
 const (
-	supScale  = 0.61  // the size of a superior figure, in sizes of the figure: the least at which the white beside the foot of 2 keeps the clearance floor
-	supWeight = 0.72  // the strokes of a superior figure, in strokes of the figure
-	supBase   = 0.435 // the baseline of a superior figure, in figure heights
-	supAdv    = 0.666 // the advance of a superior figure, in advances of the figures
+	supScale = 0.61  // the size of a superior figure, in sizes of the figure: the least at which the white beside the foot of 2 keeps the clearance floor
+	supBase  = 0.435 // the baseline of a superior figure, in figure heights
+	supAdv   = 0.666 // the advance of a superior figure, in advances of the figures
 
 	fracLean  = 31.8 // the fraction slash, degrees from the vertical
 	fracThick = 44.0 // the fraction slash, at right angles to it
@@ -47,6 +46,7 @@ const (
 	ordGap      = 55.0  // the white between the underline and the letter
 	ordSide     = 30.0  // the side spaces of ª and º
 	circRing    = 40.0  // the ring of © and ®
+	circGap     = 21.0  // the least distance from the farthest ink of the letter of © and ® to the inside of the ring
 	circSide    = 35.0  // the side spaces of © and ®
 	centStroke  = 50.0  // the stroke of ¢, as that of $
 	centTop     = 560.0 // the top of the stroke of ¢
@@ -188,11 +188,11 @@ func mu(p design.Params) (outline.Path, float64) {
 }
 
 // supParams returns the parameters of the superior figures: the strokes of
-// the figures supWeight/supScale times as thick.
+// the figures Figures.SupWeight/supScale times as thick.
 func supParams(p design.Params) design.Params {
 	q := p
 	f := &q.Figures
-	k := supWeight / supScale
+	k := f.SupWeight / supScale
 	for _, v := range []*float64{&f.Stem, &f.Round, &f.Thin, &f.Heavy, &f.Bowl, &f.Ball,
 		&f.OneFlagThick, &f.TwoNeckThick, &f.TwoSerifThick, &f.ThreeGap, &f.ThreeUpperBowl,
 		&f.FourDiag, &f.FourBar, &q.SerifThick, &q.Caps.SerifThick} {
@@ -327,16 +327,26 @@ func brokenbar(p design.Params) (outline.Path, float64) {
 
 // circled draws © or ®: a ring from the overshoot below the baseline to the
 // overshoot above the cap height, circRing thick, and in it the capital drawn
-// heavier and scaled as a superior figure, centred.
+// heavier and scaled as a superior figure, centred, and scaled less where it
+// would come closer than circGap to the ring.
 func circled(p design.Params, letter string) (outline.Path, float64) {
 	bottom, top := -p.OvershootUpper, p.CapHeight+p.OvershootUpper
 	r := (top - bottom) / 2
 	cy := (top + bottom) / 2
 	outer, counter := ringChains(-r, bottom, r, top, circRing, circRing, 0.7071, 0.7071)
 	path := chainsPath(outer, counter)
-	l, _, _ := Outline(letter, heavierLetters(p, supWeight/supScale))
+	l, _, _ := Outline(letter, heavierLetters(p, p.Figures.SupWeight/supScale))
 	lx0, _, lx1, _ := l.BBox()
-	l = scaledPath(shiftInk(l, -(lx0+lx1)/2, -p.CapHeight/2), supScale)
+	l = shiftInk(l, -(lx0+lx1)/2, -p.CapHeight/2)
+	// The letter is scaled by supScale, or less where its farthest ink would
+	// come closer than circGap to the inside of the ring.
+	reach := 0.0
+	for _, c := range l {
+		for _, q := range c.Flatten() {
+			reach = math.Max(reach, math.Hypot(q.X, q.Y))
+		}
+	}
+	l = scaledPath(l, math.Min(supScale, (r-circRing-circGap)/reach))
 	path = append(path, shiftInk(l, 0, cy)...)
 	return placeInk(path, design.PunctSides{Left: circSide, Right: circSide})
 }
