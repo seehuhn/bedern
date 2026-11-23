@@ -866,15 +866,7 @@ func stalkChainStraight(letter string, in stalkFoot, tb placedBall, out stalkFoo
 // straight stem, is reached by a transition curve (straightFoot) over the last
 // stemRamp degrees of the turn of the edge.
 func windHook(letter string, in stalkFoot, tb placedBall, out stalkFoot, rises [2]float64) chain {
-	tip, arc := tipEnd(tb), chain(nil)
-	cg := tb.Place.point(tb.Part.C)
-	aW := math.Atan2(tb.Tip.Y-cg.Y, tb.Tip.X-cg.X)
-	if e := math.Ceil(aW/(math.Pi/2)) * math.Pi / 2; (e-aW)*tb.Part.Ri < windMinPiece {
-		// The inner circle of the part has an extreme just before the tip: the
-		// edge runs to the extreme and on along the circle.
-		arc = chain{curveSeg(arcCubic(cg, tb.Part.Ri, e, aW))}
-		tip = stalkEnd{At: arc.start(), Dir: dirOf(e - math.Pi/2), Kappa: -1 / tb.Part.Ri}
-	}
+	tip, arc := innerEnd(tb)
 	free := func(f stalkFoot) stalkFoot { return stalkFoot{At: f.At, Dir: f.Dir, Kappa: math.NaN()} }
 	a, err := edgeIn(free(in), tip)
 	if err != nil {
@@ -940,6 +932,21 @@ func windHook(letter string, in stalkFoot, tb placedBall, out stalkFoot, rises [
 		tail = join(splitAtExtrema(rest.sub(0, u)), chain{curveSeg(ramp)})
 	}
 	return join(inner, wound, tail)
+}
+
+// innerEnd returns the end of the inner edge of a hook at the ball tb: the tip
+// of the wedge, or, where the inner circle of the part has an extreme within
+// windMinPiece before the tip, that extreme, with the arc of the circle from
+// there to the tip.
+func innerEnd(tb placedBall) (stalkEnd, chain) {
+	tip, arc := tipEnd(tb), chain(nil)
+	cg := tb.Place.point(tb.Part.C)
+	aW := math.Atan2(tb.Tip.Y-cg.Y, tb.Tip.X-cg.X)
+	if e := math.Ceil(aW/(math.Pi/2)) * math.Pi / 2; (e-aW)*tb.Part.Ri < windMinPiece {
+		arc = chain{curveSeg(arcCubic(cg, tb.Part.Ri, e, aW))}
+		tip = stalkEnd{At: arc.start(), Dir: dirOf(e - math.Pi/2), Kappa: -1 / tb.Part.Ri}
+	}
+	return tip, arc
 }
 
 // stemRamp is the turn (degrees) over which the edge of a hook which leaves a
