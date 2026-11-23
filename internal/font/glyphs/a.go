@@ -359,8 +359,13 @@ const aInnerRaise = -10.0
 // arch of n leaves its right stem.
 const aOuterDrop = 25.0
 
-// aBallDrop is the distance of the centre of the ball of a below the crest.
-const aBallDrop = 101.0
+// aBallDrop returns the distance of the centre of the ball of a below the
+// crest: the radius of the ball, the stalk and aBallGap.
+func aBallDrop(p design.Params) float64 { return p.BallDiameter/2 + p.BallStalk + aBallGap }
+
+// aBallGap is the distance from the top of the ball of a to the underside of
+// the stalk above it.
+const aBallGap = 18.0
 
 // aTerminal returns the ball terminal of a, the mirror image of that of r turned
 // by aBallAngle: its leftmost ink AArcReach inside the free extreme of the bowl,
@@ -369,7 +374,7 @@ func aTerminal(p design.Params) placedBall {
 	b := newBallPart(p)
 	pl := ballPlace{Angle: aBallAngle, Mirror: true}
 	x0, _, _, _ := chainBBox(b.place(pl).Chain)
-	pl.Centre = outline.Point{X: p.ASideLeft + p.AArcReach - x0, Y: p.XHeight + p.OvershootLower - aBallDrop}
+	pl.Centre = outline.Point{X: p.ASideLeft + p.AArcReach - x0, Y: p.XHeight + p.OvershootLower - aBallDrop(p)}
 	return b.place(pl).snapped()
 }
 

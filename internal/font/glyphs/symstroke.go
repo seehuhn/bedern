@@ -358,32 +358,33 @@ func (c chain) rotated180(at outline.Point) chain {
 // stalk bend least (bending).  It
 // panics with the name of the glyph if no place lets the edges reach the part.
 func ballStart(glyph string, p design.Params, right, left chain, cx float64, ys []float64, angles []float64, mirror bool) chain {
-	c, _ := ballStartPlaced(glyph, p, right, left, cx, ys, angles, mirror)
+	c, _ := ballStartPlaced(glyph, p, right, left, cx, ys, angles, mirror, nil)
 	return c
 }
 
-// ballStartPlaced is ballStart which also returns the placed part.
-func ballStartPlaced(glyph string, p design.Params, right, left chain, cx float64, ys []float64, angles []float64, mirror bool) (chain, placedBall) {
+// ballStartPlaced is ballStart which also returns the placed part.  If fits is
+// not nil, only the places for which it returns true are taken.
+func ballStartPlaced(glyph string, p design.Params, right, left chain, cx float64, ys []float64, angles []float64, mirror bool, fits func(chain, placedBall) bool) (chain, placedBall) {
 	b := newBallPart(p)
 	r0, l1 := right[0].cubic, left[len(left)-1].cubic
 	in := stalkFoot{At: l1.P3, Dir: l1.tangent(1), Kappa: l1.curvature(1)}
 	out := stalkFoot{At: r0.P0, Dir: r0.tangent(0), Kappa: r0.curvature(0)}
-	if best, tb := ballSearch(b, in, out, cx, ys, angles, mirror); best != nil {
+	if best, tb := ballSearch(b, in, out, cx, ys, angles, mirror, fits); best != nil {
 		return best, tb
 	}
 	// No place lets the edges of the stalk go on with the curvature of the
 	// stroke: they take their direction only.
 	in.Kappa, out.Kappa = math.NaN(), math.NaN()
-	if best, tb := ballSearch(b, in, out, cx, ys, angles, mirror); best != nil {
+	if best, tb := ballSearch(b, in, out, cx, ys, angles, mirror, fits); best != nil {
 		return best, tb
 	}
 	panic("glyphs: glyph " + glyph + ": the stalk cannot reach the ball terminal; glyphs.Check reports such parameters")
 }
 
 // ballSearch returns the stalk and the ball of ballStart for the place, among
-// those given, for which the edges of the stalk bend least, or nil, and the
-// placed part.
-func ballSearch(b ballPart, in, out stalkFoot, cx float64, ys, angles []float64, mirror bool) (chain, placedBall) {
+// those given and those for which fits, if not nil, returns true, for which the
+// edges of the stalk bend least, or nil, and the placed part.
+func ballSearch(b ballPart, in, out stalkFoot, cx float64, ys, angles []float64, mirror bool, fits func(chain, placedBall) bool) (chain, placedBall) {
 	var best chain
 	var bestTB placedBall
 	bestE := math.Inf(1)
@@ -397,8 +398,12 @@ func ballSearch(b ballPart, in, out stalkFoot, cx float64, ys, angles []float64,
 				continue
 			}
 			if e := bending(a) + bending(c); e < bestE {
+				cand := join(splitAtExtrema(a), tb.Chain, splitAtExtrema(c))
+				if fits != nil && !fits(cand, tb) {
+					continue
+				}
 				bestE = e
-				best = join(splitAtExtrema(a), tb.Chain, splitAtExtrema(c))
+				best = cand
 				bestTB = tb
 			}
 		}

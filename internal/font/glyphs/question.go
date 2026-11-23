@@ -4,6 +4,7 @@
 package glyphs
 
 import (
+	"errors"
 	"math"
 
 	"seehuhn.de/go/bedern/internal/font/design"
@@ -79,7 +80,11 @@ func question(p design.Params) (outline.Path, float64) {
 	sts := qStations(p, f)
 	right, left := strokeOpen(sts)
 	r := p.BallDiameter / 2
-	ball, tb := ballStartPlaced("question", p, right, left, f.x0+r, span(0.80*p.Sym.QTop, 0.86*p.Sym.QTop, 0.01*p.Sym.QTop), span(-60, 40, 2), true)
+	fits := func(ball chain, tb placedBall) bool {
+		_, err := qTerminalErr(ball, tb, right)
+		return err == nil
+	}
+	ball, tb := ballStartPlaced("question", p, right, left, f.x0+r, span(0.80*p.Sym.QTop, 0.86*p.Sym.QTop, 0.01*p.Sym.QTop), span(-60, 40, 2), true, fits)
 	hook := join(right, lineChain(right.end(), left.start()), left, qTerminal(ball, tb, right))
 	return chainsPath(hook, dotChain(p, f.cx, p.DotDiameter/2)), f.x1 + p.Sym.QSide
 }
@@ -96,6 +101,16 @@ func question(p design.Params) (outline.Path, float64) {
 // with its direction and its curvature (edgeOut), or, where no such curve
 // exists, leaves the tip with the handle of a circular arc (g2End).
 func qTerminal(ball chain, tb placedBall, right chain) chain {
+	c, err := qTerminalErr(ball, tb, right)
+	if err != nil {
+		panic(err.Error())
+	}
+	return c
+}
+
+// qTerminalErr is qTerminal which returns an error where no curve joins the
+// parts.
+func qTerminalErr(ball chain, tb placedBall, right chain) (chain, error) {
 	r0 := right[0].cubic
 	c, r := tb.Centre, tb.Part.R
 	iL, iT := -1, -1
@@ -108,7 +123,7 @@ func qTerminal(ball chain, tb placedBall, right chain) chain {
 		}
 	}
 	if iT < 0 {
-		panic("glyphs: glyph question: the ball terminal has no tip")
+		return nil, errors.New("glyphs: glyph question: the ball terminal has no tip")
 	}
 	// The curl joins the circle qCurlJoin past its leftmost point.
 	aJ := math.Pi + qCurlJoin*math.Pi/180
@@ -116,7 +131,7 @@ func qTerminal(ball chain, tb placedBall, right chain) chain {
 	l := ball[iL].cubic
 	curl, err := g2Cubic(l.P0, l.tangent(0), l.curvature(0), join0, dirOf(aJ+math.Pi/2), 1/r)
 	if err != nil {
-		panic("glyphs: glyph question: the curl cannot reach the ball; glyphs.Check reports such parameters")
+		return nil, errors.New("glyphs: glyph question: the curl cannot reach the ball; glyphs.Check reports such parameters")
 	}
 	aTip := math.Atan2(tb.Tip.Y-c.Y, tb.Tip.X-c.X)
 	for aTip <= aJ {
@@ -136,10 +151,10 @@ func qTerminal(ball chain, tb placedBall, right chain) chain {
 		// The tip is a corner: the curve may leave it with any curvature.
 		in, err = g2End(tip.At, tip.Dir, arcHandle(tip.At, tip.Dir, foot.At, foot.Dir), foot.At, foot.Dir, foot.Kappa)
 		if err != nil {
-			panic("glyphs: glyph question: the inner edge cannot reach the ball terminal; glyphs.Check reports such parameters")
+			return nil, errors.New("glyphs: glyph question: the inner edge cannot reach the ball terminal; glyphs.Check reports such parameters")
 		}
 	}
 	out := append(chain(nil), ball[:iL]...)
 	out = append(out, splitAtExtrema(curl)...)
-	return join(out, circ, splitAtExtrema(in))
+	return join(out, circ, splitAtExtrema(in)), nil
 }
