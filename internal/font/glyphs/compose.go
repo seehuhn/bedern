@@ -416,16 +416,29 @@ func (c *composite) place(p design.Params, base outline.Path) (dx, dy float64, f
 		return math.Round(bottomX(p, c.base, base)), 0, formLower
 	}
 	x := topX(p, c.base, base)
-	top, gap, f := p.XHeight, a.Gap, formLower
+	top, gap := p.XHeight, a.Gap
 	switch {
 	case isCapital(c.base):
-		top, gap, f = p.CapHeight, a.GapCap, formCap
+		top, gap = p.CapHeight, a.GapCap
 	case slices.Contains(ascenderBases, c.base):
-		top, gap, f = p.Ascender, a.GapCap, formCap
-	case c.base == "dotlessi" && c.mark == markDieresis:
-		f = formNarrow
+		top, gap = p.Ascender, a.GapCap
 	}
-	return math.Round(x), math.Round(top + gap), f
+	return math.Round(x), math.Round(top + gap), c.form()
+}
+
+// form returns the form of the mark of the letter.
+func (c *composite) form() markForm {
+	switch {
+	case c.mark == markApostrophe:
+		return formCap
+	case c.mark.below():
+		return formLower
+	case isCapital(c.base), slices.Contains(ascenderBases, c.base):
+		return formCap
+	case c.base == "dotlessi" && c.mark == markDieresis:
+		return formNarrow
+	}
+	return formLower
 }
 
 // joined says whether the mark is joined to the base: the ogonek, and the
