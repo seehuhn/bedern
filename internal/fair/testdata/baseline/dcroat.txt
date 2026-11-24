@@ -1,0 +1,2 @@
+# Fairness findings of dcroat in the regular font which are known: kind x y direction status: reason.
+kink 371 694 180 intended: the concave underside of the head serif meets the stem at a slight angle, as specified (The Arch of n and the Head Serif)

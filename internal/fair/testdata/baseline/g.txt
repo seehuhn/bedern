@@ -1,0 +1,5 @@
+# Fairness findings of g in the regular font which are known: kind x y direction status: reason.
+inflection 88 181 243 defect: an inflection which no rule of the design asks for, from concave to convex, peaks r 277 and r 59; the left edge of the link keeps its form, since an edge which leaves the bowl without curvature thins the link below the pocket by more than TestGLinkSwells allows (Smooth Joins of g)
+inflection 306 61 178 intended: the outer edge of the top of the loop turns from the round of the right end into the curl of the link, in one piece without a node (Smooth Joins of g)
+inflection 121 164 62 defect: an inflection which no rule of the design asks for, from concave to convex, peaks r 33 and r 92; the right edge of the link keeps its form, since an edge which turns one way to the pocket thins the link below it by more than TestGLinkSwells allows (Smooth Joins of g)
+inflection 295 8 356 intended: the ceiling of the counter of the loop turns from the curl of the link into the round of the counter, in one piece without a node (Smooth Joins of g)

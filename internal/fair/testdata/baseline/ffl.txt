@@ -1,0 +1,2 @@
+# Fairness findings of ffl in the regular font which are known: kind x y direction status: reason.
+short 253 678 0 intended: the arc of the inner circle of the small ball terminal of the first f from the top extreme of the underside to the tip of the wedge, 7 units long, which the rounding to whole units makes a line; the node at the extreme is needed for the same reason as on f, and the tip, a corner of the ball, is fixed by the ball

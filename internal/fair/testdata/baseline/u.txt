@@ -1,0 +1,4 @@
+# Fairness findings of u in the regular font which are known: kind x y direction status: reason.
+kink 369 448 180 intended: the concave underside of the head serif meets the stem at a slight angle, as specified (The Arch of n and the Head Serif)
+kink 99 448 180 intended: the concave underside of the head serif meets the stem at a slight angle, as specified (The Arch of n and the Head Serif)
+inflection 99 268 270 intended: the left-hand edge of the left stem runs from the concave underside of the head serif straight down into the convex round of the bowl, as on the right stem of n

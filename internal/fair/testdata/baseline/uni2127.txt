@@ -1,0 +1,5 @@
+# Fairness findings of uni2127 in the regular font which are known: kind x y direction status: reason.
+inflection 531 433 307 intended: the edge of the round turns from the convex side into the concave leg which runs inwards to the foot, in one piece without a node, as on the capital Omega of the mathematics font (The Currency Signs and the Letterlike Signs)
+inflection 237 432 53 intended: the edge of the round turns from the convex side into the concave leg which runs inwards to the foot, in one piece without a node, as on the capital Omega of the mathematics font (The Currency Signs and the Letterlike Signs)
+inflection 162 452 214 intended: the edge of the round turns from the convex side into the concave leg which runs inwards to the foot, in one piece without a node, as on the capital Omega of the mathematics font (The Currency Signs and the Letterlike Signs)
+inflection 608 451 146 intended: the edge of the round turns from the convex side into the concave leg which runs inwards to the foot, in one piece without a node, as on the capital Omega of the mathematics font (The Currency Signs and the Letterlike Signs)

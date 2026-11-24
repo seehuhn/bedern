@@ -1,0 +1,5 @@
+# Fairness findings of s in the regular font which are known: kind x y direction status: reason.
+inflection 59 48 312 intended: the hollow before the tip of the beak
+inflection 206 274 160 intended: the inflection in the spine
+inflection 312 401 128 intended: the hollow before the tip of the beak
+inflection 176 195 340 intended: the inflection in the spine

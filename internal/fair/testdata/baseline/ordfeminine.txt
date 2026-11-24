@@ -1,0 +1,9 @@
+# Fairness findings of ordfeminine in the regular font which are known: kind x y direction status: reason.
+jump 315 418 0 defect: a finding of the a drawn with heavier strokes and scaled by 0.7, at the size of the ordinal; the joins of the ball and the tail of a are made for the strokes of the full size (The Signs of Latin-1)
+jump 356 475 90 defect: a finding of the a drawn with heavier strokes and scaled by 0.7, at the size of the ordinal; the joins of the ball and the tail of a are made for the strokes of the full size (The Signs of Latin-1)
+jump 335 486 180 defect: a finding of the a drawn with heavier strokes and scaled by 0.7, at the size of the ordinal; the joins of the ball and the tail of a are made for the strokes of the full size (The Signs of Latin-1)
+inflection 327 474 252 defect: a finding of the a drawn with heavier strokes and scaled by 0.7, at the size of the ordinal; the joins of the ball and the tail of a are made for the strokes of the full size (The Signs of Latin-1)
+inflection 286 550 90 defect: a finding of the a drawn with heavier strokes and scaled by 0.7, at the size of the ordinal; the joins of the ball and the tail of a are made for the strokes of the full size (The Signs of Latin-1)
+wiggle 84 737 208 defect: a finding of the a drawn with heavier strokes and scaled by 0.7, at the size of the ordinal; the joins of the ball and the tail of a are made for the strokes of the full size (The Signs of Latin-1)
+jump 44 680 263 defect: a finding of the a drawn with heavier strokes and scaled by 0.7, at the size of the ordinal; the joins of the ball and the tail of a are made for the strokes of the full size (The Signs of Latin-1)
+short 90 713 36 defect: a finding of the a drawn with heavier strokes and scaled by 0.7, at the size of the ordinal; the joins of the ball and the tail of a are made for the strokes of the full size (The Signs of Latin-1)

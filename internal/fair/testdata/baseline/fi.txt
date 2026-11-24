@@ -1,0 +1,2 @@
+# Fairness findings of fi in the regular font which are known: kind x y direction status: reason.
+short 364 670 356 intended: the arc of the inner circle of the ball terminal from the top extreme of the underside to the tip of the wedge, 13 units long and continuous in curvature with the curve before it; the node at the extreme is needed because the circle falls 0.8 units from the extreme to the tip, more than the 0.5 which the extremes check of glyphs.Check allows a curve to overshoot, and the tip, a corner of the ball, is fixed by the ball

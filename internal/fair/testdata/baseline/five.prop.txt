@@ -1,0 +1,4 @@
+# Fairness findings of five.prop in the regular font which are known: kind x y direction status: reason.
+short 97 402 270 defect: a curve of length 3.2 at the head of the bracket of the stroke, the outline of the lining 5
+jump 105 371 0 defect: the curvature jumps from 0.0732 to 0.0357 (r 14 to r 28) in the bracket of the stroke, the outline of the lining 5
+inflection 114 372 6 defect: an inflection which no rule of the design asks for, where the bracket of the stroke runs into the inner edge of the bowl, the outline of the lining 5

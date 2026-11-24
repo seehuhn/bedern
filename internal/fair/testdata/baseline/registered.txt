@@ -1,0 +1,5 @@
+# Fairness findings of registered in the regular font which are known: kind x y direction status: reason.
+kink 475 174 305 defect: a finding of the R drawn with heavier strokes and scaled, at the size of the letter in the ring; the joins of the leg and the bowl are made for the strokes of the full size (The Signs of Latin-1)
+short 477 171 296 defect: a finding of the R drawn with heavier strokes and scaled, at the size of the letter in the ring; the joins of the leg and the bowl are made for the strokes of the full size (The Signs of Latin-1)
+short 601 157 180 defect: a finding of the R drawn with heavier strokes and scaled, at the size of the letter in the ring; the joins of the leg and the bowl are made for the strokes of the full size (The Signs of Latin-1)
+kink 544 189 130 defect: a finding of the R drawn with heavier strokes and scaled, at the size of the letter in the ring; the joins of the leg and the bowl are made for the strokes of the full size (The Signs of Latin-1)

@@ -1,0 +1,4 @@
+# Fairness findings of germandbls in the regular font which are known: kind x y direction status: reason.
+wiggle 402 162 265 defect: the curvature of the inner edge of the lower bowl dips where the bowl turns from its right extreme into the stalk of the ball, which the terminal of 3 fits to the place of the ball (The Special Letters)
+jump 99 543 270 defect: the curvature jumps from that of the upper bowl (r 189) to the straight stem where the outer edge of the shoulder meets the stem at the left extreme of the bowl; no cubic curve with the curvature zero at the stem joins the top there (The Special Letters)
+inflection 99 303 270 intended: the left-hand edge of the stem runs from the concave bracket of the foot serif straight into the convex round of the upper bowl (The Special Letters)

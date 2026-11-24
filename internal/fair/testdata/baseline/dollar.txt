@@ -1,0 +1,4 @@
+# Fairness findings of dollar in the regular font which are known: kind x y direction status: reason.
+jump 89 164 94 defect: the curvature falls from r 177 to the straight edge, 0.0057 against 0.0049 in the unrounded outline, which joins the curve to the straight edge without matching its curvature
+inflection 72 83 303 intended: the hollow before the tip of the beak
+jump 378 515 275 defect: the curvature jumps from -0.0052 to 0.0000 (r 194 to straight)

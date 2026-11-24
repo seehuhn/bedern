@@ -1,0 +1,9 @@
+# Fairness findings of trademark in the regular font which are known: kind x y direction status: reason.
+short 286 345 180 defect: a finding of the capital drawn with heavier strokes and scaled to the size of the mark; the serifs and the joins are made for the strokes of the full size (The Currency Signs and the Letterlike Signs)
+kink 352 638 277 defect: a finding of the capital drawn with heavier strokes and scaled to the size of the mark; the serifs and the joins are made for the strokes of the full size (The Currency Signs and the Letterlike Signs)
+kink 64 638 85 defect: a finding of the capital drawn with heavier strokes and scaled to the size of the mark; the serifs and the joins are made for the strokes of the full size (The Currency Signs and the Letterlike Signs)
+short 131 345 180 defect: a finding of the capital drawn with heavier strokes and scaled to the size of the mark; the serifs and the joins are made for the strokes of the full size (The Currency Signs and the Letterlike Signs)
+short 625 340 0 defect: a finding of the capital drawn with heavier strokes and scaled to the size of the mark; the serifs and the joins are made for the strokes of the full size (The Currency Signs and the Letterlike Signs)
+short 711 345 180 defect: a finding of the capital drawn with heavier strokes and scaled to the size of the mark; the serifs and the joins are made for the strokes of the full size (The Currency Signs and the Letterlike Signs)
+short 862 345 180 defect: a finding of the capital drawn with heavier strokes and scaled to the size of the mark; the serifs and the joins are made for the strokes of the full size (The Currency Signs and the Letterlike Signs)
+short 862 659 0 defect: a finding of the capital drawn with heavier strokes and scaled to the size of the mark; the serifs and the joins are made for the strokes of the full size (The Currency Signs and the Letterlike Signs)

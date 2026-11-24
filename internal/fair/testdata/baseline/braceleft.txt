@@ -1,0 +1,5 @@
+# Fairness findings of braceleft in the regular font which are known: kind x y direction status: reason.
+inflection 164 492 270 intended: the S-curve of the brace between its point and its end
+inflection 164 35 270 intended: the S-curve of the brace between its point and its end
+inflection 237 33 90 intended: the S-curve of the brace between its point and its end
+inflection 237 490 90 intended: the S-curve of the brace between its point and its end

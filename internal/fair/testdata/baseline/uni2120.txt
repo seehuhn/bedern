@@ -1,0 +1,8 @@
+# Fairness findings of uni2120 in the regular font which are known: kind x y direction status: reason.
+inflection 47 363 303 intended: an inflection of the S of the mark, in its spine or in the hollow before the tip of a beak, as on S, drawn heavier and scaled (The Currency Signs and the Letterlike Signs)
+inflection 159 542 160 intended: an inflection of the S of the mark, in its spine or in the hollow before the tip of a beak, as on S, drawn heavier and scaled (The Currency Signs and the Letterlike Signs)
+inflection 133 474 340 intended: an inflection of the S of the mark, in its spine or in the hollow before the tip of a beak, as on S, drawn heavier and scaled (The Currency Signs and the Letterlike Signs)
+short 507 340 0 defect: a finding of the capital drawn with heavier strokes and scaled to the size of the mark; the serifs and the joins are made for the strokes of the full size (The Currency Signs and the Letterlike Signs)
+short 593 345 180 defect: a finding of the capital drawn with heavier strokes and scaled to the size of the mark; the serifs and the joins are made for the strokes of the full size (The Currency Signs and the Letterlike Signs)
+short 744 345 180 defect: a finding of the capital drawn with heavier strokes and scaled to the size of the mark; the serifs and the joins are made for the strokes of the full size (The Currency Signs and the Letterlike Signs)
+short 744 659 0 defect: a finding of the capital drawn with heavier strokes and scaled to the size of the mark; the serifs and the joins are made for the strokes of the full size (The Currency Signs and the Letterlike Signs)

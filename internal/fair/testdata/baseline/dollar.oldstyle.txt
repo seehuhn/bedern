@@ -1,0 +1,6 @@
+# Fairness findings of dollar.oldstyle in the regular font which are known: kind x y direction status: reason.
+inflection 242 301 340 intended: the inflection in the spine of the S, which shows between the two strokes (The Currency Signs and the Letterlike Signs)
+jump 89 164 95 defect: the jump of the dollar, whose S the sign takes unchanged: the curvature falls from r 196 to the straight edge, which joins the curve without matching its curvature
+inflection 72 83 303 intended: the hollow before the tip of the beak, as on the dollar
+inflection 266 675 171 defect: the piece of the top arc of the S between the two strokes, 46 units long, is rounded to whole units on its own and bends once the other way, by less than half a unit; the dollar, whose stroke covers the place, has the arc in one piece (The Currency Signs and the Letterlike Signs)
+inflection 246 385 160 intended: the inflection in the spine of the S, which shows between the two strokes (The Currency Signs and the Letterlike Signs)

@@ -1,0 +1,2 @@
+# Fairness findings of uni2103 in the regular font which are known: kind x y direction status: reason.
+inflection 949 600 135 intended: the hollow before the tip of the beak of the C, which the sign takes unchanged (The Currency Signs and the Letterlike Signs)

@@ -1,0 +1,2 @@
+# Fairness findings of t in the regular font which are known: kind x y direction status: reason.
+inflection 316 99 241 intended: the rounded upper corner of the blunt tip of the tail, which is convex, passes into the upper edge of the tail, which is concave because it curls round the white inside the tail

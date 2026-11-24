@@ -1,0 +1,3 @@
+# Fairness findings of five.taboldstyle in the regular font which are known: kind x y direction status: reason.
+short 87 197 270 defect: the left-hand edge of the stroke is cut 4 units above the head of its bracket, as on the lining 5
+inflection 105 168 6 defect: an inflection which no rule of the design asks for, where the bracket of the stroke runs into the inner edge of the bowl, as on the lining 5

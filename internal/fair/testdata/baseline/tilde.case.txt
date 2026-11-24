@@ -1,0 +1,5 @@
+# Fairness findings of tilde.case in the regular font which are known: kind x y direction status: reason.
+inflection 76 758 53 intended: the concave edge of the rising end runs into the round end of the tilde (The Accent Marks and the Accented Letters)
+inflection 172 773 303 intended: the wave of the tilde
+inflection 313 810 234 intended: the concave edge of the rising end runs into the round end of the tilde (The Accent Marks and the Accented Letters)
+inflection 218 797 123 intended: the wave of the tilde

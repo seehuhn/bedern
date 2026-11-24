@@ -1,0 +1,5 @@
+# Fairness findings of Otilde in the regular font which are known: kind x y direction status: reason.
+inflection 254 758 53 intended: the concave edge of the rising end runs into the round end of the tilde (The Accent Marks and the Accented Letters)
+inflection 350 773 303 intended: the wave of the tilde
+inflection 491 810 234 intended: the concave edge of the rising end runs into the round end of the tilde (The Accent Marks and the Accented Letters)
+inflection 396 797 123 intended: the wave of the tilde

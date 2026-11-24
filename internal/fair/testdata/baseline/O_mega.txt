@@ -1,0 +1,5 @@
+# Fairness findings of Omega in the regular font which are known: kind x y direction status: reason.
+inflection 238 250 127 intended: the edge of the round turns from the convex side into the concave leg which runs inwards to the foot, in one piece without a node, as on the capital Omega of the mathematics font (The Currency Signs and the Letterlike Signs)
+inflection 532 251 233 intended: the edge of the round turns from the convex side into the concave leg which runs inwards to the foot, in one piece without a node, as on the capital Omega of the mathematics font (The Currency Signs and the Letterlike Signs)
+inflection 607 231 34 intended: the edge of the round turns from the convex side into the concave leg which runs inwards to the foot, in one piece without a node, as on the capital Omega of the mathematics font (The Currency Signs and the Letterlike Signs)
+inflection 161 232 326 intended: the edge of the round turns from the convex side into the concave leg which runs inwards to the foot, in one piece without a node, as on the capital Omega of the mathematics font (The Currency Signs and the Letterlike Signs)
