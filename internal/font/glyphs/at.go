@@ -48,7 +48,7 @@ func at(p design.Params) (outline.Path, float64) {
 	}
 	stroke := []station{
 		{X: sx, Y: stemTop, Dir: -90, W: s.AtStem, Flat: true},
-		{X: sx, Y: bb + 0.22*bh, Dir: -90, W: s.AtStem},
+		{X: sx, Y: bb + 0.215*bh, Dir: -90, W: s.AtStem},
 		{X: sx + 0.95*s.AtStem, Y: bb - ov + 0.6*t, Dir: 0, W: 1.2 * t},
 		{X: x1 - rt/2, Y: cy + 0.08*h, Dir: 90, W: rt},
 		{X: cx, Y: top - rt/2, Dir: 180, W: rt},

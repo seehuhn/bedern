@@ -53,7 +53,28 @@ func figTwo(p design.Params) (outline.Path, float64) {
 	outer := newSuperShape(x0+f.TwoBowlLeft, ob, right, top, p.SupernessOuter)
 	inner := newSuperShape(x0+f.TwoBowlLeft+f.TwoNeckThick, ob+f.Thin, right-f.TwoNeckThick, top-f.Thin, p.SupernessInner)
 
-	ball := upperLeftBall("two", figBall(p), outer.cubic(1, true), inner.cubic(2, false), x0+f.TwoBallLeft, figStroke{Arch: true})
+	// The ball stands TwoBallLeft from the ink left.  Where no spiral runs from
+	// the top of the bowl into it there, it stands the least whole number of
+	// units further right at which one does, and twoBallMargin units beyond, so
+	// that the spiral does not run on the edge of what exists.
+	var ball chain
+	for d := 0.0; ; d++ {
+		b, err := twoBallAt(p, outer, inner, x0+f.TwoBallLeft+d)
+		if err != nil {
+			if d == twoBallMaxShift {
+				panic(err)
+			}
+			continue
+		}
+		ball = b
+		if d > 0 {
+			ball, err = twoBallAt(p, outer, inner, x0+f.TwoBallLeft+d+twoBallMargin)
+			if err != nil {
+				panic(err)
+			}
+		}
+		break
+	}
 	rx := outline.Point{X: right, Y: f.TwoShoulder - f.TwoOuterDrop}
 	ri := outline.Point{X: right - f.TwoNeckThick, Y: f.TwoShoulder}
 
@@ -78,10 +99,23 @@ func figTwo(p design.Params) (outline.Path, float64) {
 
 	a := degrees(f.TwoDiagAngle)
 	down := outline.Point{X: -math.Sin(a), Y: -math.Cos(a)} // along the diagonal, down to the left
-	foot := outline.Point{X: x0 + f.TwoDiagFoot, Y: f.Heavy}
 	kOuter := outerRight.curvature(0)
 	kInner := innerRight.curvature(1)
-	outerDiag := figCurve("two", foot, neg(down), 0, rx, outline.Point{Y: 1}, kOuter)
+	// The diagonal meets the top of the base at TwoDiagFoot from the ink left, or,
+	// where no curve runs from there to the right extreme, the least whole number
+	// of units further right at which one does.
+	var foot outline.Point
+	var outerDiag cubic
+	for d := 0.0; ; d++ {
+		foot = outline.Point{X: x0 + f.TwoDiagFoot + d, Y: f.Heavy}
+		var err error
+		if outerDiag, err = figCurveTry("two", foot, neg(down), 0, rx, outline.Point{Y: 1}, kOuter); err == nil {
+			break
+		}
+		if d == twoFootMaxShift {
+			panic(err)
+		}
+	}
 	innerDiag := fairStartCurve("two", ri, outline.Point{Y: -1}, kInner, outline.Point{X: x0, Y: f.TwoBaseEnd}, down)
 
 	arm := capArm{Edge: foot.X, End: x0 + f.TwoBase, Lower: 0, Upper: f.Heavy, Rise: f.TwoRise, SerifThick: f.TwoSerifThick, MinTurn: figBeakMinTurn}
@@ -97,6 +131,33 @@ func figTwo(p design.Params) (outline.Path, float64) {
 		lineChain(innerDiag.P3, outline.Point{X: x0}),
 	)
 	return contourPath(mergeLines(c)), f.Advance
+}
+
+// twoFootMaxShift is the largest number of units by which the foot of the
+// diagonal of 2 is moved from TwoDiagFoot.
+const twoFootMaxShift = 60
+
+// figCurveTry is figCurve which returns an error where there is no curve.
+func figCurveTry(name string, p0, t0 outline.Point, k0 float64, p3, t3 outline.Point, k3 float64) (c cubic, err error) {
+	defer recovered(&err)
+	return figCurve(name, p0, t0, k0, p3, t3, k3), nil
+}
+
+// twoBallMaxShift is the largest number of units by which the ball of 2 is
+// moved from TwoBallLeft towards the middle of the bowl.
+const twoBallMaxShift = 30
+
+// twoBallMargin is the number of units by which the ball of 2 is moved beyond
+// the least shift at which a spiral runs into it.
+const twoBallMargin = 3
+
+// twoBallAt returns the ball terminal of 2 with its leftmost ink at left.
+func twoBallAt(p design.Params, outer, inner superShape, left float64) (chain, error) {
+	c, err := roundTerminalTry("two", figBall(p), mirrorCubic(outer.cubic(1, true), 0), mirrorCubic(inner.cubic(2, false), 0), -left, figStroke{Arch: true})
+	if err != nil {
+		return nil, err
+	}
+	return c.mirrorX(0), nil
 }
 
 // fairStartCurve returns the curve from p0, leaving in the direction t0 with the

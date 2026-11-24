@@ -31,6 +31,19 @@ func curvatureAt(c [4]Point, t float64) float64 {
 // one closest to a and b in the least squares sense, which lies closest to
 // them.  The result is false if none of them fits (mergeFits).
 func mergeCubics(a, b [4]Point) ([4]Point, float64, bool) {
+	return mergeCubicsWithin(a, b, MergeTolerance)
+}
+
+// mergeCubicsWithin is mergeCubics with the largest distance tol in place of
+// MergeTolerance.
+func mergeCubicsWithin(a, b [4]Point, tol float64) ([4]Point, float64, bool) {
+	return mergeCubicsLoose(a, b, tol, false)
+}
+
+// mergeCubicsLoose is mergeCubicsWithin; with loose set the curvature of the
+// merged curve is not bounded, only its distance from the two curves and its
+// overshoot.
+func mergeCubicsLoose(a, b [4]Point, tol float64, loose bool) ([4]Point, float64, bool) {
 	p0, p3 := a[0], b[3]
 	t0 := unitOf(bezD(a, 0))
 	t3 := unitOf(bezD(b, 1))
@@ -165,7 +178,7 @@ func mergeCubics(a, b [4]Point) ([4]Point, float64, bool) {
 			ss[i].u = chordU[i]
 		}
 		project(m)
-		if dev, ok := mergeFits(m, a, b, ss); ok && dev < bestDev {
+		if dev, ok := mergeFits(m, a, b, ss, tol, loose); ok && dev < bestDev {
 			best, bestDev, found = m, dev, true
 		}
 	}
@@ -179,7 +192,7 @@ func mergeCubics(a, b [4]Point) ([4]Point, float64, bool) {
 // mergeCurvatureShare and mergeCurvatureFloor, and runs beyond its end points
 // by at most mergeOvershootExact, and by at most mergeOvershoot with its
 // points rounded to the nearest integers.
-func mergeFits(m, a, b [4]Point, ss []mergeSample) (float64, bool) {
+func mergeFits(m, a, b [4]Point, ss []mergeSample, tol float64, loose bool) (float64, bool) {
 	// The distance both ways.
 	var dev float64
 	for _, s := range ss {
@@ -202,7 +215,7 @@ func mergeFits(m, a, b [4]Point, ss []mergeSample) (float64, bool) {
 		}
 		dev = math.Max(dev, best)
 	}
-	if dev > MergeTolerance {
+	if dev > tol {
 		return dev, false
 	}
 
@@ -212,24 +225,33 @@ func mergeFits(m, a, b [4]Point, ss []mergeSample) (float64, bool) {
 	for _, s := range ss {
 		lo, hi, big = math.Min(lo, s.k), math.Max(hi, s.k), math.Max(big, math.Abs(s.k))
 	}
-	slack := mergeCurvatureShare*big + mergeCurvatureFloor
-	for _, s := range ss {
-		if k := curvatureAt(m, s.u); k < lo-slack || k > hi+slack {
-			return dev, false
+	share, over, overRound := mergeCurvatureShare, mergeOvershootExact, mergeOvershoot
+	if tol > MergeTolerance {
+		share, over, overRound = 4*mergeCurvatureShare, 4*mergeOvershootExact, 4*mergeOvershoot
+		if loose {
+			over, overRound = tol/2, tol/2
 		}
 	}
-	for _, e := range []struct{ k, ke float64 }{{curvatureAt(m, 0), ss[0].k}, {curvatureAt(m, 1), ss[len(ss)-1].k}} {
-		if math.Abs(e.k-e.ke) > mergeCurvatureShare*math.Abs(e.ke)+mergeCurvatureFloor {
-			return dev, false
+	slack := share*big + mergeCurvatureFloor
+	if !loose {
+		for _, s := range ss {
+			if k := curvatureAt(m, s.u); k < lo-slack || k > hi+slack {
+				return dev, false
+			}
+		}
+		for _, e := range []struct{ k, ke float64 }{{curvatureAt(m, 0), ss[0].k}, {curvatureAt(m, 1), ss[len(ss)-1].k}} {
+			if math.Abs(e.k-e.ke) > share*math.Abs(e.ke)+mergeCurvatureFloor {
+				return dev, false
+			}
 		}
 	}
 
 	// No new extreme beyond the end points, of the curve and of the curve
 	// with its points rounded.
-	if overshoot(m) > mergeOvershootExact {
+	if overshoot(m) > over {
 		return dev, false
 	}
-	if overshoot([4]Point{roundPoint(m[0]), roundPoint(m[1]), roundPoint(m[2]), roundPoint(m[3])}) > mergeOvershoot {
+	if overshoot([4]Point{roundPoint(m[0]), roundPoint(m[1]), roundPoint(m[2]), roundPoint(m[3])}) > overRound {
 		return dev, false
 	}
 	return dev, true

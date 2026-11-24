@@ -26,27 +26,29 @@ import (
 
 // Shape constants of the currency signs.
 const (
-	colonLean    = 12.0  // the strokes of the colon sign, degrees from the vertical
-	colonBeyond  = 82.0  // how far the strokes of the colon sign reach above the cap height and below the baseline
-	wonBar       = 0.505 // the middle between the bars of the won and of the naira, in cap heights
-	wonGap       = 0.095 // the middles of the bars of the won and of the naira from wonBar, in cap heights
-	wonInset     = 25.0  // how far inside the tips of the serifs of W the bars of the won end
-	wonClear     = 38.0  // the least white between the bars of the won and the crotches and the notch of W
-	guaraniClear = 35.0  // the least white between the stroke of the guarani and the tip of the left serif of the stem of G
-	centOldLeft  = 5.0   // how far left of the middle of the ink of c the stroke of the cent of the old-style figures crosses half the x-height
-	pesoBeyond   = 0.065 // how far the bars of the peso reach beyond the bowl, in ink widths of P
-	pesoSide     = 15.0  // the least right side space of the peso
-	bahtMiddle   = 0.55  // the stroke of the baht from the left of the ink, in ink widths of B
-	strokeReach  = 80.0  // how far the strokes of the baht and the guarani reach above the cap height and below the baseline
-	liraDrop     = 0.03  // the lower bar of the lira below the bar of the sterling, in figure heights
-	liraPitch    = 0.135 // the upper bar of the lira above the lower, in figure heights
-	liraBar      = 0.92  // the length of the bars of the lira, in bars of the sterling
-	dongGap      = 56.0  // the white between the baseline and the underline of the dong
-	florinSide   = 20.0  // the right side space of the florin
-	dollarDouble = 0.8   // each stroke of the dollar of the old-style figures, in strokes of the dollar
-	dollarWhite  = 45.0  // the white between the two strokes
-	centOldLean  = 7.0   // the stroke of the cent of the old-style figures, degrees from the vertical
-	centOldReach = 82.0  // how far that stroke reaches above the x-height and below the baseline
+	colonLean         = 12.0  // the strokes of the colon sign, degrees from the vertical
+	colonBeyond       = 82.0  // how far the strokes of the colon sign reach above the cap height and below the baseline
+	wonBar            = 0.505 // the middle between the bars of the won and of the naira, in cap heights
+	wonGap            = 0.095 // the middles of the bars of the won and of the naira from wonBar, in cap heights
+	wonInset          = 25.0  // how far inside the tips of the serifs of W the bars of the won end
+	wonClear          = 38.0  // the least white between the bars of the won and the crotches and the notch of W
+	guaraniClear      = 35.0  // the least white between the stroke of the guarani and the tip of the left serif of the stem of G
+	centOldLeft       = 5.0   // how far left of the middle of the ink of c the stroke of the cent of the old-style figures crosses half the x-height
+	pesoBeyond        = 0.065 // how far the bars of the peso reach beyond the bowl, in ink widths of P
+	pesoSide          = 15.0  // the least right side space of the peso
+	bahtMiddle        = 0.55  // the stroke of the baht from the left of the ink, in ink widths of B
+	strokeReach       = 80.0  // how far the strokes of the baht and the guarani reach above the cap height and below the baseline
+	liraDrop          = 0.03  // the lower bar of the lira below the bar of the sterling, in figure heights
+	liraPitch         = 0.135 // the upper bar of the lira above the lower, in figure heights
+	liraBar           = 0.92  // the length of the bars of the lira, in bars of the sterling
+	dongGap           = 56.0  // the white between the baseline and the underline of the dong
+	florinSide        = 20.0  // the right side space of the florin
+	dollarDouble      = 0.8   // each stroke of the dollar of the old-style figures, in strokes of the dollar
+	dollarWhite       = 45.0  // the white between the two strokes
+	dollarWhiteStroke = 59.0  // the stroke of the dollar up to which the white is dollarWhite
+	dollarWhiteLoss   = 0.6   // the share of a thicker stroke which the white gives up
+	centOldLean       = 7.0   // the stroke of the cent of the old-style figures, degrees from the vertical
+	centOldReach      = 82.0  // how far that stroke reaches above the x-height and below the baseline
 )
 
 // currencyList lists the currency signs of TS1, in glyph order.
@@ -157,11 +159,25 @@ func upright(p design.Params, x float64) chain {
 }
 
 // baht draws the baht: the B with a vertical stroke through its bowls.
+//
+// The stroke stands where it is at the left of the ink, but not further right
+// than bahtClear before the place where the top and bottom of the counters
+// of the B turn into the bowls.
 func baht(p design.Params) (outline.Path, float64) {
+	b, _, _ := Outline("B", p)
+	start := math.Inf(1)
+	if len(b) > 1 && len(b[1].Segs) > 0 && !b[1].Segs[0].IsCurve {
+		start = b[1].Segs[0].P3.X
+	}
 	return struckThrough(p, "B", func(x0, _, x1, _ float64) []chain {
-		return []chain{upright(p, x0+bahtMiddle*(x1-x0))}
+		x := x0 + bahtMiddle*(x1-x0)
+		return []chain{upright(p, math.Min(x, start-bahtClear+p.Sym.DollarStroke/2))}
 	})
 }
+
+// bahtClear is the distance of the left edge of the stroke of the baht to the
+// place where the straight top of the counters of the B ends.
+const bahtClear = 1.0
 
 // guarani draws the guarani: the G with a vertical stroke through the middle
 // of its round, or further left where it would come closer than
@@ -219,13 +235,16 @@ func florin(p design.Params) (outline.Path, float64) {
 // dollarOldstyle draws the dollar of the old-style figures: the S of the
 // dollar with two vertical strokes through it in place of the one, each
 // dollarDouble strokes of the dollar thick, with dollarWhite of white
-// between them, from DollarBottom to DollarTop.
+// between them, from DollarBottom to DollarTop.  The white is narrower by
+// dollarWhiteLoss of each unit by which the stroke of the dollar is thicker
+// than dollarWhiteStroke.
 func dollarOldstyle(p design.Params) (outline.Path, float64) {
 	s := p.Sym
 	t := math.Round(dollarDouble * s.DollarStroke)
 	letter, cx := dollarS(p)
 	parts := append([]chain(nil), letter...)
-	d := math.Round((t + dollarWhite) / 2)
+	white := dollarWhite - dollarWhiteLoss*math.Max(0, s.DollarStroke-dollarWhiteStroke)
+	d := math.Round((t + white) / 2)
 	for _, x := range []float64{cx - d, cx + d} {
 		parts = append(parts, rectChain(x-t/2, s.DollarBottom, x+t/2, s.DollarTop))
 	}

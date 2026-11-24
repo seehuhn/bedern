@@ -953,15 +953,27 @@ func windHook(letter string, in stalkFoot, tb placedBall, out stalkFoot, rises [
 		b = a
 	}
 	if !found {
-		return nil, fmt.Errorf("glyph %s: the spiral into the ball does not meet it at an extreme", letter)
-	}
-	mlo := miss(lo)
-	for i := 0; i < 30; i++ {
-		m := (lo + hi) / 2
-		if mm := miss(m); (mm <= 0) == (mlo <= 0) {
-			lo, mlo = m, mm
-		} else {
-			hi = m
+		// No rise within the range meets an extreme: the rise within
+		// windRiseReach degrees beyond the range at which the spiral meets the
+		// circle nearest to one, if that is within windRiseMiss.
+		best := math.Inf(1)
+		for r := rises[0] - windRiseReach; r <= rises[1]+windRiseReach; r += 0.25 {
+			if a := math.Abs(miss(r)); a < best {
+				best, lo, hi = a, r, r
+			}
+		}
+		if math.IsInf(best, 1) || best > windRiseMiss {
+			return nil, fmt.Errorf("glyph %s: the spiral into the ball does not meet it at an extreme", letter)
+		}
+	} else {
+		mlo := miss(lo)
+		for i := 0; i < 30; i++ {
+			m := (lo + hi) / 2
+			if mm := miss(m); (mm <= 0) == (mlo <= 0) {
+				lo, mlo = m, mm
+			} else {
+				hi = m
+			}
 		}
 	}
 	_, t, _ := spiral((lo + hi) / 2)
@@ -994,6 +1006,16 @@ func innerEnd(tb placedBall) (stalkEnd, chain) {
 	}
 	return tip, arc
 }
+
+// windRiseReach is the number of degrees beyond its range by which windHook
+// searches for a rise of the spiral where none within the range meets the ball
+// at an extreme.
+const windRiseReach = 10
+
+// windRiseMiss is the largest distance in degrees from an extreme at which the
+// spiral of windHook may meet the circle of the ball when no rise within the
+// range meets an extreme.
+const windRiseMiss = 0.5
 
 // stemRamp is the turn (degrees) over which the edge of a hook which leaves a
 // straight stem without curvature (windHook) is a transition curve

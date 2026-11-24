@@ -42,7 +42,7 @@ func dollar(p design.Params) (outline.Path, float64) {
 	s := p.Sym
 	letter, cx := dollarS(p)
 	bar := rectChain(cx-s.DollarStroke/2, s.DollarBottom, cx+s.DollarStroke/2, s.DollarTop)
-	return chainsPath(union(append(append([]chain(nil), letter...), bar)...)...), p.Figures.Advance
+	return chainsPath(byHeight(union(append(append([]chain(nil), letter...), bar)...))...), p.Figures.Advance
 }
 
 // A dollarLetter is the S of the dollar as closed chains and the abscissa of

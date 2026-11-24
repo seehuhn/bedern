@@ -41,6 +41,8 @@ const (
 	capLslashCentre = 0.54  // height of the middle of the bar of Ł, in cap heights
 	capDcroatCentre = 0.511 // height of the middle of the bar of Đ, in cap heights
 	capDcroatLength = 3.76  // length of the bar of Đ, in capital stems
+	capDcroatInto   = 4     // least depth of the bar of Đ in the bowl, in units
+	capDcroatNear   = 40    // distance from the bowl from which the bar of Đ reaches into it, in units
 	capHbarCentre   = 0.75  // height of the middle of the second bar of Ħ, in cap heights
 	capTbarCentre   = 0.526 // height of the middle of the bar of Ŧ, in cap heights
 	capTbarLength   = 4.06  // length of the bar of Ŧ, in capital stems
@@ -135,7 +137,17 @@ func dcroat(p design.Params) (outline.Path, float64) {
 func capDcroat(p design.Params) (outline.Path, float64) {
 	x0 := capBowlStem(p, false).Left - p.Caps.SerifJut
 	y := capDcroatCentre * p.CapHeight
-	return withBars(p, "D", rectChain(x0, y-p.Caps.Bar/2, x0+capDcroatLength*p.Caps.Stem, y+p.Caps.Bar/2))
+	x1 := x0 + capDcroatLength*p.Caps.Stem
+	// A bar which comes within capDcroatNear of the bowl reaches into it, so
+	// that it divides the counter.
+	d, _, _ := Outline("D", p)
+	if xs := d.CrossingsX(y); len(xs) >= 2 {
+		inner, outer := xs[len(xs)-2], xs[len(xs)-1]
+		if x1 > inner-capDcroatNear {
+			x1 = math.Max(x1, inner+math.Min(capDcroatInto, (outer-inner)/2))
+		}
+	}
+	return withBars(p, "D", rectChain(x0, y-p.Caps.Bar/2, x1, y+p.Caps.Bar/2))
 }
 
 // hbar draws ħ: the h with a horizontal bar across the ascender, from the tip

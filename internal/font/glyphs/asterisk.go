@@ -117,9 +117,9 @@ func (c asteriskCap) heading(s float64) float64 {
 
 // cuts returns the lengths at which the edge, turned through the angle th, has
 // its nodes: its ends, its extremes, where the direction is a multiple of a
-// quarter turn, and the ends of the spirals, except those within windMinPiece
+// quarter turn, and the ends of the spirals, except those within near
 // of an extreme.
-func (c asteriskCap) cuts(th float64) []float64 {
+func (c asteriskCap) cuts(th, near float64) []float64 {
 	total := c.length()
 	var ext []float64
 	h0, h1 := th+c.Alpha, th+math.Pi-c.Alpha
@@ -139,13 +139,13 @@ func (c asteriskCap) cuts(th float64) []float64 {
 	}
 	cuts := append([]float64{0, total}, ext...)
 	for _, s := range []float64{c.L, total - c.L} {
-		near := false
+		close := false
 		for _, e := range ext {
-			if math.Abs(e-s) < windMinPiece {
-				near = true
+			if math.Abs(e-s) < near {
+				close = true
 			}
 		}
-		if !near {
+		if !close {
 			cuts = append(cuts, s)
 		}
 	}
@@ -191,9 +191,10 @@ func asteriskPath(p design.Params) outline.Path {
 		rp, rd := right(a)
 		crotches[k] = meetLines(lp, ld, rp, rd)
 	}
-	var ch chain
-	for k, a := range as {
-		cuts := cp.cuts(a.th)
+	// The curves of the edge of one arm, from the crotch before it to the
+	// crotch after it, cut at the nodes cuts.
+	edge := func(k int, a arm, cuts []float64) (chain, error) {
+		var ch chain
 		n := len(cuts) - 1
 		for i := 1; i <= n; i++ {
 			pa, ha, ka := cp.at(cuts[i-1])
@@ -223,10 +224,24 @@ func asteriskPath(p design.Params) outline.Path {
 				c, err = g2Start(c.P0, ta, ka, cr, tb, h+math.Hypot(gb.X-cr.X, gb.Y-cr.Y))
 			}
 			if err != nil {
-				panic(fmt.Sprintf("glyphs: the asterisk: %v", err))
+				return nil, err
 			}
 			ch = append(ch, curveSeg(c))
 		}
+		return ch, nil
+	}
+	var ch chain
+	for k, a := range as {
+		// A spiral end near an extreme is no node, unless the curve across it has
+		// no solution.
+		e, err := edge(k, a, cp.cuts(a.th, windMinPiece))
+		if err != nil {
+			e, err = edge(k, a, cp.cuts(a.th, 1))
+		}
+		if err != nil {
+			panic(fmt.Sprintf("glyphs: the asterisk: %v", err))
+		}
+		ch = append(ch, e...)
 	}
 	var path outline.Path
 	ch.addContour(&path)
@@ -254,7 +269,7 @@ func roundEnd(s station, outward outline.Point) chain {
 	glob := func(v outline.Point) outline.Point {
 		return outline.Point{X: s.X + v.X*outward.X + v.Y*n.X, Y: s.Y + v.X*outward.Y + v.Y*n.Y}
 	}
-	cuts := cp.cuts(th)
+	cuts := cp.cuts(th, windMinPiece)
 	var c chain
 	for i := 1; i < len(cuts); i++ {
 		pa, ha, ka := cp.at(cuts[i-1])

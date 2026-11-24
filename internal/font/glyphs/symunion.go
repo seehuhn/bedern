@@ -277,3 +277,24 @@ func linkPieces(pcs []piece) []chain {
 	}
 	return out
 }
+
+// byHeight returns the chains ordered by the height of the middle of their
+// boxes, the lowest first, so that the order of the contours of a union does
+// not depend on which piece the linking starts at.
+func byHeight(cs []chain) []chain {
+	mid := make([]float64, len(cs))
+	for i, c := range cs {
+		_, y0, _, y1 := chainsPath(c).BBox()
+		mid[i] = y0 + y1
+	}
+	idx := make([]int, len(cs))
+	for i := range idx {
+		idx[i] = i
+	}
+	sort.SliceStable(idx, func(a, b int) bool { return mid[idx[a]] < mid[idx[b]] })
+	out := make([]chain, len(cs))
+	for i, k := range idx {
+		out[i] = cs[k]
+	}
+	return out
+}

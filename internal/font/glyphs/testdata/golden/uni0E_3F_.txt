@@ -24,7 +24,7 @@ v-w-y-down uni0E3F 659 3fea75e8c436
 x-z-k-up uni0E3F 659 3fea75e8c436
 x-z-k-down uni0E3F 659 3fea75e8c436
 caps-up uni0E3F 718 08a13c05a557
-caps-down uni0E3F 651 ab72178cce43
+caps-down uni0E3F 651 5f57e2138f2a
 punct-up uni0E3F 659 3fea75e8c436
 punct-down uni0E3F 659 3fea75e8c436
-bold uni0E3F 710 04ad8c057751
+bold uni0E3F 710 d85005fbe56c

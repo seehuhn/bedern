@@ -146,22 +146,13 @@ func (p exactPath) at(s float64) (outline.Point, float64, float64) {
 	panic("unreachable")
 }
 
-// leadTolerance is the largest distance of a cubic curve of chain from the
-// exact contour, unless the curve is shorter than twice leadMinPiece.
-const (
-	leadTolerance = 0.5
-	leadMinPiece  = 16.0
-)
-
 // chain returns the contour as straight lines and cubic curves.  The nodes are
-// the extremes, where the direction is a multiple of a quarter turn, the points
-// a quarter of the length of a line from its ends, between which the line is
-// drawn straight, and the ends of the arcs, except those within leadMinPiece of
-// another node; a curve between two nodes which strays from the exact contour by more
-// than leadTolerance is cut in two halves of equal length, as long as they are
-// at least leadMinPiece long.
+// the extremes, where the direction is a multiple of a quarter turn, and the
+// ends of each line, between which the line is drawn straight.  Between two
+// nodes the contour is one cubic curve with the points, the directions and the
+// curvatures of the exact contour at its ends, whatever the measures.
 func (p exactPath) chain() (chain, error) {
-	var cuts, soft []float64
+	var cuts []float64
 	start := 0.0
 	for _, pc := range p {
 		L := pc.length()
@@ -187,34 +178,26 @@ func (p exactPath) chain() (chain, error) {
 				cuts = append(cuts, start+(a+b)/2)
 			}
 		}
-		if _, ok := pc.(exactArc); ok {
-			soft = append(soft, start, start+L)
-		}
 		start += L
 	}
 	total := start
-	// The ends of the arcs, except those near another node.
-	hard := append([]float64(nil), cuts...)
-	for _, s := range soft {
-		near := false
-		for _, c := range hard {
-			d := math.Abs(c - s)
-			if math.Min(d, total-d) < leadMinPiece {
-				near = true
-			}
-		}
-		if !near {
-			cuts = append(cuts, s)
-		}
-	}
 	sort.Float64s(cuts)
 	if len(cuts) < 2 {
 		return nil, fmt.Errorf("the contour has too few nodes")
 	}
-	at := func(s float64) (outline.Point, float64, float64) { return p.at(math.Mod(s, total)) }
+	at := func(s float64) (outline.Point, float64, float64) {
+		q, h, k := p.at(math.Mod(s, total))
+		if math.Abs(k) < 1e-9 {
+			k = 0
+		}
+		return q, h, k
+	}
 	var ch chain
-	var add func(a, b float64) error
-	add = func(a, b float64) error {
+	for i := range cuts {
+		a, b := cuts[i], cuts[(i+1)%len(cuts)]
+		if b <= a {
+			b += total
+		}
 		pa, ha, ka := at(a)
 		pb, hb, kb := at(b)
 		ta, tb := dirOf(ha), dirOf(hb)
@@ -223,7 +206,7 @@ func (p exactPath) chain() (chain, error) {
 		switch {
 		case ka == 0 && kb == 0:
 			ch = append(ch, lineSeg(pa, pb))
-			return nil
+			continue
 		case kb != 0:
 			c, err = g2Cubic(pa, ta, ka, pb, tb, kb)
 		default:
@@ -231,45 +214,9 @@ func (p exactPath) chain() (chain, error) {
 			c = cubic{c.P3, c.P2, c.P1, c.P0}
 		}
 		if err != nil {
-			c, err = nearG2(pa, ta, ka, pb, tb, kb), nil
-		}
-		if err == nil {
-			// The distance of the curve from the exact contour.
-			worst := 0.0
-			for i := 1; i < 16; i++ {
-				q := c.at(float64(i) / 16)
-				best := math.Inf(1)
-				for j := 0; j <= 200; j++ {
-					r, _, _ := at(a + (b-a)*float64(j)/200)
-					best = math.Min(best, math.Hypot(q.X-r.X, q.Y-r.Y))
-				}
-				worst = math.Max(worst, best)
-			}
-			if worst <= leadTolerance {
-				ch = append(ch, curveSeg(c))
-				return nil
-			}
-		}
-		if b-a >= 2*leadMinPiece {
-			if err := add(a, (a+b)/2); err != nil {
-				return err
-			}
-			return add((a+b)/2, b)
-		}
-		if err != nil {
-			return err
+			c = nearG2(pa, ta, ka, pb, tb, kb)
 		}
 		ch = append(ch, curveSeg(c))
-		return nil
-	}
-	for i := range cuts {
-		a, b := cuts[i], cuts[(i+1)%len(cuts)]
-		if b <= a {
-			b += total
-		}
-		if err := add(a, b); err != nil {
-			return nil, err
-		}
 	}
 	for i := 1; i < len(ch); i++ {
 		ch[i].P0 = ch[i-1].P3

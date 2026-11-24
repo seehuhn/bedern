@@ -175,7 +175,7 @@ func qTerminal(ball chain, tb placedBall, right chain, maxJoin float64) (chain, 
 	for aTip <= aJ {
 		aTip += 2 * math.Pi
 	}
-	circ := arcAxes(c, r, aJ, aTip)
+	circ := arcAxesTip(c, r, aJ, aTip)
 	circ[len(circ)-1].P3 = tb.Tip
 	var tip stalkEnd
 	for _, pc := range ball {
@@ -195,4 +195,32 @@ func qTerminal(ball chain, tb placedBall, right chain, maxJoin float64) (chain, 
 	out := append(chain(nil), ball[:iL]...)
 	out = append(out, splitAtExtrema(curl)...)
 	return join(out, circ, splitAtExtrema(in)), nil
+}
+
+// qTipSlack is the angle (degrees) past an extreme of the ball within which
+// arcAxesTip does not cut the circle at that extreme.
+const qTipSlack = 15.0
+
+// arcAxesTip returns the arc of the circle about c of the radius r from the
+// direction a0 to a1 as arcAxes does, except that an extreme of the circle
+// less than qTipSlack before a1 is not cut: the last piece then runs from the
+// extreme before it to a1 in one cubic curve.
+func arcAxesTip(c outline.Point, r, a0, a1 float64) chain {
+	last := math.Floor(a1/(math.Pi/2)-1e-9) * math.Pi / 2
+	if last <= a0 || a1-last >= qTipSlack*math.Pi/180 {
+		return arcAxes(c, r, a0, a1)
+	}
+	prev := last - math.Pi/2
+	if prev <= a0 {
+		return arcPieces(c, r, a0, a1)
+	}
+	ch := arcAxes(c, r, a0, prev)
+	on := func(a float64) outline.Point { return outline.Point{X: c.X + r*math.Cos(a), Y: c.Y + r*math.Sin(a)} }
+	step := a1 - prev
+	k := 4.0 / 3 * math.Tan(step/4) * r
+	pa, pe := on(prev), on(a1)
+	return append(ch, curveSeg(cubic{pa,
+		outline.Point{X: pa.X - k*math.Sin(prev), Y: pa.Y + k*math.Cos(prev)},
+		outline.Point{X: pe.X + k*math.Sin(a1), Y: pe.Y - k*math.Cos(a1)},
+		pe}))
 }

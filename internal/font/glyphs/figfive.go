@@ -11,8 +11,8 @@ import (
 )
 
 // The bracket at the foot of the left-hand edge of the stroke of 5: it ends
-// fiveBracketDrop above where the edge meets the inner edge of the bowl and runs
-// into that edge fiveBracketRun to the right of the stroke.
+// fiveBracketDrop above where the edge meets the inner edge of the bowl and is
+// drawn towards that edge fiveBracketRun to the right of the stroke.
 const (
 	fiveBracketRun  = 25
 	fiveBracketDrop = 34
@@ -45,14 +45,15 @@ func figFive(p design.Params) (outline.Path, float64) {
 	h, bot := f.Height, figBottom(p)
 	o := newSuperShape(x0+f.FiveOuterLeft, bot, x1, f.FiveBowlTop, p.SupernessOuter)
 	i := newSuperShape(x0+f.FiveInnerLeft, bot+f.Thin, x1-f.Bowl, f.FiveBowlTop-f.Thin, p.SupernessInner)
-	ball := lowerLeftBall("five", figBall(p), o.cubic(2, true), i.cubic(1, false), x0+f.FiveBallLeft, figStroke{Rise: true, Before: i.cubic(0, false)})
+	ball := lowerLeftBall("five", figBall(p), o.cubic(2, true), i.cubic(1, false), x0+f.FiveBallLeft, figStroke{Rise: true, Split: true, Before: i.cubic(0, false)})
 
 	sl := x0 + f.FiveStrokeLeft
 	sr := sl + f.FiveStroke
 	end := sl + f.FiveFlag
 	iTop := i.cubic(2, false) // left to top
-	// The left-hand edge ends above the inner edge in a short bracket which runs
-	// tangentially into the inner edge, fiveBracketRun to the right of the stroke.
+	// The left-hand edge ends above the inner edge in a short bracket, drawn as
+	// a curve which runs tangentially into the inner edge fiveBracketRun to the
+	// right of the stroke.
 	corner := iTop.at(iTop.tAtX(sl))
 	fromCorner := iTop.sub(iTop.tAtX(sl+fiveBracketRun), 1)
 	kneeY := corner.Y + fiveBracketDrop
@@ -89,8 +90,7 @@ func figFive(p design.Params) (outline.Path, float64) {
 	toNotch := oTop.sub(0, oTop.tAtX(sr))
 	c := join(
 		lineChain(outline.Point{X: sl, Y: h}, knee),
-		splitAtExtrema(bracket),
-		curveChain(fromCorner),
+		bracketTail(bracketChain(bracket, knee), iTop),
 		chain{curveSeg(i.cubic(3, false))},
 		ball,
 		chain{curveSeg(o.cubic(3, true)), curveSeg(o.cubic(0, true))},
@@ -102,3 +102,52 @@ func figFive(p design.Params) (outline.Path, float64) {
 	)
 	return contourPath(mergeLines(c)), f.Advance
 }
+
+// bracketChain returns the bracket of 5 as a chain, cut at its extremes.  Where
+// it has no extreme in x within fiveBracketHead of the knee, it is cut there
+// all the same, at the point which lies about fiveBracketHeadCut from the knee,
+// so that the bracket has the same nodes at every optical size.
+func bracketChain(bracket cubic, knee outline.Point) chain {
+	ch := splitAtExtrema(bracket)
+	if len(ch) > 0 && math.Hypot(ch[0].P3.X-knee.X, ch[0].P3.Y-knee.Y) < fiveBracketHead {
+		return ch
+	}
+	t := fiveBracketHeadCut / (3 * math.Hypot(bracket.P1.X-bracket.P0.X, bracket.P1.Y-bracket.P0.Y))
+	return join(chain{curveSeg(bracket.sub(0, t))}, splitAtExtrema(bracket.sub(t, 1)))
+}
+
+// bracketTail returns the bracket of 5, cut as bracketChain cuts it, with
+// the inner edge of the bowl as far as its top: the bracket ends at its
+// lowest point, and one curve runs from there to the top of the inner edge,
+// in place of the rest of the bracket and of the inner edge between them.
+// The curve is horizontal at both ends and has the curvature of the bracket
+// at its start and that of the inner edge at its end, so that the bracket
+// joins the bowl through two extremes and with no node between them; at 10
+// pt it lies within half a unit of the bracket and the inner edge which it
+// replaces.  iTop is the inner edge from its left extreme to its top.
+func bracketTail(ch chain, iTop cubic) chain {
+	last := ch[len(ch)-1]
+	if math.Abs(last.P1.Y-last.P0.Y) > 1e-6*math.Abs(last.P1.X-last.P0.X) {
+		panic("glyphs: the bracket of five: no lowest point")
+	}
+	low := ch[len(ch)-2].cubic
+	m, top := low.P3, iTop.P3
+	rise := top.Y - m.Y
+	// A curve with horizontal ends which rises by rise has the curvature
+	// 2 rise / (3 a^2) at an end whose handle is a long.
+	a := math.Sqrt(2 * rise / (3 * math.Abs(low.curvature(1))))
+	b := math.Sqrt(2 * rise / (3 * math.Abs(iTop.curvature(1))))
+	if rise <= 0 || a+b >= top.X-m.X {
+		panic("glyphs: the bracket of five: no curve to the top of the inner edge")
+	}
+	tail := cubic{m, outline.Point{X: m.X + a, Y: m.Y}, outline.Point{X: top.X - b, Y: top.Y}, top}
+	return append(ch[:len(ch)-1:len(ch)-1], curveSeg(tail))
+}
+
+// fiveBracketHead is the distance from the knee within which the first
+// extreme of the bracket makes its first piece, and fiveBracketHeadCut the
+// length of that piece where the bracket has no such extreme.
+const (
+	fiveBracketHead    = 8
+	fiveBracketHeadCut = 3
+)

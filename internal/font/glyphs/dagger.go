@@ -131,36 +131,49 @@ func (g daggerLimb) open() chain {
 		lead = daggerLead
 	}
 	q := xy(cp.P0.X-lead*t.X, cp.P0.Y-lead*t.Y)
-	cuts := cp.cuts(0)
-	n := len(cuts) - 1
-	var cap chain
-	for i := 1; i <= n; i++ {
-		pa, ha, ka := cp.at(cuts[i-1])
-		pb, hb, kb := cp.at(cuts[i])
-		ta, tb := dirOf(ha), dirOf(hb)
-		var c cubic
-		var err error
-		if kb != 0 {
-			c, err = g2Cubic(pa, ta, ka, pb, tb, kb)
-		} else {
-			c, err = g2Cubic(pb, neg(tb), -kb, pa, neg(ta), -ka)
-			c = cubic{c.P3, c.P2, c.P1, c.P0}
+	// The cap, cut at the ends of its spirals where they are further than
+	// windMinPiece from an extreme, and where no curve runs across such a spiral
+	// end, at all of them.
+	build := func(near float64) (chain, error) {
+		cuts := cp.cuts(0, near)
+		n := len(cuts) - 1
+		var cap chain
+		for i := 1; i <= n; i++ {
+			pa, ha, ka := cp.at(cuts[i-1])
+			pb, hb, kb := cp.at(cuts[i])
+			ta, tb := dirOf(ha), dirOf(hb)
+			var c cubic
+			var err error
+			if kb != 0 {
+				c, err = g2Cubic(pa, ta, ka, pb, tb, kb)
+			} else {
+				c, err = g2Cubic(pb, neg(tb), -kb, pa, neg(ta), -ka)
+				c = cubic{c.P3, c.P2, c.P1, c.P0}
+			}
+			// The first and the last curve start and end at q and its mirror
+			// image, with the handle there lengthened by the straight they
+			// replace.
+			if err == nil && i == 1 {
+				h := math.Hypot(c.P1.X-pa.X, c.P1.Y-pa.Y)
+				c, err = g2End(q, ta, h+lead, pb, tb, kb)
+			}
+			if err == nil && i == n {
+				h := math.Hypot(c.P2.X-pb.X, c.P2.Y-pb.Y)
+				c, err = g2Start(c.P0, ta, ka, xy(q.X, -q.Y), tb, h+lead)
+			}
+			if err != nil {
+				return nil, err
+			}
+			cap = append(cap, curveSeg(c))
 		}
-		// The first and the last curve start and end at q and its mirror
-		// image, with the handle there lengthened by the straight they
-		// replace.
-		if err == nil && i == 1 {
-			h := math.Hypot(c.P1.X-pa.X, c.P1.Y-pa.Y)
-			c, err = g2End(q, ta, h+lead, pb, tb, kb)
-		}
-		if err == nil && i == n {
-			h := math.Hypot(c.P2.X-pb.X, c.P2.Y-pb.Y)
-			c, err = g2Start(c.P0, ta, ka, xy(q.X, -q.Y), tb, h+lead)
-		}
-		if err != nil {
-			panic(fmt.Sprintf("glyphs: the end of a dagger: %v", err))
-		}
-		cap = append(cap, curveSeg(c))
+		return cap, nil
+	}
+	cap, err := build(windMinPiece)
+	if err != nil {
+		cap, err = build(1)
+	}
+	if err != nil {
+		panic(fmt.Sprintf("glyphs: the end of a dagger: %v", err))
 	}
 	var low chain
 	if g.W.X > 0 {

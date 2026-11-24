@@ -37,7 +37,8 @@ func (p Path) RoundLike(ref Path) (Path, error) {
 // the partner of a corner only.  A node of the path without a partner is
 // removed: the two segments which meet there are replaced by the curve of
 // which both are parts, by one line if they are lines in one direction, or
-// by the curve with which Round replaces a short segment and its neighbour.
+// by a curve like that with which Round replaces a short segment and its
+// neighbour, which may lie up to LikeTolerance from them.
 // A node of the model without a partner is added: the segment of the path
 // which runs past it is cut near the same share of its length, where it
 // runs most nearly in the direction of the model at the node (cutSegment).
@@ -46,8 +47,8 @@ func (p Path) RoundLike(ref Path) (Path, error) {
 // line where the model has a line.  The contour then starts at the partner
 // of the start of the model.
 //
-// The shape changes only where two segments are replaced by a curve which
-// Round would use, by at most MergeTolerance, and where a curve becomes a
+// The shape changes only where two segments are replaced by a curve, by at
+// most LikeTolerance, and where a curve becomes a
 // line, by less than likeStraight.  The result is an error if the paths
 // differ in the number or the direction of their contours, if a node cannot
 // be removed, if a corner has no partner, if partners on smooth runs run
@@ -73,6 +74,12 @@ func (p Path) Like(ref Path) (Path, error) {
 	return out, nil
 }
 
+// LikeTolerance is the largest distance, in font units, between the curve
+// which replaces two segments in Like and the segments.  The curve may run
+// beyond its end points and differ in curvature from the segments by four
+// times as much as the curve of Round.
+var LikeTolerance = 5.0
+
 // likeGap is the cost of a node without a partner in Like, as a distance in
 // the frame of the bounding box, whose sides have the length 1; the cost of
 // a pair of partners is their distance there.  likeFixed is added to the
@@ -82,11 +89,28 @@ func (p Path) Like(ref Path) (Path, error) {
 const (
 	likeGap   = 0.15
 	likeFixed = 1.0
+	// likeLoose is added to the cost of a node which can be removed only by
+	// a curve whose curvature does not follow that of the two segments.
+	likeLoose = 0.5
 )
+
+// likeNear is the distance, in the frame of the bounding box, within which a
+// corner and a smooth node may be partners, if the pairing of the nodes has
+// no better choice: a bracket which leaves the stem at a flat angle at
+// one master and at a steep one at another.
+const likeNear = 0.05
 
 // likeApart is the largest angle, in degrees, between the directions in
 // which the path and the model leave two partners on smooth runs.
 const likeApart = 45.0
+
+// likeFarAngle is the angle, in degrees, beyond which two partners on smooth
+// runs which run apart are dearer by likeFar: they do not stand for the same
+// place of the shape.
+const (
+	likeFarAngle = 30.0
+	likeFar      = 0.4
+)
 
 // likeTurn is added to the distance of two partners which are not corners
 // and at which the outlines run at right angles to each other or further
@@ -248,8 +272,11 @@ func likeContour(c Contour, fc likeFrame, ref Contour, fr likeFrame) (Contour, e
 	for i := range gapA {
 		gapA[i] = likeGap
 		prev := (i - 1 + n) % n
-		if _, err := mergeRun(a.nodes[prev], []Segment{a.segs[prev], a.segs[i]}); err != nil {
-			gapA[i] += likeFixed
+		if _, err := mergeRunLoose(a.nodes[prev], []Segment{a.segs[prev], a.segs[i]}, false); err != nil {
+			gapA[i] += likeLoose
+			if _, err := mergeRun(a.nodes[prev], []Segment{a.segs[prev], a.segs[i]}); err != nil {
+				gapA[i] += likeFixed - likeLoose
+			}
 		}
 	}
 	pair := func(i, j int) float64 {
@@ -259,7 +286,11 @@ func likeContour(c Contour, fc likeFrame, ref Contour, fr likeFrame) (Contour, e
 			// A corner is no partner of a smooth node.
 			d += likeFixed
 		case ca[i] == nodeSmooth && cb[j] == nodeSmooth && da[i] != (Point{}) && db[j] != (Point{}):
-			d += likeTurn * math.Min(1, math.Abs(turnAngle(da[i], db[j]))/90)
+			turn := math.Abs(turnAngle(da[i], db[j]))
+			d += likeTurn * math.Min(1, turn/90)
+			if turn > likeFarAngle {
+				d += likeFar
+			}
 		}
 		return d
 	}
@@ -312,7 +343,8 @@ func likeContour(c Contour, fc likeFrame, ref Contour, fr likeFrame) (Contour, e
 		return Contour{}, fmt.Errorf("the nodes do not correspond to those of the model")
 	}
 	for _, q := range ps {
-		if ca[q.i]+cb[q.j] == nodeSmooth+nodeCorner && ca[q.i] != cb[q.j] {
+		if ca[q.i]+cb[q.j] == nodeSmooth+nodeCorner && ca[q.i] != cb[q.j] &&
+			math.Hypot(pa[q.i].X-pb[q.j].X, pa[q.i].Y-pb[q.j].Y) > likeNear {
 			return Contour{}, fmt.Errorf("the node of the model at (%.1f, %.1f) has no partner of its kind, a corner or a smooth node", b.nodes[q.j].X, b.nodes[q.j].Y)
 		}
 		if ca[q.i] == nodeSmooth && cb[q.j] == nodeSmooth && da[q.i] != (Point{}) && db[q.j] != (Point{}) &&
@@ -408,6 +440,12 @@ func likeContour(c Contour, fc likeFrame, ref Contour, fr likeFrame) (Contour, e
 // mergeRun returns one segment from the point from for the segments of run,
 // which follow each other from there.
 func mergeRun(from Point, run []Segment) (Segment, error) {
+	return mergeRunLoose(from, run, true)
+}
+
+// mergeRunLoose is mergeRun; with loose unset a pair of curves is merged only
+// if the curvature of the merged curve follows theirs.
+func mergeRunLoose(from Point, run []Segment, loose bool) (Segment, error) {
 	cur := run[0]
 	for _, next := range run[1:] {
 		mid := cur.P3
@@ -432,9 +470,12 @@ func mergeRun(from Point, run []Segment) (Segment, error) {
 			return Segment{}, fmt.Errorf("the corner at (%.1f, %.1f) is not a node of the model", mid.X, mid.Y)
 		}
 		ca, cb := asCubic(cur, from), asCubic(next, mid)
-		c, _, ok := mergeCubics(ca, cb)
+		c, _, ok := mergeCubicsWithin(ca, cb, LikeTolerance)
 		if !ok {
 			c, ok = parentCubic(ca, cb)
+		}
+		if !ok && loose {
+			c, _, ok = mergeCubicsLoose(ca, cb, LikeTolerance, true)
 		}
 		if !ok {
 			return Segment{}, fmt.Errorf("the node at (%.1f, %.1f) is not a node of the model and cannot be removed", mid.X, mid.Y)

@@ -442,12 +442,49 @@ func yen(p design.Params) (outline.Path, float64) {
 	x0, _, x1, top := y.BBox()
 	cx, w := (x0+x1)/2, yenBarWidth*(x1-x0)
 	parts := pathChains(y)
+	// The upper bar stands above the places where the arms meet the stem.
+	join := yenJunction(y)
 	for _, f := range []float64{yenBarLow, yenBarHigh} {
 		yy := f * top
+		if f == yenBarHigh {
+			yy = math.Max(yy, join+yenBarAbove-yenBar*p.Caps.Bar/2)
+		}
 		parts = append(parts, rectChain(cx-w/2, yy-yenBar*p.Caps.Bar/2, cx+w/2, yy+yenBar*p.Caps.Bar/2))
 	}
 	path := chainsPath(union(parts...)...)
 	return placeCentred(path, p.Figures.Advance)
+}
+
+// yenBarAbove is the least distance of the top of the upper bar of ¥ above
+// the places where the arms of the Y meet its stem.
+const yenBarAbove = 5.0
+
+// yenJunction returns the height of the upper ends of the straight edges of
+// the stem of the Y: the greater of the heights at which its two edges meet
+// the arms.
+func yenJunction(y outline.Path) float64 {
+	best, join := 0.0, 0.0
+	for _, c := range y {
+		p0 := c.Start
+		for _, s := range c.Segs {
+			if !s.IsCurve && s.P3.X == p0.X {
+				if l := math.Abs(s.P3.Y - p0.Y); l > best*0.5 {
+					best = math.Max(best, l)
+				}
+			}
+			p0 = s.P3
+		}
+	}
+	for _, c := range y {
+		p0 := c.Start
+		for _, s := range c.Segs {
+			if !s.IsCurve && s.P3.X == p0.X && math.Abs(s.P3.Y-p0.Y) > best*0.9 {
+				join = math.Max(join, math.Max(p0.Y, s.P3.Y))
+			}
+			p0 = s.P3
+		}
+	}
+	return join
 }
 
 // currencyWeights returns the ring of ¤ at its sides and at its top and

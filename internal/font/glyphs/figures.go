@@ -230,9 +230,12 @@ func roundTerminalTry(name string, b ballPart, outer, inner cubic, right float64
 	case how.Tip:
 		in, err = stalkToTip(name, inner, tb)
 	case how.Rise:
-		in, err = stalkRising(name, how.Before, tb)
+		in, err = stalkRising(name, how.Before, tb, how.Split)
 	default:
 		in, err = stalkInner(name, inner, tb)
+		if err != nil {
+			in, err = stalkToTip(name, inner, tb)
+		}
 	}
 	if err != nil {
 		return nil, err
@@ -269,8 +272,10 @@ func roundTerminalTry(name string, b ballPart, outer, inner cubic, right float64
 // (stalkInner).
 type figStroke struct {
 	Arch, Hook, Tip, Rise bool
-	Fall                  float64
-	Before                cubic
+	// Split lets the spiral of Rise be cut where one curve does not follow it.
+	Split  bool
+	Fall   float64
+	Before cubic
 }
 
 // tAtFall returns the parameter of the point where the curve c, walked from its
@@ -362,8 +367,9 @@ func stalkInner(name string, inner cubic, tb placedBall) (chain, error) {
 			if free {
 				fi.Kappa = math.NaN()
 			}
-			if c, err := edgeIn(fi, tb.In); err == nil {
-				if e := curvatureRate(c); e < best {
+			c, err := edgeIn(fi, tb.In)
+			if err == nil {
+				if e := curvatureRate(c); e < best && advances(c) && !chainLoops(stalkInnerChain(inner, u, c, tb)) {
 					best, in, tI = e, c, u
 				}
 			}
@@ -375,14 +381,60 @@ func stalkInner(name string, inner cubic, tb placedBall) (chain, error) {
 	if math.IsInf(best, 1) {
 		return nil, fmt.Errorf("glyph %s: no inner edge of the stalk reaches the ball terminal", name)
 	}
-	c := join(chain{curveSeg(inner.sub(0, tI))}, splitAtExtrema(in))
+	return stalkInnerChain(inner, tI, in, tb), nil
+}
+
+// stalkInnerChain returns the inner edge of stalkInner for the cut u of inner
+// and the curve in from the cut to the section of the part.
+func stalkInnerChain(inner cubic, u float64, in cubic, tb placedBall) chain {
+	c := join(chain{curveSeg(inner.sub(0, u))}, splitAtExtrema(in))
 	for _, pc := range tb.Chain {
 		c = append(c, pc)
 		if isTip(pc.P3, tb.Tip) {
 			break
 		}
 	}
-	return c, nil
+	return c
+}
+
+// advances reports whether the curve c nowhere runs against the direction from
+// its start to its end.
+func advances(c cubic) bool {
+	d := outline.Point{X: c.P3.X - c.P0.X, Y: c.P3.Y - c.P0.Y}
+	for i := 0; i <= 50; i++ {
+		q := c.tangent(float64(i) / 50)
+		if q.X*d.X+q.Y*d.Y <= 0 {
+			return false
+		}
+	}
+	return true
+}
+
+// chainLoops reports whether the chain crosses itself, as seen on a polyline
+// of its pieces.
+func chainLoops(c chain) bool {
+	const per = 48
+	var pts []outline.Point
+	for _, pc := range c {
+		for i := 0; i < per; i++ {
+			pts = append(pts, pc.at(float64(i)/per))
+		}
+	}
+	if len(c) > 0 {
+		pts = append(pts, c[len(c)-1].at(1))
+	}
+	cross := func(a, b, p, q outline.Point) bool {
+		d := func(o, u, v outline.Point) float64 { return (u.X-o.X)*(v.Y-o.Y) - (u.Y-o.Y)*(v.X-o.X) }
+		return d(a, b, p)*d(a, b, q) < 0 && d(p, q, a)*d(p, q, b) < 0
+	}
+	for i := 0; i+1 < len(pts); i++ {
+		for j := i + 2; j+1 < len(pts); j++ {
+			if cross(pts[i], pts[i+1], pts[j], pts[j+1]) {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 // stalkToTip returns the inner edge from the top of inner to the tip of the
@@ -425,7 +477,7 @@ func stalkToTip(name string, inner cubic, tb placedBall) (chain, error) {
 // there has M at least 1; otherwise it is the point of before nearest to its
 // end where M is 1, so that the curvature rises evenly, found by bisection to
 // riseTolerance.
-func stalkRising(name string, before cubic, tb placedBall) (chain, error) {
+func stalkRising(name string, before cubic, tb placedBall, split bool) (chain, error) {
 	tip := tipEnd(tb)
 	spiral := func(u float64) (windSpiral, bool) {
 		t := before.tangent(u)
@@ -457,7 +509,10 @@ func stalkRising(name string, before cubic, tb placedBall) (chain, error) {
 		u = lo
 	}
 	w, _ := spiral(u)
-	in, err := w.riseCubics()
+	in, err := w.riseCubics(0)
+	if err != nil && split {
+		in, err = w.riseCubics(riseMaxDepth)
+	}
 	if err != nil {
 		return nil, fmt.Errorf("glyph %s: the inner edge to the tip of the wedge: %v", name, err)
 	}
@@ -560,8 +615,9 @@ const (
 // riseCubics returns the spiral as cubic curves walked from P0 to its end, cut
 // at its extremes and halved where a piece turns by more than riseMaxTurn; each
 // curve has the points, the directions and the curvatures of the spiral at its
-// ends (g2Cubic).
-func (w windSpiral) riseCubics() (chain, error) {
+// ends (g2Cubic).  A piece for which there is no such curve is halved up to
+// allowed times (riseCubic).
+func (w windSpiral) riseCubics(allowed int) (chain, error) {
 	cuts := []float64{0}
 	end := w.heading(w.L)
 	lo, hi := math.Min(w.Phi0, end), math.Max(w.Phi0, end)
@@ -583,15 +639,44 @@ func (w windSpiral) riseCubics() (chain, error) {
 		}
 		for k := 0; k < n; k++ {
 			sa, sb := a+(b-a)*float64(k)/float64(n), a+(b-a)*float64(k+1)/float64(n)
-			c, err := g2Cubic(w.point(sa), dirOf(w.heading(sa)), -w.curvature(sa), w.point(sb), dirOf(w.heading(sb)), -w.curvature(sb))
+			cs, err := w.riseCubic(sa, sb, riseMaxDepth-allowed)
 			if err != nil {
 				return nil, err
 			}
-			ch = append(ch, curveSeg(c))
+			ch = append(ch, cs...)
 		}
 	}
 	return ch, nil
 }
+
+// riseCubic returns the part of the spiral from the length sa to sb as one
+// cubic curve, or, where there is none with the curvatures of the spiral at its
+// ends, as two such curves from each half of the length; riseMaxDepth is the
+// number of halvings of a piece which is allowed and depth the number which
+// have been made.
+func (w windSpiral) riseCubic(sa, sb float64, depth int) ([]piece, error) {
+	c, err := g2Cubic(w.point(sa), dirOf(w.heading(sa)), -w.curvature(sa), w.point(sb), dirOf(w.heading(sb)), -w.curvature(sb))
+	if err == nil {
+		return []piece{curveSeg(c)}, nil
+	}
+	if depth >= riseMaxDepth {
+		return nil, err
+	}
+	sm := (sa + sb) / 2
+	first, err := w.riseCubic(sa, sm, depth+1)
+	if err != nil {
+		return nil, err
+	}
+	second, err := w.riseCubic(sm, sb, depth+1)
+	if err != nil {
+		return nil, err
+	}
+	return append(first, second...), nil
+}
+
+// riseMaxDepth is the number of halvings of a piece of a spiral which
+// riseCubic tries for a figure which asks for it (figStroke.Split).
+const riseMaxDepth = 4
 
 // riseMaxTurn is the largest turn (radians) of one cubic curve of riseCubics.
 const riseMaxTurn = math.Pi / 4
