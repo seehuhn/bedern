@@ -66,13 +66,6 @@ func computed(p design.Params) *Table {
 	return e.tb
 }
 
-// exactDistance is the closest distance of the flattened outlines of a and b,
-// with b moved by its advance and kern, computed from segments and independent
-// of the sampling of Font.Distance.
-func exactDistance(ga, gb glyphs.Glyph, kern float64) float64 {
-	return flatten(ga.Path).distanceBelow(flatten(gb.Path), ga.Advance+kern, math.Inf(1))
-}
-
 // A seg is a segment of a flattened outline with its bounding box.
 type seg struct {
 	s              [2]outline.Point

@@ -62,9 +62,13 @@ func union(parts ...chain) []chain {
 	}
 
 	cuts := make([][]cutPoint, len(pcs))
+	smp := make([][]outline.Point, len(pcs))
+	for i := range pcs {
+		smp[i] = samples(pcs[i])
+	}
 	for i := range pcs {
 		for j := i + 1; j < len(pcs); j++ {
-			for _, x := range pieceCrossings(pcs[i], pcs[j]) {
+			for _, x := range pieceCrossingsOf(pcs[i], pcs[j], smp[i], smp[j]) {
 				cuts[i] = append(cuts[i], cutPoint{x[0], outline.Point{X: x[2], Y: x[3]}})
 				cuts[j] = append(cuts[j], cutPoint{x[1], outline.Point{X: x[2], Y: x[3]}})
 			}
@@ -132,7 +136,12 @@ func samples(p piece) []outline.Point {
 // pieceCrossings returns the crossings of two pieces as (ta, tb, x, y), apart
 // from a common end point, where the pieces of one contour meet.
 func pieceCrossings(a, b piece) [][4]float64 {
-	pa, pb := samples(a), samples(b)
+	return pieceCrossingsOf(a, b, samples(a), samples(b))
+}
+
+// pieceCrossingsOf is pieceCrossings for the pieces a and b whose samples pa
+// and pb the caller has.
+func pieceCrossingsOf(a, b piece, pa, pb []outline.Point) [][4]float64 {
 	var out [][4]float64
 	near := func(u, v outline.Point) bool { return math.Hypot(u.X-v.X, u.Y-v.Y) < 1e-6 }
 	for i := 0; i+1 < len(pa); i++ {

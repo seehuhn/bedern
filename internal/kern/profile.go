@@ -78,6 +78,12 @@ type Glyph struct {
 
 	rpts, lpts []outline.Point // sample points near the edges, by height
 	rys, lys   []float64       // their heights
+
+	// rmax is the first of the points rpts with the greatest abscissa, lmin
+	// the first of lpts with the least, and minLeft the least value of Left,
+	// all as Distance needs them.
+	rmax, lmin outline.Point
+	minLeft    float64
 }
 
 // Font is a set of analysed glyphs.
@@ -279,6 +285,28 @@ func (f *Font) profile(g *Glyph, path outline.Path) {
 		for _, p := range g.lpts {
 			g.lys = append(g.lys, p.Y)
 		}
+		if len(g.rpts) > 0 {
+			g.rmax = g.rpts[0]
+			for _, p := range g.rpts {
+				if p.X > g.rmax.X {
+					g.rmax = p
+				}
+			}
+		}
+		if len(g.lpts) > 0 {
+			g.lmin = g.lpts[0]
+			for _, q := range g.lpts {
+				if q.X < g.lmin.X {
+					g.lmin = q
+				}
+			}
+		}
+		g.minLeft = math.Inf(1)
+		for _, x := range g.Left {
+			if !math.IsNaN(x) {
+				g.minLeft = math.Min(g.minLeft, x)
+			}
+		}
 	}()
 	for _, poly := range polys {
 		n := len(poly)
@@ -376,31 +404,16 @@ func (f *Font) Distance(a, b *Glyph, kern float64) float64 {
 	}
 	off := a.Advance + kern
 	// The distance of the outermost points is an upper bound.
-	pa, qb := a.rpts[0], b.lpts[0]
-	for _, p := range a.rpts {
-		if p.X > pa.X {
-			pa = p
-		}
-	}
-	for _, q := range b.lpts {
-		if q.X < qb.X {
-			qb = q
-		}
-	}
+	pa, qb := a.rmax, b.lmin
 	best = math.Min(best, math.Hypot(qb.X+off-pa.X, qb.Y-pa.Y))
 	best2 := best * best
-	minLeft := math.Inf(1)
-	for _, x := range b.Left {
-		if !math.IsNaN(x) {
-			minLeft = math.Min(minLeft, x)
-		}
-	}
+	r := math.Sqrt(best2)
+	minLeft := b.minLeft
 	for _, p := range a.rpts {
 		// The horizontal distance is a lower bound of the distance.
-		if a.Advance-p.X+minLeft+kern >= math.Sqrt(best2) {
+		if a.Advance-p.X+minLeft+kern >= r {
 			continue
 		}
-		r := math.Sqrt(best2)
 		lo := sort.SearchFloat64s(b.lys, p.Y-r)
 		for j := lo; j < len(b.lpts) && b.lys[j] <= p.Y+r; j++ {
 			q := b.lpts[j]

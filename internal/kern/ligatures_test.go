@@ -4,6 +4,7 @@
 package kern
 
 import (
+	"math"
 	"testing"
 
 	"seehuhn.de/go/bedern/internal/font/glyphs/glyphstest"
@@ -22,6 +23,7 @@ func TestLigaturesTakeTheSidesOfTheirLetters(t *testing.T) {
 			gs := glyphstest.Set(s.p)
 			tb := computed(s.p)
 			floor := s.p.Kern.Floor
+			fl := newFlats(gs)
 			n := 0
 			for _, l := range tb.Font.Glyphs {
 				if l.First < 0 {
@@ -43,7 +45,7 @@ func TestLigaturesTakeTheSidesOfTheirLetters(t *testing.T) {
 						if tb.Font.Distance(tb.Font.Glyphs[pr[0]], tb.Font.Glyphs[pr[1]], float64(k)) >= floor+20 {
 							continue
 						}
-						if d := exactDistance(gs[pr[0]], gs[pr[1]], float64(k)); d < floor-2 {
+						if d := fl.of(pr[0]).distanceBelow(fl.of(pr[1]), gs[pr[0]].Advance+float64(k), math.Inf(1)); d < floor-2 {
 							t.Errorf("%s %s with kern %d: closest distance %.1f, floor %v", gs[pr[0]].Name, gs[pr[1]].Name, k, d, floor)
 						}
 					}

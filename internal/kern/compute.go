@@ -5,7 +5,9 @@ package kern
 
 import (
 	"math"
+	"runtime"
 	"sort"
+	"sync"
 
 	"seehuhn.de/go/bedern/internal/font/design"
 	"seehuhn.de/go/bedern/internal/font/glyphs"
@@ -87,74 +89,112 @@ func ComputeWith(p design.Params, gs []glyphs.Glyph, exceptions []design.KernExc
 	for _, e := range exceptions {
 		exc[[2]string{e.Left, e.Right}] = e
 	}
-	all := make(map[[2]int]*Pair)
-	for _, a := range kernable {
-		for _, b := range kernable {
-			if a.Kind == Punct && b.Kind == Punct {
-				continue
+	// The pairs of one first glyph are independent of those of the others and
+	// are computed side by side; the table takes them in the order of the
+	// glyphs.
+	pairOf := func(a, b *Glyph) *Pair {
+		if a.Kind == Punct && b.Kind == Punct {
+			return nil
+		}
+		z, ref := f.ZoneOf(a, b)
+		if z.Hi <= z.Lo {
+			return nil
+		}
+		if !f.markPair(a, b) || floorOnly[a.Rune] || floorOnly[b.Rune] {
+			// Only the floor applies.
+			if minDepth(a.Right)+minDepth(b.Left) >= k.Floor {
+				return nil
 			}
-			z, ref := f.ZoneOf(a, b)
-			if z.Hi <= z.Lo {
-				continue
+			d0 := f.Distance(a, b, 0)
+			if d0 >= k.Floor {
+				return nil
 			}
-			if !f.markPair(a, b) || floorOnly[a.Rune] || floorOnly[b.Rune] {
-				// Only the floor applies.
-				if minDepth(a.Right)+minDepth(b.Left) >= k.Floor {
-					continue
-				}
-				d0 := f.Distance(a, b, 0)
-				if d0 >= k.Floor {
-					continue
-				}
-				pr := &Pair{Left: a, Right: b, Zone: z, Ref: ref, Dist0: d0}
-				pr.Kern, pr.Floor = f.applyFloor(a, b, 0, d0)
-				pr.White0 = f.white(a, b, z, 0)
-				pr.White1 = f.white(a, b, z, float64(pr.Kern))
-				pr.Target = pr.White0
-				pr.Dist1 = f.Distance(a, b, float64(pr.Kern))
-				all[[2]int{a.Index, b.Index}] = pr
-				continue
-			}
-			bs := f.shared(a, b, z)
-			target := f.Target(a, b, ref, bs)
-			pr := &Pair{Left: a, Right: b, Zone: z, Ref: ref, Target: target}
-			pr.White0 = f.whiteRows(a, b, bs, 0)
-			allow := k.Allowance
-			switch {
-			case a.Kind == Upper && b.Kind == Upper:
-				allow = k.AllowanceUpper
-			case a.Kind != Punct && b.Kind != Punct && a.Kind != b.Kind:
-				allow = k.AllowanceMixed
-			}
-			pr.Allow = allow
-			pr.Model = f.Solve(a, b, bs, target+allow)
-			v := 0.0
-			if pr.Model < 0 && (f.interplay(a, b, z) || a.Kind == Upper && isDash(b)) {
-				v = math.Max(k.Soft*math.Tanh(pr.Model/k.Soft), -k.MaxNegative)
-			}
-			pr.Dist0 = f.Distance(a, b, 0)
-			if e, ok := exc[[2]string{a.Name, b.Name}]; ok {
-				v = e.Value
-				pr.Reason = e.Reason
-			}
-			kk := int(math.Round(v))
-			if pr.Reason == "" && math.Abs(float64(kk)) < k.Threshold {
+			pr := &Pair{Left: a, Right: b, Zone: z, Ref: ref, Dist0: d0}
+			pr.Kern, pr.Floor = f.applyFloor(a, b, 0, d0)
+			pr.White0 = f.white(a, b, z, 0)
+			pr.White1 = f.white(a, b, z, float64(pr.Kern))
+			pr.Target = pr.White0
+			pr.Dist1 = f.Distance(a, b, float64(pr.Kern))
+			return pr
+		}
+		bs := f.shared(a, b, z)
+		target := f.Target(a, b, ref, bs)
+		pr := &Pair{Left: a, Right: b, Zone: z, Ref: ref, Target: target}
+		pr.White0 = f.whiteRows(a, b, bs, 0)
+		allow := k.Allowance
+		switch {
+		case a.Kind == Upper && b.Kind == Upper:
+			allow = k.AllowanceUpper
+		case a.Kind != Punct && b.Kind != Punct && a.Kind != b.Kind:
+			allow = k.AllowanceMixed
+		}
+		pr.Allow = allow
+		pr.Model = f.Solve(a, b, bs, target+allow)
+		v := 0.0
+		if pr.Model < 0 && (f.interplay(a, b, z) || a.Kind == Upper && isDash(b)) {
+			v = math.Max(k.Soft*math.Tanh(pr.Model/k.Soft), -k.MaxNegative)
+		}
+		pr.Dist0 = f.Distance(a, b, 0)
+		if e, ok := exc[[2]string{a.Name, b.Name}]; ok {
+			v = e.Value
+			pr.Reason = e.Reason
+		}
+		kk := int(math.Round(v))
+		if pr.Reason == "" && math.Abs(float64(kk)) < k.Threshold {
+			kk = 0
+		}
+		if kk < 0 && pr.Reason == "" {
+			kk = f.limitApproach(a, b, z, ref, kk)
+			if math.Abs(float64(kk)) < k.Threshold {
 				kk = 0
 			}
-			if kk < 0 && pr.Reason == "" {
-				kk = f.limitApproach(a, b, z, ref, kk)
-				if math.Abs(float64(kk)) < k.Threshold {
-					kk = 0
+		}
+		kk, pr.Floor = f.applyFloor(a, b, kk, pr.Dist0)
+		pr.Kern = kk
+		pr.White1 = f.white(a, b, z, float64(kk))
+		pr.Dist1 = pr.Dist0
+		if kk != 0 {
+			pr.Dist1 = f.Distance(a, b, float64(kk))
+		}
+		return pr
+	}
+	rows := make([][]*Pair, len(kernable))
+	var wg sync.WaitGroup
+	var mu sync.Mutex
+	var failed *any // the first panic of a computation, passed on
+	gate := make(chan struct{}, runtime.GOMAXPROCS(0))
+	for i, a := range kernable {
+		wg.Add(1)
+		gate <- struct{}{}
+		go func() {
+			defer func() {
+				if r := recover(); r != nil {
+					mu.Lock()
+					if failed == nil {
+						failed = &r
+					}
+					mu.Unlock()
 				}
+				<-gate
+				wg.Done()
+			}()
+			row := make([]*Pair, len(kernable))
+			for j, b := range kernable {
+				row[j] = pairOf(a, b)
 			}
-			kk, pr.Floor = f.applyFloor(a, b, kk, pr.Dist0)
-			pr.Kern = kk
-			pr.White1 = f.white(a, b, z, float64(kk))
-			pr.Dist1 = pr.Dist0
-			if kk != 0 {
-				pr.Dist1 = f.Distance(a, b, float64(kk))
+			rows[i] = row
+		}()
+	}
+	wg.Wait()
+	if failed != nil {
+		panic(*failed)
+	}
+	all := make(map[[2]int]*Pair)
+	for i, a := range kernable {
+		for j, b := range kernable {
+			if pr := rows[i][j]; pr != nil {
+				all[[2]int{a.Index, b.Index}] = pr
 			}
-			all[[2]int{a.Index, b.Index}] = pr
 		}
 	}
 

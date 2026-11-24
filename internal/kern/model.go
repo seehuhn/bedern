@@ -87,6 +87,7 @@ func (f *Font) shared(a, b *Glyph, z Zone) Bands {
 	_, ref := f.ZoneOf(a, b)
 	ta, tb := f.targetPair(a, b, ref)
 	var bs Bands
+	bs.Rows = make([]int, 0, max(z.Hi-z.Lo, 0))
 	for i := z.Lo; i < z.Hi; i++ {
 		if !math.IsNaN(a.Right[i]) && !math.IsNaN(b.Left[i]) &&
 			(ta == nil || tb == nil || !math.IsNaN(ta.Right[i]) && !math.IsNaN(tb.Left[i])) {
