@@ -796,3 +796,16 @@ func TestForTeXLowersTheCapitalAccents(t *testing.T) {
 		}
 	}
 }
+
+// TestPackageDeclaresTS1Subset checks that the package declares the subset of
+// TS1 of the family with the number which the font definition file declares.
+func TestPackageDeclaresTS1Subset(t *testing.T) {
+	fonts := []*Font{{Style: design.RegularStyle(), Series: "m", Glyphs: allGlyphs()}}
+	want := fmt.Sprintf("\\DeclareEncodingSubset{TS1}{bedern}{%d}\n", ts1SubsetOf(fonts))
+	if pkg := string(Package(fonts, testNow)); !strings.Contains(pkg, want) {
+		t.Errorf("the package lacks the line %s", want)
+	}
+	if fd := string(FD(TS1, fonts, testNow)); !strings.Contains(fd, want) {
+		t.Errorf("the font definition file lacks the line %s", want)
+	}
+}

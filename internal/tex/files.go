@@ -218,11 +218,7 @@ func FD(e *Encoding, fonts []*Font, now time.Time) []byte {
 		}
 	}
 	if e == TS1 {
-		sub := 0
-		for _, f := range fonts {
-			sub = max(sub, TS1Subset(f.Glyphs))
-		}
-		fmt.Fprintf(&b, "\\DeclareEncodingSubset{TS1}{%s}{%d}\n", Family, sub)
+		fmt.Fprintf(&b, "\\DeclareEncodingSubset{TS1}{%s}{%d}\n", Family, ts1SubsetOf(fonts))
 	}
 	b.WriteString("\\endinput\n")
 	return []byte(b.String())
@@ -252,6 +248,15 @@ var ts1Always = map[int]bool{
 	0xBE: true, 0xD6: true, 0xF6: true,
 	// The following positions have no command in LaTeX.
 	0x51: true, 0x71: true,
+}
+
+// ts1SubsetOf returns the greatest TS1Subset of the glyphs of fonts.
+func ts1SubsetOf(fonts []*Font) int {
+	sub := 0
+	for _, f := range fonts {
+		sub = max(sub, TS1Subset(f.Glyphs))
+	}
+	return sub
 }
 
 // TS1Subset returns the number of the subset of TS1 which LaTeX is told the
@@ -380,6 +385,7 @@ func Package(fonts []*Font, now time.Time) []byte {
 	b.WriteString("  \\fi\n")
 	b.WriteString("  \\RequirePackage[T1]{fontenc}\n")
 	b.WriteString("  \\RequirePackage{textcomp}\n")
+	fmt.Fprintf(&b, "  \\DeclareEncodingSubset{TS1}{%s}{%d}\n", Family, ts1SubsetOf(fonts))
 	b.WriteString("  \\ifdefined\\pdfoutput\\ifnum\\pdfoutput>0\n")
 	fmt.Fprintf(&b, "    \\pdfmapfile{=%s}\n", MapFile)
 	fmt.Fprintf(&b, "    \\input{%s}\n", UnicodeFile)
