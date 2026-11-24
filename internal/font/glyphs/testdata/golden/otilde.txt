@@ -27,4 +27,4 @@ caps-up otilde 486 d9325c0eb625
 caps-down otilde 486 d9325c0eb625
 punct-up otilde 486 d9325c0eb625
 punct-down otilde 486 d9325c0eb625
-bold otilde 526 90cd2ea71e13
+bold otilde 526 96d9bfe1a555

@@ -27,4 +27,4 @@ caps-up Utilde 753 636d25f5e2db
 caps-down Utilde 683 ae7f4885ce56
 punct-up Utilde 747 61a9d1727d87
 punct-down Utilde 747 61a9d1727d87
-bold Utilde 808 0e2019d5e910
+bold Utilde 808 c30d5e1906a6

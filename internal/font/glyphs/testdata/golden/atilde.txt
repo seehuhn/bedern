@@ -27,4 +27,4 @@ caps-up atilde 487 865cefacda5f
 caps-down atilde 487 865cefacda5f
 punct-up atilde 487 865cefacda5f
 punct-down atilde 487 865cefacda5f
-bold atilde 545 870bda036347
+bold atilde 545 8a9e3c5dfd57

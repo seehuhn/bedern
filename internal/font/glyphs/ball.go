@@ -873,26 +873,92 @@ func stalkChain(letter string, in stalkFoot, tb placedBall, out stalkFoot) chain
 // turn towards the stem, which meets the stem without curvature at the foot.
 // The point to which the edge is drawn is found by a few steps of moving it
 // along the edge of the stem until the transition curve ends at the foot.  The
-// edge from the foot in is that of stalkChain.
-func stalkChainStraight(letter string, in stalkFoot, tb placedBall, out stalkFoot, ramp float64) chain {
-	a, err := edgeIn(in, tb.In)
-	if err != nil {
-		panic(fmt.Sprintf("glyphs: glyph %s: the edge into the ball terminal: %v", letter, err))
+// edge from the foot in is that of stalkChain or, if leave is set and there is
+// one, the edge which leaves the stem without curvature (leaveStem).
+func stalkChainStraight(letter string, in stalkFoot, tb placedBall, out stalkFoot, ramp float64, leave bool) chain {
+	var first chain
+	if lead, ok := leaveStem(in, tb.In); leave && ok {
+		first = lead
+	} else {
+		a, err := edgeIn(in, tb.In)
+		if err != nil {
+			panic(fmt.Sprintf("glyphs: glyph %s: the edge into the ball terminal: %v", letter, err))
+		}
+		first = splitAtExtrema(a)
 	}
 	var b, rampOut cubic
 	var v float64
-	f := out
+	var err error
+	g := out
 	for i := 0; i < 8; i++ {
-		b, err = edgeOut(tb.Out, f)
+		b, err = edgeOut(tb.Out, g)
 		if err != nil {
 			panic(fmt.Sprintf("glyphs: glyph %s: the edge out of the ball terminal: %v", letter, err))
 		}
 		v = tTurned(b, 1, ramp)
-		rampOut = straightFoot(b.at(v), b.tangent(v), b.curvature(v), f.At, out.Dir)
-		f.At = outline.Point{X: f.At.X + out.At.X - rampOut.P3.X, Y: f.At.Y + out.At.Y - rampOut.P3.Y}
+		rampOut = straightFoot(b.at(v), b.tangent(v), b.curvature(v), g.At, out.Dir)
+		g.At = outline.Point{X: g.At.X + out.At.X - rampOut.P3.X, Y: g.At.Y + out.At.Y - rampOut.P3.Y}
 	}
-	return join(splitAtExtrema(a), tb.Chain, splitAtExtrema(b.sub(0, v)), chain{curveSeg(rampOut)})
+	return join(first, tb.Chain, splitAtExtrema(b.sub(0, v)), chain{curveSeg(rampOut)})
 }
+
+// leaveStem returns the edge of a stalk from the foot in, where it leaves a straight
+// stem without curvature, to the part e: a spiral (windSpiral) whose curvature
+// rises from zero with the power M of the length run, drawn as cubic curves
+// (riseCubics), and a cubic curve which carries on from the end of the spiral
+// to the part with its direction and its curvature (g2Cubic).  The length and the
+// power of the spiral and its final curvature are those of the lengths
+// leaveLengths, the powers leavePowers and the shares leaveShares of the
+// curvature of the part for which the curve to the part turns one way and does
+// not exceed the curvature of the part by more than leaveHump: the longest
+// spiral, and of those the one whose curve to the part is fairest (bending).  It
+// reports false if there is none.
+func leaveStem(in stalkFoot, e stalkEnd) (chain, bool) {
+	sign := math.Copysign(1, e.Kappa)
+	kappa := math.Abs(e.Kappa)
+	var best chain
+	bestL, bestE := 0.0, math.Inf(1)
+	for _, share := range leaveShares {
+		for _, m := range leavePowers {
+			for _, L := range leaveLengths {
+				w := windSpiral{P0: in.At, Phi0: math.Atan2(in.Dir.Y, in.Dir.X), K0: 0, K1: share * kappa, L: L, M: m}
+				end := w.point(L)
+				c, err := g2Cubic(end, dirOf(w.heading(L)), sign*w.curvature(L), e.At, e.Dir, e.Kappa)
+				if err != nil || !oneWay(c, sign) {
+					continue
+				}
+				peak := 0.0
+				for i := 0; i <= 200; i++ {
+					peak = math.Max(peak, math.Abs(c.curvature(float64(i)/200)))
+				}
+				if peak > kappa*(1+leaveHump) {
+					continue
+				}
+				b := bending(c)
+				if L < bestL || (L == bestL && b >= bestE) {
+					continue
+				}
+				lead, err := w.riseCubics(0)
+				if err != nil {
+					continue
+				}
+				best, bestL, bestE = join(lead, splitAtExtrema(c)), L, b
+			}
+		}
+	}
+	return best, bestL > 0
+}
+
+// The lengths, powers and shares of the curvature of the part from which
+// leaveStem chooses, and the fraction by which the curvature of its edge may
+// exceed that of the part.
+var (
+	leaveLengths = []float64{10, 15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80}
+	leavePowers  = []float64{0.5, 1, 1.5, 2, 3}
+	leaveShares  = []float64{0.8, 0.9, 1.0}
+)
+
+const leaveHump = 0.02
 
 // windHook returns the stalk and the ball of a letter whose stroke leaves a stem
 // (f, r) as one chain, from the foot in round the ball to the foot out.  The

@@ -27,4 +27,4 @@ caps-up uni02F7 390 c75ffd0a1459
 caps-down uni02F7 390 c75ffd0a1459
 punct-up uni02F7 390 c75ffd0a1459
 punct-down uni02F7 390 c75ffd0a1459
-bold uni02F7 424 d55f1c6ea69b
+bold uni02F7 424 b4a3cc845c4a

@@ -102,7 +102,7 @@ func jTail(p design.Params) chain {
 // (stalkChainStraight).
 func jTailDrawn(p design.Params, tb placedBall) chain {
 	in, out := jTailFeet(p)
-	return stalkChainStraight("j", in, tb, out, jRamp)
+	return stalkChainStraight("j", in, tb, out, jRamp, true)
 }
 
 // jTerminal returns the ball terminal of j: its leftmost ink JReach left of the

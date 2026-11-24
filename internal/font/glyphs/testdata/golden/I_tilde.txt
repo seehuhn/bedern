@@ -27,4 +27,4 @@ caps-up Itilde 347 996efb4a810c
 caps-down Itilde 327 a5c5f8a81b07
 punct-up Itilde 337 a8c57975f798
 punct-down Itilde 337 a8c57975f798
-bold Itilde 388 ee5ca6bf0e72
+bold Itilde 388 cd43f25620c4

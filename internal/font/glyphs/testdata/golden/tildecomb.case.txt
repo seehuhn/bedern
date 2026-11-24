@@ -27,4 +27,4 @@ caps-up tildecomb.case 0 17d9585132a6
 caps-down tildecomb.case 0 698ef383df3e
 punct-up tildecomb.case 0 d3767393047b
 punct-down tildecomb.case 0 d3767393047b
-bold tildecomb.case 0 12c5494884ac
+bold tildecomb.case 0 c30a58050d9c

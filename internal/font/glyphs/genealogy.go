@@ -41,7 +41,7 @@ const (
 	diedEnd    = 1.9  // the stem of the cross at its foot and its top, in strokes of the mathematical signs
 	diedArmEnd = 1.5  // the arms of the cross at their ends, in strokes of the mathematical signs
 
-	marriedOverlap = 0.44 // the overlap of the two rings, in their diameter
+	marriedOverlap = 0.41 // the overlap of the two rings, in their diameter
 	divorcedOval   = 0.75 // the width of an oval, in its height
 	divorcedGap    = 85.0 // the white between an oval and the bar
 	divorcedBar    = 0.75 // the thickness of the bar, in strokes of the mathematical signs

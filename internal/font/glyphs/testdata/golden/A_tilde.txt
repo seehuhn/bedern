@@ -27,4 +27,4 @@ caps-up Atilde 727 1cbe5517d4cf
 caps-down Atilde 677 e29e42e9c5a7
 punct-up Atilde 725 795237d6243e
 punct-down Atilde 725 795237d6243e
-bold Atilde 755 b9a8e7b92e90
+bold Atilde 755 255d244c7586

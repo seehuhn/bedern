@@ -27,4 +27,4 @@ caps-up tildecomb 0 ba286291c613
 caps-down tildecomb 0 ba286291c613
 punct-up tildecomb 0 ba286291c613
 punct-down tildecomb 0 ba286291c613
-bold tildecomb 0 b07a0e038745
+bold tildecomb 0 cae1e181f6d4

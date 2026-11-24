@@ -27,4 +27,4 @@ caps-up itilde 270 bf469499835a
 caps-down itilde 270 bf469499835a
 punct-up itilde 270 bf469499835a
 punct-down itilde 270 bf469499835a
-bold itilde 319 9cc5dddd58b9
+bold itilde 319 3bc0aa5b8683

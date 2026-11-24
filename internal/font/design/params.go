@@ -716,7 +716,7 @@ func Regular() Params {
 		JStemLeft:  125,
 		JDepth:     200,
 		JOuterDrop: 120,
-		JInnerDrop: 115,
+		JInnerDrop: 140,
 		JReach:     184,
 
 		GBowlWidth:      322,

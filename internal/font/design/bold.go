@@ -49,8 +49,8 @@ type BoldFactors struct {
 	// pitch of the diaeresis.
 	Mark float64
 	// TildeWidth and TildeHeight are the factors of the width and the height
-	// of the tilde.
-	TildeWidth, TildeHeight float64
+	// of the tilde, and TildeThick that of its thick middle.
+	TildeWidth, TildeHeight, TildeThick float64
 	// EBar is the factor of the bar of e, and Eye the height of the counter
 	// above the bar of e over that of the regular; the bar moves down to give
 	// the counter this height.
@@ -80,6 +80,7 @@ func BoldDefault() BoldFactors {
 		Mark:           1.08,
 		TildeWidth:     1.11,
 		TildeHeight:    1.20,
+		TildeThick:     1.24,
 		Eye:            0.97,
 	}
 }
@@ -456,7 +457,7 @@ func boldSigns(p *Params, reg Params, r BoldFactors) {
 		&s.PctZeroThin, &s.NumStroke, &s.NumBar, &s.DollarArc,
 		&s.DollarUpperArc, &s.DollarTip, &s.DollarStroke, &s.SterBar, &s.EuroBar,
 		&s.AmpTail, &s.AmpArmThick,
-		&a.CircThin, &a.CircThick, &a.TildeThick, &a.TildeThin, &a.MacronThick,
+		&a.CircThin, &a.CircThick, &a.TildeThin, &a.MacronThick,
 		&a.BreveThick, &a.BreveThin, &a.RingThick, &a.RingThin, &a.CedThick,
 		&a.OgoNeck, &a.OgoThick, &a.OgoThin, &a.OgoTip, &a.AcuteTip, &a.DblTip)
 	// The apostrophe after d, l and t may reach beyond the advance by the
@@ -485,6 +486,7 @@ func boldSigns(p *Params, reg Params, r BoldFactors) {
 	// The tilde, the mark and the sign alike, grows by its own factors; the
 	// sign keeps its width.
 	a.TildeWidth = math.Round(reg.Acc.TildeWidth * r.TildeWidth)
+	a.TildeThick = math.Round(reg.Acc.TildeThick * r.TildeThick)
 	mul(r.TildeHeight/r.Mark, &a.TildeHeight, &a.TildeHeightCap)
 	mul(r.TildeHeight, &s.TildeHeight)
 }
