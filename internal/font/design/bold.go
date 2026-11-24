@@ -352,6 +352,12 @@ func boldCaps(p *Params, reg Params, r BoldFactors) {
 	}
 }
 
+// boldOldAdvanceCut is the amount by which the advance of the tabular
+// old-style figures of the bold is narrower than that of the lining figures.
+// It puts the white between neighbouring old-style figures at 0.175 of the
+// x-height.
+const boldOldAdvanceCut = 16
+
 // boldFigures applies the factors to the figures, which share one advance
 // and widen as the round letters do.
 func boldFigures(p *Params, reg Params, r BoldFactors) {
@@ -414,6 +420,7 @@ func boldFigures(p *Params, reg Params, r BoldFactors) {
 	add(o.TwoHeavy-heavy, &o.TwoBaseEnd)
 	// The diagonal of the old-style 2 thickens with the thin strokes.
 	add((f.Thin-reg.Figures.Thin)/math.Cos(o.TwoDiagAngle*math.Pi/180), &o.TwoDiagFoot)
+	o.AdvanceCut = boldOldAdvanceCut
 	for i := range o.Left {
 		mul(r.Side, &o.Left[i], &o.Right[i], &o.LiningLeft[i], &o.LiningRight[i])
 	}

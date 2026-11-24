@@ -27,4 +27,4 @@ caps-up four.oldstyle 528 73fe0ff53bff
 caps-down four.oldstyle 489 584aa9540174
 punct-up four.oldstyle 507 aa41dc79ce0f
 punct-down four.oldstyle 507 aa41dc79ce0f
-bold four.oldstyle 547 082a76d4eb57
+bold four.oldstyle 531 b7212479e65e

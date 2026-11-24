@@ -27,4 +27,4 @@ caps-up eight.taboldstyle 515 798cd3b8df2d
 caps-down eight.taboldstyle 470 6dc15037d24d
 punct-up eight.taboldstyle 490 18b7302757ca
 punct-down eight.taboldstyle 490 18b7302757ca
-bold eight.taboldstyle 530 e1aaceadee04
+bold eight.taboldstyle 514 e7ba29561291

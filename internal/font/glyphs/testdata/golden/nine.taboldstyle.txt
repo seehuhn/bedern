@@ -27,4 +27,4 @@ caps-up nine.taboldstyle 515 324807976880
 caps-down nine.taboldstyle 470 56e6df706f34
 punct-up nine.taboldstyle 490 db6473e704b2
 punct-down nine.taboldstyle 490 db6473e704b2
-bold nine.taboldstyle 530 786c76c7ee61
+bold nine.taboldstyle 514 539156272456

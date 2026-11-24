@@ -27,4 +27,4 @@ caps-up four.taboldstyle 515 13afff8328b2
 caps-down four.taboldstyle 470 f3153160a46a
 punct-up four.taboldstyle 490 aa41dc79ce0f
 punct-down four.taboldstyle 490 aa41dc79ce0f
-bold four.taboldstyle 530 082a76d4eb57
+bold four.taboldstyle 514 b7212479e65e

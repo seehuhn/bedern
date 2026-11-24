@@ -27,4 +27,4 @@ caps-up six.taboldstyle 515 a5901a2c6998
 caps-down six.taboldstyle 470 4526eba50a7c
 punct-up six.taboldstyle 490 60099e975117
 punct-down six.taboldstyle 490 60099e975117
-bold six.taboldstyle 530 478549c51bf0
+bold six.taboldstyle 514 2bd23d60dcc1

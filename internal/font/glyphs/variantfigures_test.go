@@ -93,16 +93,17 @@ func TestOldStyleFourBarOnBaseline(t *testing.T) {
 
 // The tabular and the proportional form of a figure are one outline, moved
 // sideways by a whole number of units, in the lining and in the old-style
-// figures.  The tabular old-style figures have the advance of the lining
-// ones, the proportional 1 is narrower than that, and every proportional
-// figure has white on both sides.
+// figures.  The tabular old-style figures share one advance, the proportional 1 is narrower than that, and every proportional
+// figure has white on both sides.  The tabular old-style figures have the
+// advance of the lining ones less OldFigures.AdvanceCut.
 func TestFigureFormsShareTheOutline(t *testing.T) {
 	t.Parallel()
 	forCaps(t, func(t *testing.T, np namedParams) {
 		_, tabular := cachedOutline(np, "zero")
+		oldAdv := tabular - np.params.Figures.Old.AdvanceCut
 		for _, n := range figureNames {
-			if _, adv := cachedOutline(np, n+".taboldstyle"); adv != tabular {
-				t.Errorf("%s: the advance of %s.taboldstyle is %g, that of the lining figures %g", np.name, n, adv, tabular)
+			if _, adv := cachedOutline(np, n+".taboldstyle"); adv != oldAdv {
+				t.Errorf("%s: the advance of %s.taboldstyle is %g, want %g, that of the lining figures %g less the cut", np.name, n, adv, oldAdv, tabular)
 			}
 			for _, pair := range [][2]string{{n, n + ".prop"}, {n + ".taboldstyle", n + ".oldstyle"}} {
 				tab, prop := cachedRounded(np, pair[0]), cachedRounded(np, pair[1])

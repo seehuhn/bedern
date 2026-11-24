@@ -27,4 +27,4 @@ caps-up one.taboldstyle 515 897053af80fc
 caps-down one.taboldstyle 470 633bba747cab
 punct-up one.taboldstyle 490 23d2be527416
 punct-down one.taboldstyle 490 23d2be527416
-bold one.taboldstyle 530 cb12f36daec6
+bold one.taboldstyle 514 31d6cb79ccb8

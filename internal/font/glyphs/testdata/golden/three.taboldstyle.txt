@@ -27,4 +27,4 @@ caps-up three.taboldstyle 515 6304896adab4
 caps-down three.taboldstyle 470 c4867b5bc205
 punct-up three.taboldstyle 490 a78404f13e53
 punct-down three.taboldstyle 490 a78404f13e53
-bold three.taboldstyle 530 4739a1aa9033
+bold three.taboldstyle 514 a90571e0c07d

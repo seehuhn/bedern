@@ -6,7 +6,7 @@ package design
 // This file holds the parameters of the old-style figures and of the
 // proportional figures.  A figure has four forms: lining or old-style, each
 // tabular or proportional.  The tabular forms stand on the advance of the
-// figures; a proportional form is the outline of the tabular form between side
+// figures, the old-style ones on the advance less AdvanceCut; a proportional form is the outline of the tabular form between side
 // spaces of its own.  The construction is described in
 // internal/glyphs/variantfigures.go.
 
@@ -47,6 +47,13 @@ type OldFigures struct {
 	TwoBall      float64
 	TwoHeavy     float64
 
+	// AdvanceCut is how much narrower the advance of the tabular old-style
+	// figures is than Figures.Advance.  The ink of every figure keeps its
+	// place in the middle of the advance, and the ink of 4, which has the
+	// least white to the edges of the advance, is narrower by AdvanceCut as
+	// well, so that 4 keeps its distance from the edges.
+	AdvanceCut float64
+
 	// Left and Right are the side spaces of the proportional old-style
 	// figures, from the edge of the advance to the ink, and LiningLeft and
 	// LiningRight those of the proportional lining figures.
@@ -80,6 +87,8 @@ func regularOldFigures() OldFigures {
 		TwoRise:      76,
 		TwoBall:      72,
 		TwoHeavy:     66,
+
+		AdvanceCut: 0,
 
 		//                        0   1   2   3   4   5   6   7   8   9
 		Left:        [10]float64{36, 24, 38, 26, 16, 27, 38, 37, 35, 31},

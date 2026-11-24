@@ -15,7 +15,8 @@ import (
 //
 // A figure has four forms.  The lining tabular figures are those of
 // figures.go, at the code points.  The old-style tabular figures
-// (.taboldstyle) stand on the same advance.  The proportional forms (.prop,
+// (.taboldstyle) stand on one advance, that of the lining figures less
+// OldFigures.AdvanceCut, and the ink of 4 is narrower by the same amount.  The proportional forms (.prop,
 // lining, and .oldstyle, old-style) are the outlines of the tabular forms,
 // moved by a whole number of units, between the side spaces of
 // design.FigureSides.
@@ -92,6 +93,8 @@ func figure(d int, old, prop bool) func(p design.Params) (outline.Path, float64)
 // shift of each is moved by less than a unit, so that the left side space
 // which design.FigureLeft gives the figure is a whole number.
 func oldParams(p design.Params, d int) (design.Params, float64) {
+	p.Figures.Advance -= p.Figures.Old.AdvanceCut
+	p.Figures.Ink[4] -= p.Figures.Old.AdvanceCut
 	if d == 6 || d == 8 {
 		q := p
 		q.OvershootUpper = p.OvershootLower

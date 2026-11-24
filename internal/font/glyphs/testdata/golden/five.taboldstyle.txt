@@ -27,4 +27,4 @@ caps-up five.taboldstyle 515 3df016c4ab5c
 caps-down five.taboldstyle 470 6babc74a35b8
 punct-up five.taboldstyle 490 a1b0e89d0fb8
 punct-down five.taboldstyle 490 a1b0e89d0fb8
-bold five.taboldstyle 530 621905255b76
+bold five.taboldstyle 514 98cf0ab3c76d
