@@ -8,9 +8,10 @@
 //	bedern [-o DIR] [-tex TREE]
 //	bedern -private-use
 //
-// The command writes the font files Bedern-Regular.otf, Bedern-Bold.otf and
-// BedernMath-Regular.otf, the file bedern-math-ranges.tex and the licence
-// OFL.txt into the directory DIR, which is the current directory by default.
+// The command writes the font files Bedern-Regular.otf, Bedern-Bold.otf,
+// Bedern-Italic.otf and BedernMath-Regular.otf, the file
+// bedern-math-ranges.tex and the licence OFL.txt into the directory DIR, which
+// is the current directory by default.
 // BedernMath-Regular.otf is the mathematics font for unicode-math, and
 // bedern-math-ranges.tex defines the list of its code points for the option
 // range of \setmathfont and the command \setBedernMath, which loads the font
@@ -23,7 +24,8 @@
 // fonts, below the directory TREE in the layout of the TeX Directory
 // Structure: the fonts in the PFB format and as OpenType fonts, the metric
 // files of the encodings T1 and TS1, the encoding files, the map file, the
-// font definition files and the package bedern for LaTeX, the macro file
+// font definition files, which declare the shapes n, sl and it, and the
+// package bedern for LaTeX, the macro file
 // bedern.tex for plain TeX, the mappings of the glyphs to Unicode and the
 // licence.
 //
@@ -49,24 +51,30 @@ import (
 	bedern "seehuhn.de/go/bedern/internal/font"
 	"seehuhn.de/go/bedern/internal/font/design"
 	"seehuhn.de/go/bedern/internal/font/glyphs"
+	"seehuhn.de/go/bedern/internal/font/italic/assembly"
 	"seehuhn.de/go/bedern/internal/font/mathfont"
 	"seehuhn.de/go/bedern/internal/kern"
 	"seehuhn.de/go/bedern/internal/tex"
+	"seehuhn.de/go/sfnt"
 )
 
 // A fontSpec is one font of the family: the name of its file, its parameters,
-// its style and its series in LaTeX.
+// its style and its series in LaTeX.  The glyphs of the font with italic set
+// are those of the italic (assembly), with their own kerning; the parameters
+// are then those of that kerning.
 type fontSpec struct {
 	file   string
 	params func() design.Params
 	style  func() design.Style
 	series string
+	italic bool
 }
 
 // fonts lists the fonts which the command writes.
 var fonts = []fontSpec{
-	{"Bedern-Regular.otf", design.Regular, design.RegularStyle, "m"},
-	{"Bedern-Bold.otf", design.Bold, design.BoldStyle, "b"},
+	{"Bedern-Regular.otf", design.Regular, design.RegularStyle, "m", false},
+	{"Bedern-Bold.otf", design.Bold, design.BoldStyle, "b", false},
+	{assembly.File, assembly.Kerning, design.ItalicStyle, "m", true},
 }
 
 func usage() {
@@ -195,7 +203,11 @@ func texFiles(out []*rendered, now time.Time) (map[string][]byte, []tex.Report, 
 		kerns  []tex.KernFunc
 	)
 	for i, f := range fonts {
-		tf = append(tf, &tex.Font{Style: f.style(), Series: f.series, Glyphs: out[i].tex})
+		t := &tex.Font{Style: f.style(), Series: f.series, Glyphs: out[i].tex}
+		if f.italic {
+			t.Angle, t.Correction = assembly.Default().Slant(), assembly.TeXItalicCorrection
+		}
+		tf = append(tf, t)
 		params = append(params, out[i].params)
 		kerns = append(kerns, out[i].kern.Kern)
 	}
@@ -239,6 +251,7 @@ func renderMath(now time.Time, dated bool) (map[string][]byte, error) {
 		}
 	}
 	var ranges bytes.Buffer
+	ranges.WriteString(tex.Header("%", mathfont.RangesFile, "the code points of Bedern Math for unicode-math"))
 	if err := mathfont.WriteRanges(&ranges, gs); err != nil {
 		return nil, fmt.Errorf("%s: %w", mathfont.RangesFile, err)
 	}
@@ -266,13 +279,28 @@ type rendered struct {
 // is false, the unique identifier carries no date.
 func render(f fontSpec, now time.Time, dated, withPFB bool) (*rendered, error) {
 	p := f.params()
-	r := &rendered{params: p, glyphs: glyphSet(p)}
-	r.kern = kern.Compute(p, r.glyphs)
-	r.tex = tex.ForTeX(p, r.glyphs)
-	font, err := build.FontWith(p, f.style(), r.glyphs, now, build.Options{Kern: r.kern})
-	if err != nil {
-		return nil, err
+	r := &rendered{params: p}
+	var (
+		font *sfnt.Font
+		err  error
+	)
+	if f.italic {
+		ip := assembly.Default()
+		if r.glyphs, err = assembly.Table(ip); err != nil {
+			return nil, err
+		}
+		r.kern = assembly.KernTable(r.glyphs)
+		if font, err = assembly.FontOf(ip, r.glyphs, r.kern, now); err != nil {
+			return nil, err
+		}
+	} else {
+		r.glyphs = glyphSet(p)
+		r.kern = kern.Compute(p, r.glyphs)
+		if font, err = build.FontWith(p, f.style(), r.glyphs, now, build.Options{Kern: r.kern}); err != nil {
+			return nil, err
+		}
 	}
+	r.tex = tex.ForTeX(p, r.glyphs)
 	var buf bytes.Buffer
 	if _, err := build.Write(&buf, font); err != nil {
 		return nil, err

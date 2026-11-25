@@ -33,3 +33,14 @@ func WithoutDot(path outline.Path, xh float64) outline.Path {
 	keep, _ := withoutDot(path, xh)
 	return keep
 }
+
+// ItalicPad is the amount added to the overhang of the ink for the italic
+// correction in the metric files for TeX.
+const ItalicPad = 10
+
+// TeXItalicCorrection returns the italic correction of the glyph in the
+// metric files for TeX: ItalicCorrection with the pad ItalicPad.
+func TeXItalicCorrection(g glyphs.Glyph) float64 { return ItalicCorrection(g, ItalicPad) }
+
+// Slant returns the slant of the italic as a ratio.
+func (p Params) Slant() float64 { return p.slant() }

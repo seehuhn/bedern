@@ -623,6 +623,9 @@ func TestLicence(t *testing.T) {
 		t.Errorf("%d text files, want 8", count)
 	}
 	for _, f := range strings.Split(listed, ", ") {
+		if f == MathRangesFile {
+			continue // written by the command, with the font of the mathematics
+		}
 		found := false
 		for name := range files {
 			found = found || strings.HasSuffix(name, "/"+f)
@@ -692,6 +695,80 @@ func TestSlantedFiles(t *testing.T) {
 	pkg := string(Package(all, testNow))
 	if strings.Count(pkg, "\\setmainfont") != 1 {
 		t.Error("the package sets the main font more than once")
+	}
+}
+
+// TestItalicFiles checks the files of a family with an italic font: the shape
+// it of the series m is the italic metric file in the font definition files
+// and the macro file, the shape it of the series b stays the slanted bold, the
+// map file does not slant the outlines of the italic, the italic has no
+// slanted instance, and the metric file has the slant, the face byte and the
+// italic corrections of the font.
+func TestItalicFiles(t *testing.T) {
+	p := design.Regular()
+	gs := allGlyphs()
+	fonts := []*Font{
+		{Style: design.RegularStyle(), Series: "m", Glyphs: gs},
+		{Style: design.BoldStyle(), Series: "b", Glyphs: gs},
+		{Style: design.ItalicStyle(), Series: "m", Glyphs: gs, Angle: 0.25,
+			Correction: func(g glyphs.Glyph) float64 { return 7 }},
+	}
+	if got := len(Slanted(fonts)); got != 2 {
+		t.Errorf("%d slanted instances, want 2", got)
+	}
+	none := func(a, b int) int { return 0 }
+	files, _, err := Files(fonts, []design.Params{p, p, p}, []KernFunc{none, none, none}, testNow)
+	if err != nil {
+		t.Fatal(err)
+	}
+	fd := string(files[DirLaTeX+"/"+FDFile(T1)])
+	for _, want := range []string{
+		`\DeclareFontShape{T1}{bedern}{m}{it}{<-> bedern-italic-t1}{}`,
+		`\DeclareFontShape{T1}{bedern}{b}{it}{<->ssub * bedern/b/sl}{}`,
+		`\DeclareFontShape{T1}{bedern}{bx}{it}{<->ssub * bedern/b/it}{}`,
+	} {
+		if !strings.Contains(fd, want+"\n") {
+			t.Errorf("the font definition file lacks %s", want)
+		}
+	}
+	if strings.Contains(fd, "bedern/m/sl") {
+		t.Error("the font definition file takes a shape of the series m from the slanted instance")
+	}
+	m := string(files[DirMap+"/"+MapFile])
+	if !strings.Contains(m, "bedern-italic-t1 Bedern-Italic \"BedernT1Encoding ReEncodeFont\" <bedern-t1.enc <Bedern-Italic.pfb\n") {
+		t.Errorf("the map file has no line for the italic:\n%s", m)
+	}
+	if strings.Contains(m, "italic-sl") {
+		t.Error("the map file slants the italic")
+	}
+	plain := string(Plain(append(fonts, Slanted(fonts)...)))
+	for _, want := range []string{
+		`\font\bedernit=bedern-italic-t1`, `\let\tenit=\bedernit`, `\def\it{\fam\itfam\bedernit}`,
+	} {
+		if !strings.Contains(plain, want+"\n") {
+			t.Errorf("the macro file lacks %s", want)
+		}
+	}
+	if strings.Contains(plain, `\def\it{\fam\itfam\bedernsl}`) || strings.Count(plain, "\\font\\") != 5 {
+		t.Errorf("the macro file sets \\it in the slanted font or loads %d fonts, want 5", strings.Count(plain, "\\font\\"))
+	}
+	pkg := string(Package(append(fonts, Slanted(fonts)...), testNow))
+	if !strings.Contains(pkg, "ItalicFont=Bedern-Italic,BoldFont=Bedern-Bold,BoldItalicFont=Bedern-Bold,") {
+		t.Errorf("the package does not take the italic font:\n%s", pkg)
+	}
+	data := files[DirTFM+"/bedern-italic-t1.tfm"]
+	file, err := tfm.Read(bytes.NewReader(data))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := file.Param[0].Float(); math.Abs(got-0.25) > 1e-4 {
+		t.Errorf("slant %v, want 0.25", got)
+	}
+	if face, ok := file.Face(); !ok || face != 1 {
+		t.Errorf("face byte %d, want 1", face)
+	}
+	if got := file.CharItalic('A').Float() * 1000; math.Abs(got-7) > 0.1 {
+		t.Errorf("italic correction of A %g, want 7", got)
 	}
 }
 

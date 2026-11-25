@@ -44,6 +44,17 @@ func BoldStyle() Style {
 	}
 }
 
+// ItalicStyle returns the style of Bedern Italic.
+func ItalicStyle() Style {
+	return Style{
+		Family:     "Bedern",
+		Subfamily:  "Italic",
+		PostScript: "Bedern-Italic",
+		Weight:     400,
+		Italic:     true,
+	}
+}
+
 // Validate reports whether the style can be used for a font.
 func (s Style) Validate() error {
 	if s.Family == "" {

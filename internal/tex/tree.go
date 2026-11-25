@@ -50,11 +50,12 @@ type Report struct {
 // report for each metric file.  The parameters and the kerns of the fonts are
 // given in the order of the fonts.  Each upright font gets a slanted instance
 // (Slanted) with a metric file of its own, which uses the outline file of the
-// upright font.
+// upright font.  An italic font has the metric files of its own and its
+// outline file, as an upright font does, and no slanted instance.
 func Files(fonts []*Font, params []design.Params, kerns []KernFunc, now time.Time) (map[string][]byte, []Report, error) {
 	var slanted []*Font
 	for i, f := range fonts {
-		if f.Slant == 0 {
+		if f.Slant == 0 && !f.Style.Italic {
 			slanted = append(slanted, Slanted([]*Font{f})...)
 			params = append(slices.Clone(params), params[i])
 			kerns = append(slices.Clone(kerns), kerns[i])
@@ -78,6 +79,16 @@ func Files(fonts []*Font, params []design.Params, kerns []KernFunc, now time.Tim
 			if f.Slant != 0 {
 				m.Slant, m.Italic = f.Slant, true
 				m.SlantItalics(f.Glyphs)
+			}
+			if f.Angle != 0 {
+				m.Slant = f.Angle
+			}
+			if f.Correction != nil {
+				for _, ch := range m.Chars {
+					if ch != nil {
+						ch.Italic = f.Correction(f.Glyphs[ch.Glyph])
+					}
+				}
 			}
 			r := Report{TFM: f.TFM(e), Reductions: m.Reduce(params[i])}
 			_, r.Missing = e.Resolve(f.Glyphs)

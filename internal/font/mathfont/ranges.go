@@ -208,14 +208,13 @@ func WriteRanges(w io.Writer, gs []Glyph) error {
 	if has[MapstocharRune] {
 		primes = append(primes, fmt.Sprintf("  \\Umathchardef\\mapstochar=3 \\BedernMathFamily\\space\"%X \\relax\n", MapstocharRune))
 	}
-	_, err := fmt.Fprintf(w, `%% The code points of %s.
-\def\BedernMathRanges{%s}
+	_, err := fmt.Fprintf(w, `\def\BedernMathRanges{%s}
 \def\BedernMathFamily{\number\numexpr(\Umathcodenum"%X-8388608)/16777216\relax}
 \protected\def\setBedernMath{%%
   \begingroup\edef\x{\endgroup
     \noexpand\setmathfont{%s}[range={\BedernMathRanges}]}\x
 %s%s}
-`, File, RangeList(Ranges(gs)), probeRune, File, strings.Join(remap, ""), strings.Join(primes, ""))
+`, RangeList(Ranges(gs)), probeRune, File, strings.Join(remap, ""), strings.Join(primes, ""))
 	return err
 }
 

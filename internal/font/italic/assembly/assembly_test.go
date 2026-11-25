@@ -109,7 +109,7 @@ func TestFitTableCoversEveryGlyph(t *testing.T) {
 
 // TestFontIsMarkedItalic writes the font, reads it back and checks the marks
 // of an italic: the italic bits, no regular bit, the italic angle of the
-// slant, and the trial in the family name.
+// slant, and the names of the family and of the font.
 func TestFontIsMarkedItalic(t *testing.T) {
 	gs := fullTable(t)
 	p := Default()
@@ -143,8 +143,8 @@ func TestFontIsMarkedItalic(t *testing.T) {
 	if math.Abs(g.ItalicAngle-want) > 0.001 {
 		t.Errorf("italic angle %.4f, want %.4f", g.ItalicAngle, want)
 	}
-	if !bytes.Contains([]byte(g.FamilyName), []byte("Trial")) {
-		t.Errorf("family %q is not named as a trial", g.FamilyName)
+	if g.FamilyName != "Bedern" || g.FontName != "Bedern-Italic" {
+		t.Errorf("family %q, PostScript name %q, want Bedern and Bedern-Italic", g.FamilyName, g.FontName)
 	}
 }
 

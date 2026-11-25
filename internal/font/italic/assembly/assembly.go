@@ -32,19 +32,11 @@ import (
 	"seehuhn.de/go/bedern/internal/font/italic/upper"
 )
 
-// File is the name of the trial font file.
-const File = "Bedern-Italic-Trial.otf"
+// File is the name of the font file.
+const File = "Bedern-Italic.otf"
 
-// Style is the style of the trial font.
-func Style() design.Style {
-	return design.Style{
-		Family:     "Bedern Trial",
-		Subfamily:  "Italic",
-		PostScript: "BedernTrial-Italic",
-		Weight:     400,
-		Italic:     true,
-	}
-}
+// Style is the style of the font.
+func Style() design.Style { return design.ItalicStyle() }
 
 // Params are the parameters of the assembly.
 type Params struct {
@@ -81,7 +73,7 @@ func Kerning() design.Params {
 	return rp
 }
 
-// Default returns the parameters of the trial.
+// Default returns the parameters of the font.
 func Default() Params {
 	c := upper.Default()
 	c.Weight = CapWeight
@@ -233,7 +225,7 @@ func finish(gs []glyphs.Glyph) []glyphs.Glyph {
 	return gs
 }
 
-// Font builds the trial font, with the kerning of the model.
+// Font builds the font, with the kerning of the model.
 func Font(p Params, now time.Time) (f *sfnt.Font, err error) {
 	defer func() {
 		if r := recover(); r != nil {

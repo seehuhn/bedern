@@ -6,6 +6,7 @@ package main
 import (
 	"bytes"
 	"encoding/binary"
+	"flag"
 	"fmt"
 	"io/fs"
 	"math"
@@ -22,6 +23,7 @@ import (
 	"seehuhn.de/go/bedern/internal/build"
 	bedern "seehuhn.de/go/bedern/internal/font"
 	"seehuhn.de/go/bedern/internal/font/glyphs/glyphstest"
+	"seehuhn.de/go/bedern/internal/font/italic/assembly"
 	"seehuhn.de/go/bedern/internal/font/mathfont"
 	"seehuhn.de/go/bedern/internal/outline"
 	"seehuhn.de/go/bedern/internal/tex"
@@ -71,7 +73,7 @@ func ran(t *testing.T) runResult {
 			return
 		}
 		// The routine tier leaves out Bedern Math, which costs about 15
-		// seconds of processor time.
+		// seconds of processor time, and the italic (see TestMain).
 		var math map[string][]byte
 		if !testing.Short() {
 			var err error
@@ -161,6 +163,13 @@ func sharedTree(t *testing.T) string {
 }
 
 func TestMain(m *testing.M) {
+	flag.Parse()
+	if testing.Short() {
+		// The routine tier leaves out the italic, which costs about 20
+		// seconds of processor time; the tree then has the italic shape
+		// of the slanted instance.
+		fonts = slices.DeleteFunc(slices.Clone(fonts), func(f fontSpec) bool { return f.italic })
+	}
 	code := m.Run()
 	if treeDir != "" {
 		os.RemoveAll(treeDir)
@@ -235,10 +244,17 @@ func TestRun(t *testing.T) {
 		return
 	}
 	ranges := string(r.files[mathfont.RangesFile])
-	for _, want := range []string{`\def\BedernMathRanges{`, `\setBedernMath{`, mathfont.File} {
+	for _, want := range []string{`\def\BedernMathRanges{`, `\setBedernMath{`, mathfont.File,
+		"SPDX-License-Identifier: LPPL-1.3c", "% This work consists of the files "} {
 		if !strings.Contains(ranges, want) {
 			t.Errorf("%s lacks %s", mathfont.RangesFile, want)
 		}
+	}
+	if !strings.Contains(ranges, " "+mathfont.RangesFile+", ") {
+		t.Errorf("the notice of %s does not list the file", mathfont.RangesFile)
+	}
+	if tex.MathRangesFile != mathfont.RangesFile {
+		t.Errorf("the notices name %s, the command writes %s", tex.MathRangesFile, mathfont.RangesFile)
 	}
 }
 
@@ -331,10 +347,14 @@ func TestFamily(t *testing.T) {
 	}{
 		{"Bedern-Regular.otf", "Regular", "Bedern-Regular", 400, 0x40, 0},
 		{"Bedern-Bold.otf", "Bold", "Bedern-Bold", 700, 0x20, 0x01},
+		{"Bedern-Italic.otf", "Italic", "Bedern-Italic", 400, 0x01, 0x02},
 	}
 	versions := map[string]bool{}
 	ids := map[string]string{}
 	for _, w := range want {
+		if !slices.Contains(fontFiles(), w.file) {
+			continue
+		}
 		f := readFamilyFields(t, w.file, files[w.file])
 		if f.weight != w.weight {
 			t.Errorf("%s: weight class %d, want %d", w.file, f.weight, w.weight)
@@ -463,6 +483,14 @@ func TestTree(t *testing.T) {
 		"tex/latex/bedern/t1bedern.fd",
 		"tex/latex/bedern/ts1bedern.fd",
 		"tex/plain/bedern/bedern.tex",
+	}
+	if slices.Contains(fontFiles(), "Bedern-Italic.otf") {
+		want = append(want,
+			"fonts/opentype/public/bedern/Bedern-Italic.otf",
+			"fonts/tfm/public/bedern/bedern-italic-t1.tfm",
+			"fonts/tfm/public/bedern/bedern-italic-ts1.tfm",
+			"fonts/type1/public/bedern/Bedern-Italic.pfb")
+		slices.Sort(want)
 	}
 	var got []string
 	for path := range r.tree {
@@ -606,7 +634,7 @@ func beginsLigature(file *tfm.File, c int) bool {
 // glyphs, the ligatures of f give the glyphs which stand for the letters, the
 // letters x, H and p have the x-height, the height of the capitals and the
 // depth of the descenders, the interword space is the advance of the space,
-// the face byte names the weight,
+// the face byte names the weight and the slope,
 // and the reduction of the heights and depths to the sizes of the format
 // changes no value by more than a fortieth of the em.
 func TestMetricFiles(t *testing.T) {
@@ -723,8 +751,11 @@ func TestMetricFiles(t *testing.T) {
 			t.Errorf("%s: parameters %v", name, file.Param)
 		}
 		wantFace := byte(0)
-		if f.style().Bold {
+		switch {
+		case f.style().Bold:
 			wantFace = 2
+		case f.style().Italic:
+			wantFace = 1
 		}
 		if face, ok := file.Face(); !ok || face != wantFace {
 			t.Errorf("%s: face byte %d, want %d", name, face, wantFace)
@@ -810,15 +841,17 @@ func TestTS1Commands(t *testing.T) {
 }
 
 // TestShapes sets the slanted and the italic shape with pdfLaTeX and the
-// fonts of \it, \sl, \tt and of the footline with plain pdfTeX: the shapes
-// of LaTeX come from the slanted instance, the accented letters and the page
-// number of plain TeX come from Bedern in every font, and the typewriter font
-// is the only other font.
+// fonts of \it, \sl, \tt and of the footline with plain pdfTeX: the shape sl
+// of LaTeX comes from the slanted instance and the shape it from the italic
+// font, which is in the PDF file of both engines if the command writes it,
+// the accented letters and the page number of plain TeX come from Bedern in
+// every font, and the typewriter font is the only other font.
 func TestShapes(t *testing.T) {
 	t.Parallel()
 	pdftex, pdflatex := needTool(t, "pdftex"), needTool(t, "pdflatex")
 	needTool(t, "pdffonts")
 	dir, tree := t.TempDir(), sharedTree(t)
+	hasItalic := slices.Contains(fontFiles(), assembly.File)
 	body := "caf\\'e Stra\\ss e \\l\\'od\\'z na\\\"\\i ve"
 	_, log, ok := compile(t, dir, tree, pdflatex, "shapes",
 		"\\documentclass{article}\\usepackage{bedern}\\begin{document}\n"+
@@ -829,10 +862,14 @@ func TestShapes(t *testing.T) {
 				t.Errorf("LaTeX: the log says %q", bad)
 			}
 		}
-		for _, name := range pdfFonts(t, filepath.Join(dir, "shapes.pdf")) {
+		names := pdfFonts(t, filepath.Join(dir, "shapes.pdf"))
+		for _, name := range names {
 			if !strings.Contains(name, "+Bedern-") {
 				t.Errorf("LaTeX: the font %s is not Bedern", name)
 			}
+		}
+		if got := slices.ContainsFunc(names, func(n string) bool { return strings.HasSuffix(n, "+Bedern-Italic") }); got != hasItalic {
+			t.Errorf("LaTeX: the italic font is in the PDF file: %t, want %t", got, hasItalic)
 		}
 	}
 	// one document for the four fonts: only the typewriter font is not Bedern
@@ -846,11 +883,15 @@ func TestShapes(t *testing.T) {
 		if bytes.Contains(log, []byte("Missing character")) {
 			t.Error("plain: the log reports a missing character")
 		}
-		other := 0
+		other, italic := 0, false
 		for _, name := range pdfFonts(t, filepath.Join(dir, "plain.pdf")) {
 			if !strings.Contains(name, "+Bedern-") {
 				other++
 			}
+			italic = italic || strings.HasSuffix(name, "+Bedern-Italic")
+		}
+		if italic != hasItalic {
+			t.Errorf("plain: the italic font is in the PDF file: %t, want %t", italic, hasItalic)
 		}
 		if other != 1 {
 			t.Errorf("plain: %d fonts other than Bedern, want 1 (the typewriter font)", other)
@@ -893,6 +934,9 @@ func TestSlantedMetricFiles(t *testing.T) {
 	r := ran(t)
 	mapFile := string(r.tree[tex.DirMap+"/"+tex.MapFile])
 	for _, f := range fonts {
+		if f.italic {
+			continue
+		}
 		upright := &tex.Font{Style: f.style()}
 		slanted := &tex.Font{Style: f.style(), Slant: tex.SlantRatio}
 		for _, e := range tex.Encodings {

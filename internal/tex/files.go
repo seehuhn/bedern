@@ -45,17 +45,27 @@ type Font struct {
 	// upright font.  A font with a slant is the outline file of an upright
 	// font which the map file slants, with a metric file of its own.
 	Slant float64
+
+	// Angle is the slant of a font whose outlines are drawn slanted, as a
+	// ratio: the first parameter of its metric files.  It is zero for an
+	// upright font and for a slanted instance.
+	Angle float64
+
+	// Correction, if it is not nil, gives the italic correction of a glyph
+	// of the font, in place of the one which NewMetrics computes.
+	Correction func(glyphs.Glyph) float64
 }
 
 // SlantRatio is the slant of the slanted instances of the fonts, a ratio.
 const SlantRatio = 1.0 / 6
 
 // Slanted returns the slanted instances of the fonts which are upright, in the
-// order of the fonts, with the slant SlantRatio.
+// order of the fonts, with the slant SlantRatio.  A font which is an italic
+// has none.
 func Slanted(fonts []*Font) []*Font {
 	var out []*Font
 	for _, f := range fonts {
-		if f.Slant == 0 {
+		if f.Slant == 0 && !f.Style.Italic {
 			g := *f
 			g.Slant = SlantRatio
 			out = append(out, &g)
@@ -64,11 +74,14 @@ func Slanted(fonts []*Font) []*Font {
 	return out
 }
 
-// Shape returns the shape of the font in LaTeX, n for an upright font and sl
-// for a slanted one.
+// Shape returns the shape of the font in LaTeX: n for an upright font, sl for
+// a slanted instance and it for an italic.
 func (f *Font) Shape() string {
-	if f.Slant != 0 {
+	switch {
+	case f.Slant != 0:
 		return "sl"
+	case f.Style.Italic:
+		return "it"
 	}
 	return "n"
 }
@@ -87,11 +100,11 @@ func (f *Font) TFM(e *Encoding) string {
 // PFB returns the name of the file of the outlines.
 func (f *Font) PFB() string { return f.Style.PostScript + ".pfb" }
 
-// header returns the first lines of a generated file, each started by the
+// Header returns the first lines of a generated file, each started by the
 // comment sign: the name and purpose of the file, the copyright, and the
 // notice of the LaTeX Project Public License, under which the files for TeX
 // stand, with the list of the files of the work.
-func header(comment, name, what string) string {
+func Header(comment, name, what string) string {
 	var b strings.Builder
 	line := func(format string, args ...any) {
 		if format == "" {
@@ -122,13 +135,16 @@ func header(comment, name, what string) string {
 	return b.String()
 }
 
+// MathRangesFile is the name of the file of the code points of Bedern Math.
+const MathRangesFile = "bedern-math-ranges.tex"
+
 // LPPLURL is the address of the text of the LaTeX Project Public License.
 const LPPLURL = "https://www.latex-project.org/lppl.txt"
 
 // workFiles returns the names of the files which stand under the LaTeX
 // Project Public License.
 func workFiles() []string {
-	files := []string{Family + ".sty", PlainFile, UnicodeFile}
+	files := []string{Family + ".sty", PlainFile, UnicodeFile, MathRangesFile}
 	for _, e := range Encodings {
 		files = append(files, FDFile(e))
 	}
@@ -143,7 +159,7 @@ func workFiles() []string {
 func EncFile(e *Encoding, gs []glyphs.Glyph) []byte {
 	index, _ := e.Resolve(gs)
 	var b strings.Builder
-	b.WriteString(header("%", e.EncFile(), "the encoding "+e.Name+" for the Bedern fonts"))
+	b.WriteString(Header("%", e.EncFile(), "the encoding "+e.Name+" for the Bedern fonts"))
 	fmt.Fprintf(&b, "/%s [\n", e.VectorName())
 	for c, i := range index {
 		name := ".notdef"
@@ -165,7 +181,7 @@ func EncFile(e *Encoding, gs []glyphs.Glyph) []byte {
 // encoding.
 func Map(fonts []*Font) []byte {
 	var b strings.Builder
-	b.WriteString(header("%", MapFile, "the fonts of the Bedern family for TeX"))
+	b.WriteString(Header("%", MapFile, "the fonts of the Bedern family for TeX"))
 	for _, f := range fonts {
 		for _, e := range Encodings {
 			slant := ""
@@ -183,18 +199,18 @@ func Map(fonts []*Font) []byte {
 func FDFile(e *Encoding) string { return e.Tag() + Family + ".fd" }
 
 // FD returns the font definition file of the encoding e: the family with one
-// shape for each font, at every size, the shape it as a substitute for sl, and
-// the series bx as a substitute for b.  The file of TS1 also declares which
+// shape for each font, at every size, the shape it as a substitute for sl in
+// a series which has no italic, and the series bx as a substitute for b.  The file of TS1 also declares which
 // glyphs of TS1 the family has.
 func FD(e *Encoding, fonts []*Font, now time.Time) []byte {
 	var b strings.Builder
 	name := FDFile(e)
-	b.WriteString(header("%%", name, "the Bedern fonts in the encoding "+e.Name))
+	b.WriteString(Header("%%", name, "the Bedern fonts in the encoding "+e.Name))
 	fmt.Fprintf(&b, "\\ProvidesFile{%s}[%s v%s Font definitions for %s/%s]\n",
 		name, now.Format("2006/01/02"), Version, e.Name, Family)
 	fmt.Fprintf(&b, "\\DeclareFontFamily{%s}{%s}{}\n", e.Name, Family)
 	bold := false
-	slanted := make(map[string]bool)
+	slanted, italic := make(map[string]bool), make(map[string]bool)
 	for _, f := range fonts {
 		fmt.Fprintf(&b, "\\DeclareFontShape{%s}{%s}{%s}{%s}{<-> %s}{}\n",
 			e.Name, Family, f.Series, f.Shape(), f.TFM(e))
@@ -202,9 +218,12 @@ func FD(e *Encoding, fonts []*Font, now time.Time) []byte {
 		if f.Slant != 0 {
 			slanted[f.Series] = true
 		}
+		if f.Style.Italic {
+			italic[f.Series] = true
+		}
 	}
 	for _, f := range fonts {
-		if f.Slant != 0 && slanted[f.Series] {
+		if f.Slant != 0 && !italic[f.Series] {
 			fmt.Fprintf(&b, "\\DeclareFontShape{%s}{%s}{%s}{it}{<->ssub * %s/%s/sl}{}\n",
 				e.Name, Family, f.Series, Family, f.Series)
 		}
@@ -331,11 +350,12 @@ func privateUseCommands(gs []glyphs.Glyph) []puCommand {
 // under LuaTeX and XeTeX through the feature Numbers of fontspec; under the
 // other engines the figures of the fonts are the lining and tabular ones, and
 // the options oldstyle and proportional give a warning.  An option which the
-// package does not know gives a warning.  The italic shape is the slanted
-// one, which fontspec makes by slanting the outlines.
+// package does not know gives a warning.  Under LuaTeX and XeTeX the italic
+// shape is the italic font if there is one, else the slanted regular, which
+// fontspec makes by slanting the outlines; the bold italic is the slanted bold.
 func Package(fonts []*Font, now time.Time) []byte {
 	var b strings.Builder
-	b.WriteString(header("%%", Family+".sty", "the Bedern fonts for LaTeX"))
+	b.WriteString(Header("%%", Family+".sty", "the Bedern fonts for LaTeX"))
 	b.WriteString("\\NeedsTeXFormat{LaTeX2e}\n")
 	fmt.Fprintf(&b, "\\ProvidesPackage{%s}[%s v%s The Bedern fonts]\n",
 		Family, now.Format("2006/01/02"), Version)
@@ -358,20 +378,26 @@ func Package(fonts []*Font, now time.Time) []byte {
 	b.WriteString("\\ifbedern@opentype\n")
 	b.WriteString("  \\RequirePackage{fontspec}\n")
 	commands := privateUseCommands(fonts[0].Glyphs)
-	var regular, bold string
+	var regular, bold, italic string
 	for _, f := range fonts {
 		if f.Slant != 0 {
 			continue
 		}
-		switch f.Series {
-		case "m":
+		switch {
+		case f.Series == "m" && f.Style.Italic:
+			italic = f.Style.PostScript
+		case f.Series == "m":
 			regular = f.Style.PostScript
-		case "b":
+		case f.Series == "b" && !f.Style.Italic:
 			bold = f.Style.PostScript
 		}
 	}
 	slant := fmt.Sprintf("{FakeSlant=%.4f}", SlantRatio)
-	fmt.Fprintf(&b, "  \\edef\\bedern@do{\\noexpand\\setmainfont{%s}[Extension=.otf,UprightFont=*,ItalicFont=*,ItalicFeatures=%s", regular, slant)
+	italicFont := "*,ItalicFeatures=" + slant
+	if italic != "" {
+		italicFont = italic
+	}
+	fmt.Fprintf(&b, "  \\edef\\bedern@do{\\noexpand\\setmainfont{%s}[Extension=.otf,UprightFont=*,ItalicFont=%s", regular, italicFont)
 	if bold != "" {
 		fmt.Fprintf(&b, ",BoldFont=%s,BoldItalicFont=%s,BoldItalicFeatures=%s", bold, bold, slant)
 	}
@@ -481,7 +507,7 @@ func unicodeOf(gs []glyphs.Glyph, byName map[string]int, i int) []rune {
 // every font in every encoding, the code points of the glyph.
 func GlyphToUnicode(fonts []*Font) []byte {
 	var b strings.Builder
-	b.WriteString(header("%", UnicodeFile, "the code points of the glyphs of the Bedern fonts"))
+	b.WriteString(Header("%", UnicodeFile, "the code points of the glyphs of the Bedern fonts"))
 	for _, f := range fonts {
 		byName := make(map[string]int, len(f.Glyphs))
 		for i, g := range f.Glyphs {
@@ -596,8 +622,9 @@ const TypewriterFont = "ectt1000"
 
 // Plain returns the macro file for plain TeX.  The file reads the map file
 // and the mappings to Unicode when pdfTeX writes a PDF file, loads the fonts
-// in the encoding T1 at 10 pt as the fonts of \rm, \bf, \sl and \it (the
-// slanted font stands for the italic) and \tt (the typewriter font), makes
+// in the encoding T1 at 10 pt as the fonts of \rm, \bf, \sl, \it and \tt (the
+// typewriter font; the slanted font stands for the italic if there is no
+// italic font), makes
 // them the fonts \tenrm, \tenbf, \tensl, \tenit and \tentt, so that the
 // footline and every other command of plain TeX which names them uses them,
 // and defines the commands of the accents and of the special letters, the
@@ -606,16 +633,24 @@ const TypewriterFont = "ectt1000"
 // character of T1, and the accent is set over the letter otherwise.
 func Plain(fonts []*Font) []byte {
 	var b strings.Builder
-	b.WriteString(header("%", PlainFile, "the Bedern fonts in the encoding T1 for plain TeX"))
+	b.WriteString(Header("%", PlainFile, "the Bedern fonts in the encoding T1 for plain TeX"))
 	b.WriteString("\\ifx\\pdfoutput\\undefined\\else\\ifnum\\pdfoutput>0\n")
 	fmt.Fprintf(&b, "  \\pdfmapfile{=%s}\n", MapFile)
 	fmt.Fprintf(&b, "  \\input %s\n", UnicodeFile)
 	b.WriteString("  \\pdfgentounicode=1\n")
 	b.WriteString("\\fi\\fi\n")
 	b.WriteString("\\catcode`\\@=11\n")
+	hasItalic := false
+	for _, f := range fonts {
+		hasItalic = hasItalic || (f.Style.Italic && f.Series == "m")
+	}
 	for _, f := range fonts {
 		cmd := "rm"
 		switch {
+		case f.Style.Italic && f.Series == "m":
+			cmd = "it"
+		case f.Style.Italic:
+			continue
 		case f.Series == "b" && f.Slant == 0:
 			cmd = "bf"
 		case f.Series == "m" && f.Slant != 0:
@@ -630,10 +665,14 @@ func Plain(fonts []*Font) []byte {
 			b.WriteString("\\def\\rm{\\fam\\z@\\bedernrm}\n")
 		case "bf":
 			b.WriteString("\\def\\bf{\\fam\\bffam\\bedernbf}\n")
+		case "it":
+			b.WriteString("\\def\\it{\\fam\\itfam\\bedernit}\n")
 		case "sl":
-			b.WriteString("\\let\\tenit=\\bedernsl\n")
 			b.WriteString("\\def\\sl{\\fam\\slfam\\bedernsl}\n")
-			b.WriteString("\\def\\it{\\fam\\itfam\\bedernsl}\n")
+			if !hasItalic {
+				b.WriteString("\\let\\tenit=\\bedernsl\n")
+				b.WriteString("\\def\\it{\\fam\\itfam\\bedernsl}\n")
+			}
 		}
 	}
 	fmt.Fprintf(&b, "\\font\\bedernttfont=%s\n", TypewriterFont)
