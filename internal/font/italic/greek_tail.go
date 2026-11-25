@@ -3,7 +3,11 @@
 
 package italic
 
-import "seehuhn.de/go/bedern/internal/stroke"
+import (
+	"math"
+
+	"seehuhn.de/go/bedern/internal/stroke"
+)
 
 // The Greek letters of an open round: ϵ, and ς, ζ and ξ, whose round runs on
 // below the baseline into a hook.
@@ -94,63 +98,78 @@ func sigmaFinal(p Params) letter {
 	return letter{strokes: []stroke.Stroke{s}, advance: p.CWidth}
 }
 
-// zeta draws ζ: one stroke of the pen which starts in a cut at the upper
-// right at the height of the ascender, runs left over a short top, down
-// the long left side and round the bottom, and runs on into the hook.
-func zeta(p Params) letter {
+// zeta draws ζ: one stroke of the pen which starts in a round end at the
+// top, runs down into a long, low loop which it crosses at its left end,
+// turns back at the right end of the loop, leaves it at the crossing down to
+// the left in the back and runs round the bottom into the hook.  The centre
+// line turns to the left from the start to the hook.
+func zeta(p Params) letter { return p.zetaXi(false) }
+
+// xi draws ξ: the start and the loop of ζ, then a bow down to the left and
+// back to the right into a second loop at the waist, made as the first, and
+// from it the back of ζ round the bottom into the hook.
+func xi(p Params) letter { return p.zetaXi(true) }
+
+// zetaXi draws ζ, or ξ if xi is set.
+func (p Params) zetaXi(xi bool) letter {
+	g := p.Gk
 	l := p.SideRoundLeft
-	cx := l + p.Gk.ZetaWidth/2
-	top := p.Ascender
-	wv := p.nibWidth(90)
-	node := func(x, y, dir float64) stroke.Node {
-		return stroke.Node{P: pt(x, y), Dir: dir, K: auto, W: auto, DW: 0}
+	cx := l + g.ZetaWidth/2
+	k := p.slant()
+	// node returns a node whose abscissa and direction are given after the
+	// shear.
+	node := func(x, y, dir, w float64, hairpin bool) stroke.Node {
+		d := math.Atan2(sind(dir), cosd(dir)-k*sind(dir)) * 180 / math.Pi
+		return stroke.Node{P: pt(x-k*y, y), Dir: d, K: auto, W: w, DW: auto, Hairpin: hairpin}
+	}
+	wh, wv := p.nibWidth(0), p.nibWidth(90)
+	d := wh + g.ZetaEye // the distance of the strands of a loop
+	r := d/2 - g.ZetaTurnIn
+	w := func(i int) float64 { return wh * (g.ZetaLoopW + float64(i-2)*g.ZetaLoopTaper) }
+	// loop returns the nodes of a loop whose centre lines cross at (xc, yc):
+	// the node of the lower strand moved by in along it from the crossing,
+	// the three nodes of the turn at the right end, and the node of the
+	// upper strand moved by out back along it from the crossing.
+	loop := func(xc, yc, length, in, out float64) []stroke.Node {
+		xr := xc + length
+		return []stroke.Node{
+			node(xc+in, yc-in*math.Tan(g.ZetaCrossIn*math.Pi/180), -g.ZetaCrossIn, w(0), false),
+			node(xr-r, yc-r, g.ZetaTurnDir, w(1), true),
+			node(xr, yc, 90, w(2), true),
+			node(xr-r, yc+r, 180-g.ZetaTurnDir, w(3), true),
+			node(xc-out, yc-out*math.Tan(g.ZetaCrossOut*math.Pi/180), 180+g.ZetaCrossOut, w(4), false),
+		}
+	}
+	sx := l + wv/2 + oSide[0]
+	xc := sx + k*g.ZetaSide*p.XHeight + g.ZetaCross
+	side := g.ZetaSide
+	if xi {
+		xc += g.XiHead
+		side = g.XiSide
+	}
+	start := node(xc+g.ZetaStart, p.Ascender-p.ExitEndW/2+g.ZetaStartRise, g.ZetaStartDir, wh*g.ZetaStartW, false)
+	start.DW = 0
+	nodes := append([]stroke.Node{start}, loop(xc, g.ZetaLoopY+d/2, g.ZetaLoop, g.ZetaCrossShift, 0)...)
+	if xi {
+		nodes = append(nodes, stroke.Node{P: pt(sx+g.XiBowX, g.XiBowY), Dir: g.XiBowDir, K: auto, W: wv * g.XiBowW, DW: auto})
+		nodes = append(nodes, loop(xc+g.XiCross, g.XiWaist, g.XiLoop, g.XiCrossShift, g.XiCrossShift)...)
+	}
+	nodes = append(nodes, stroke.Node{P: pt(sx+g.ZetaSideX, side*p.XHeight), Dir: g.ZetaSideDir, K: auto, W: wv * g.ZetaSideW, DW: auto})
+	hook := p.hookNodes(cx)
+	hook[0].W, hook[1].W = wv*g.ZetaRunW, wv*g.ZetaRunW
+	hook[1].DW, hook[2].DW = auto, auto
+	hook[2].P = pt(hook[2].P.X+g.ZetaHookSide, hook[2].P.Y+g.ZetaHookSideY)
+	hook[3].P.X += g.ZetaHookLow
+	if g.ZetaHookSideW > 0 {
+		hook[2].W = wv * g.ZetaHookSideW
 	}
 	s := stroke.Stroke{
-		Nib: p.nib(),
-		Nodes: append([]stroke.Node{
-			{P: pt(l+p.Gk.ZetaTop, top-p.ExitEndW/2), Dir: 180 + p.Gk.ZetaTopDir, K: auto, W: p.ExitEndW, DW: 0},
-			node(l+wv/2+oSide[0], p.Gk.ZetaSide*p.XHeight, 270),
-		}, p.hookNodes(cx)...),
-		Start: stroke.End{Kind: stroke.Cut},
+		Nib:   p.nib(),
+		Nodes: append(nodes, hook...),
+		Start: stroke.End{Kind: stroke.Round},
 		End:   stroke.End{Kind: stroke.Cut},
 	}
-	return letter{strokes: []stroke.Stroke{s}, advance: l + p.Gk.ZetaWidth + p.SideRoundRight}
-}
-
-// xi draws ξ: the upper stroke, which starts in a cut at the upper right at
-// the height of the ascender, runs left round the small upper lobe and ends
-// at the waist in a cut, and the lower stroke, which starts inside the end
-// of the upper one, runs left round the larger lower lobe and on into the
-// hook, as ε is made of two rounds.
-func xi(p Params) letter {
-	l := p.SideRoundLeft
-	cx := l + p.Gk.XiWidth/2
-	wv := p.nibWidth(90)
-	node := func(x, y, dir float64) stroke.Node {
-		return stroke.Node{P: pt(x, y), Dir: dir, K: auto, W: auto, DW: 0}
-	}
-	waist := p.Gk.XiWaist
-	low := p.Gk.SigmaFinalLow
-	upper := stroke.Stroke{
-		Nib: p.nib(),
-		Nodes: []stroke.Node{
-			{P: pt(l+p.Gk.XiTop, p.Ascender-p.ExitEndW/2), Dir: 180 + p.Gk.ZetaTopDir, K: auto, W: p.ExitEndW, DW: 0},
-			node(l+p.Gk.XiUpperIn+wv/2, (p.Ascender+waist)/2, 270),
-			{P: pt(cx+p.Gk.XiSpur, waist), Dir: p.Gk.XiWaistDir, K: auto, W: p.Gk.XiWaistW * p.Thin, DW: 0},
-		},
-		Start: stroke.End{Kind: stroke.Cut},
-		End:   stroke.End{Kind: stroke.Cut},
-	}
-	lower := stroke.Stroke{
-		Nib: p.nib(),
-		Nodes: append([]stroke.Node{
-			{P: pt(cx+p.Gk.XiSpur-p.Gk.XiJoin, waist), Dir: 180 + p.Gk.XiWaistDir, K: auto, W: p.Gk.HiddenStart * p.Gk.XiWaistW * p.Thin, DW: auto},
-			node(l+wv/2+oSide[0], (waist+low)/2, 270),
-		}, p.hookNodes(cx)...),
-		Start: hidden,
-		End:   stroke.End{Kind: stroke.Cut},
-	}
-	return letter{strokes: []stroke.Stroke{upper, lower}, advance: l + p.Gk.XiWidth + p.SideRoundRight}
+	return letter{strokes: []stroke.Stroke{s}, advance: l + g.ZetaWidth + p.SideRoundRight + g.ZetaOver}
 }
 
 // rhoVar draws ϱ: the ρ whose left side runs down below the baseline and

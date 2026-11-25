@@ -167,19 +167,43 @@ type GreekParams struct {
 	HookEnd          float64 // the end of the hook right of the middle of the round
 	HookEndUp        float64 // the end of the hook above the depth of the tails
 	HookEndDir       float64 // the direction of the end, up from the horizontal to the left
-	SigmaFinalLow    float64 // the bottom of the round of ς and ζ, above the baseline
-	ZetaWidth        float64 // the round of ζ
-	ZetaTop          float64 // the start of ζ right of the left of the ink
-	ZetaTopDir       float64 // its direction, down from the horizontal to the left
-	ZetaSide         float64 // the height of the left extreme, over the x-height
-	XiWidth          float64 // the lower lobe of ξ
-	XiTop            float64 // the start of ξ right of the left of the ink
-	XiUpperIn        float64 // the left extreme of the upper lobe right of that of the lower one
-	XiWaist          float64 // the height of the waist
-	XiWaistDir       float64 // the direction of the end of the upper stroke at the waist
-	XiWaistW         float64 // the thickness there, in thins of the pen
-	XiSpur           float64 // the end of the upper stroke right of the middle of the lower lobe
-	XiJoin           float64 // how far inside the end of the upper stroke the lower one starts
+	SigmaFinalLow    float64 // the bottom of the round of ς, above the baseline
+	ZetaWidth        float64 // the round of ζ and ξ
+	ZetaSide         float64 // the height of the node of the back of ζ, over the x-height
+	ZetaSideX        float64 // the node of the back right of the left extreme of a round
+	ZetaSideDir      float64 // its direction
+	ZetaSideW        float64 // the thickness of the back there, over that of the pen across a vertical stroke
+	ZetaRunW         float64 // the thickness of the run of the hook of ζ and ξ, over that of the pen across a vertical stroke
+	ZetaCross        float64 // the crossing of the loop of ζ right of the node of the back, after the shear
+	ZetaCrossShift   float64 // the node of the lower strand of a loop along it from the crossing
+	ZetaCrossIn      float64 // the direction of the lower strand at the crossing, down from the horizontal
+	ZetaCrossOut     float64 // the direction of the upper strand at the crossing, down from the horizontal to the left
+	ZetaLoopY        float64 // the height of the lower strand of the loop of ζ at the turn
+	ZetaLoop         float64 // the length of the loop of ζ from the crossing to the turn
+	ZetaEye          float64 // the height of the eye of a loop, the distance of the strands less a thin
+	ZetaTurnIn       float64 // the radius of the turn of a loop less than half the distance of the strands
+	ZetaTurnDir      float64 // the direction of the strands at the start and the end of the turn
+	ZetaLoopW        float64 // the thickness of a loop at its turn, over that of the pen across a horizontal stroke
+	ZetaLoopTaper    float64 // the change of that thickness from one node of a loop to the next
+	ZetaStart        float64 // the start of ζ right of the crossing, after the shear
+	ZetaStartRise    float64 // its height above the ascender less half the thickness of the end of the exit
+	ZetaStartDir     float64 // its direction, after the shear
+	ZetaStartW       float64 // its thickness, over that of the pen across a horizontal stroke
+	ZetaOver         float64 // the advance of ζ and ξ beyond the right side space of the round
+	ZetaHookSide     float64 // the right extreme of the hook of ζ and ξ right of that of ς
+	ZetaHookSideY    float64 // its height above that of ς
+	ZetaHookSideW    float64 // its thickness over that of the pen across a vertical stroke, or 0 for that of the hook of ς
+	ZetaHookLow      float64 // the lowest node of the hook of ζ and ξ right of that of ς
+	XiHead           float64 // the crossing of the upper loop of ξ right of that of ζ
+	XiSide           float64 // the height of the node of the back of ξ, over the x-height
+	XiBowX           float64 // the left extreme of the bow of ξ right of that of a round
+	XiBowY           float64 // its height
+	XiBowDir         float64 // its direction
+	XiBowW           float64 // the thickness of the bow there, over that of the pen across a vertical stroke
+	XiWaist          float64 // the height of the crossing of the lower loop of ξ
+	XiCross          float64 // that crossing right of the crossing of the upper loop, after the shear
+	XiCrossShift     float64 // the nodes of both strands of the lower loop along them from the crossing
+	XiLoop           float64 // the length of the lower loop of ξ from the crossing to the turn
 	RhoVarSide       float64 // the height of the left extreme of the hook of ϱ
 	RhoVarLow        float64 // its lowest node left of the middle of the round
 	RhoVarEnd        float64 // its end right of the middle of the round
@@ -362,17 +386,37 @@ func defaultGreek() GreekParams {
 		HookEndDir:       35.0,
 		SigmaFinalLow:    20.0,
 		ZetaWidth:        340.0,
-		ZetaTop:          260.0,
-		ZetaTopDir:       0.0,
-		ZetaSide:         0.65,
-		XiWidth:          360.0,
-		XiTop:            280.0,
-		XiUpperIn:        30.0,
+		ZetaSide:         0.45,
+		ZetaSideX:        -15.0,
+		ZetaSideDir:      275.0,
+		ZetaSideW:        0.7149,
+		ZetaRunW:         0.7539,
+		ZetaCross:        230.0,
+		ZetaCrossShift:   -8.0,
+		ZetaCrossIn:      34.0,
+		ZetaCrossOut:     18.0,
+		ZetaLoopY:        582.0,
+		ZetaLoop:         220.0,
+		ZetaEye:          30.0,
+		ZetaTurnIn:       3.0,
+		ZetaTurnDir:      16.0,
+		ZetaLoopW:        1.0033,
+		ZetaLoopTaper:    0.1003,
+		ZetaStart:        -55.0,
+		ZetaStartRise:    30.0,
+		ZetaStartDir:     -115.0,
+		ZetaStartW:       0.7358,
+		ZetaOver:         40.0,
+		XiHead:           -24.0,
+		XiSide:           0.44,
+		XiBowX:           5.0,
+		XiBowY:           495.0,
+		XiBowDir:         265.0,
+		XiBowW:           0.7539,
 		XiWaist:          380.0,
-		XiWaistDir:       0.0,
-		XiWaistW:         1.2,
-		XiSpur:           -40.0,
-		XiJoin:           28.0,
+		XiCross:          -80.0,
+		XiCrossShift:     -10.0,
+		XiLoop:           200.0,
 		RhoVarSide:       -40.0,
 		RhoVarLow:        24.0,
 		RhoVarEnd:        57.0,
@@ -431,7 +475,7 @@ func (g GreekParams) withXHeight(x0, x, asc, den float64) GreekParams {
 	lat := func(v *float64) { *v = math.Round(*v/den) * den }
 	for _, v := range []*float64{
 		&g.AlphaCross, &g.LambdaLegY, &g.ChiCross, &g.KappaVarBowY,
-		&g.BetaWaist, &g.GammaArmY, &g.GammaRiseY, &g.XiWaist, &g.ThetaVarLowSide, &g.ThetaVarSide, &g.ThetaVarEndY, &g.EpsBallLow,
+		&g.BetaWaist, &g.GammaArmY, &g.GammaRiseY, &g.ThetaVarLowSide, &g.ThetaVarSide, &g.ThetaVarEndY, &g.EpsBallLow,
 	} {
 		in(v)
 	}
@@ -469,7 +513,7 @@ func (g GreekParams) widen(f, stem0, stem float64) GreekParams {
 		&g.NuWidth, &g.PsiWidth, &g.DeltaWidth, &g.EpsUpper, &g.EpsLower, &g.EpsTip,
 		&g.PhiLoopWidth, &g.OmegaWidth, &g.BetaUpper, &g.BetaLower, &g.GammaCross, &g.GammaWidth,
 		&g.SigmaBar, &g.TauWidth, &g.TauStem, &g.UpsilonWidth, &g.LunateWidth, &g.LunateTip,
-		&g.LunateBarEnd, &g.ZetaWidth, &g.ZetaTop, &g.XiWidth, &g.XiTop, &g.ThetaVarWidth,
+		&g.LunateBarEnd, &g.ZetaWidth, &g.ThetaVarWidth,
 		&g.ThetaVarLoop, &g.LambdaOut,
 	} {
 		*v = math.Round(*v * f)

@@ -7,6 +7,7 @@ import (
 	"math"
 	"testing"
 
+	"seehuhn.de/go/bedern/internal/outline"
 	"seehuhn.de/go/bedern/internal/stroke"
 )
 
@@ -73,6 +74,47 @@ func TestLoopWithOpenEye(t *testing.T) {
 		}
 		if to-from < 50 {
 			t.Errorf("eye %.0f: the eye is only %.0f long", eye, to-from)
+		}
+	}
+}
+
+// TestZetaXiLoops asks that ζ has one loop and ξ two, each with an open eye:
+// the outline of ζ has one contour inside the outer one and that of ξ two,
+// each of them high and long.
+func TestZetaXiLoops(t *testing.T) {
+	for name, loops := range map[string]int{"zeta": 1, "xi": 2} {
+		g := greek(t, name)
+		if len(g.Path) != loops+1 {
+			t.Errorf("%s: %d contours, want %d", name, len(g.Path), loops+1)
+			continue
+		}
+		outer, size := 0, 0.0
+		for i, c := range g.Path {
+			x0, y0, x1, y1 := outline.Path{c}.BBox()
+			if a := (x1 - x0) * (y1 - y0); a > size {
+				outer, size = i, a
+			}
+		}
+		for i, c := range g.Path {
+			if i == outer {
+				continue
+			}
+			// The eye is the white between the two crossings of the
+			// contour with a vertical line.
+			p := outline.Path{c}
+			x0, _, x1, _ := p.BBox()
+			var high float64
+			from, to := math.Inf(1), math.Inf(-1)
+			for x := x0; x <= x1; x++ {
+				cs := crossings(p, pt(x, -1000), pt(0, 1))
+				if len(cs) == 2 {
+					high = math.Max(high, cs[1]-cs[0])
+					from, to = math.Min(from, x), math.Max(to, x)
+				}
+			}
+			if high < 20 || to-from < 120 {
+				t.Errorf("%s: an eye is %.0f high and %.0f long", name, high, to-from)
+			}
 		}
 	}
 }

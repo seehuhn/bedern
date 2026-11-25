@@ -33,6 +33,13 @@ func init() {
 	intendedFindings["nu/2"] = []intended{
 		{Kind: fair.Inflection, X: 269, Y: 167, Dir: -168, Reason: rise + " (peaks r 79 and r 378)"},
 	}
+	start := "the inner edge of the start of ζ and ξ, which turns to the left, runs into the half circle of the round end"
+	intendedFindings["zeta"] = []intended{
+		{Kind: fair.Inflection, X: 240, Y: 707, Dir: 69.7, Reason: start},
+	}
+	intendedFindings["xi"] = []intended{
+		{Kind: fair.Inflection, X: 216, Y: 707, Dir: 69.7, Reason: start},
+	}
 	intendedFindings["rhoVar"] = []intended{
 		{Kind: fair.Inflection, X: 161, Y: -183, Dir: 109.5, Reason: "the end of the hook of ϱ turns back against the sense of the hook, at a radius of 5 to 18"},
 	}

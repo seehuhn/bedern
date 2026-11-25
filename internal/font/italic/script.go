@@ -107,7 +107,7 @@ func BuildScript(p Params, name string, s Script) (*Glyph, error) {
 	}
 	hooks := p.entryHooks(l, s.Width)
 	for _, f := range fair.Analyse(name, g.Path, fair.Italic).Findings {
-		if intendedFinding(key, f) == "" && !hookSpike(hooks, f) {
+		if intendedFinding(key, f) == "" && !hookSpike(hooks, f) && !atHairpin(g.Strokes, f) {
 			g.Findings = append(g.Findings, f)
 		}
 	}
