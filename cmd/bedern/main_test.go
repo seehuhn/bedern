@@ -67,6 +67,12 @@ func ran(t *testing.T) runResult {
 	t.Helper()
 	runOnce.Do(func() {
 		base := t.TempDir()
+		// A check of the files which the tests write, for local paths, sets
+		// BEDERN_KEEP_OUTPUT to a new directory in which they are kept,
+		// instead of building the fonts again.
+		if keep := os.Getenv("BEDERN_KEEP_OUTPUT"); keep != "" {
+			base = keep
+		}
 		dir, tree := filepath.Join(base, "fonts"), filepath.Join(base, "tree")
 		now := time.Unix(runTime, 0).UTC()
 		if runOut.fonts, runFailed = renderAll(now, true, true); runFailed != nil {

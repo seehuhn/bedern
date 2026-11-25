@@ -6,6 +6,7 @@ package mathfont
 import (
 	"fmt"
 	"math"
+	"sync"
 
 	"seehuhn.de/go/bedern/internal/font/design"
 	"seehuhn.de/go/bedern/internal/outline"
@@ -155,8 +156,30 @@ func integralParts(p design.Params) (top, bot, ext outline.Path, adv float64, er
 	return integralPartsOf(p, integralShape(p))
 }
 
-// integralPartsOf is integralParts in the shape sh.
+// integralPartsDrawn is what drawIntegralParts returned for one list of
+// arguments.
+type integralPartsDrawn struct {
+	top, bot, ext outline.Path
+	adv           float64
+	err           error
+	computed      sync.Once
+}
+
+// integralPartsCache holds the results of drawIntegralParts, which the search
+// for the shape, the glyphs and the tests ask for again.
+var integralPartsCache sync.Map // string to *integralPartsDrawn
+
+// integralPartsOf is integralParts in the shape sh.  It draws the parts once
+// for each list of arguments and hands out copies of the paths.
 func integralPartsOf(p design.Params, sh intShape) (top, bot, ext outline.Path, adv float64, err error) {
+	v, _ := integralPartsCache.LoadOrStore(fmt.Sprintf("%v|%v", p, sh), new(integralPartsDrawn))
+	d := v.(*integralPartsDrawn)
+	d.computed.Do(func() { d.top, d.bot, d.ext, d.adv, d.err = drawIntegralParts(p, sh) })
+	return clonePath(d.top), clonePath(d.bot), clonePath(d.ext), d.adv, d.err
+}
+
+// drawIntegralParts is the drawing behind integralPartsOf.
+func drawIntegralParts(p design.Params, sh intShape) (top, bot, ext outline.Path, adv float64, err error) {
 	h := intAssemblyHeight
 	axis := p.Punct.MathAxis
 	s := integralStroke(p, h, sh).ShearedRatio(intSlantNum, intSlantDen)

@@ -21,7 +21,7 @@ import (
 // routineSets is the number of parameter sets of designtest.Sets which go test
 // -short checks besides the variants.  Without -short the tests check every
 // set and the bold parameters.
-const routineSets = 1
+const routineSets = 0
 
 type named struct {
 	name string

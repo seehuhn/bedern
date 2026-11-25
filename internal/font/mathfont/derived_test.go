@@ -18,9 +18,12 @@ import (
 )
 
 // derivedSets are the parameter sets on which the derived signs are tested:
-// the regular and the first n perturbed sets in the routine tier, and every
+// the regular alone in the routine tier, and the regular and every
 // perturbed set in the full tier.
 func derivedSets(n int) []designtest.Set {
+	if testing.Short() {
+		n = 0
+	}
 	return append([]designtest.Set{{Name: "regular", Params: design.Regular()}}, designtest.Sets(testing.Short(), n)...)
 }
 

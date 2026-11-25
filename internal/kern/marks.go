@@ -97,8 +97,15 @@ func (t *Table) inherit() {
 				// the distance by at most its length, so that the kern must
 				// grow by at least the floor less the distance.
 				kk := k + int(math.Ceil(floor-d0))
-				for kk < k+400 && f.MarkDistance(a, b, float64(kk), floor) < floor {
-					kk++
+				// The distance changes by at most the shift of the kern, so
+				// that no kern below kk plus the floor less the distance
+				// can keep the floor.
+				for kk < k+400 {
+					d := f.MarkDistance(a, b, float64(kk), floor)
+					if d >= floor {
+						break
+					}
+					kk = min(kk+max(1, int(math.Ceil(floor-d))), k+400)
 				}
 				t.Single[[2]int{a.Index, b.Index}] = kk
 				t.Marked = append(t.Marked, &Pair{
