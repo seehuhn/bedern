@@ -82,16 +82,16 @@ func defaultRound() RoundParams {
 		EEye:       336,
 		ETipInk:    337,
 
-		BowlReach:     288,
-		BowlTopJoin:   36,
+		BowlReach:     293,
+		BowlTopJoin:   31,
 		BowlTopDir:    155,
-		BowlLowJoin:   104,
-		BowlLowDir:    50,
-		BowlPlainJoin: 108, BowlPlainDir: 50,
-		BowlJoinW:   30,
+		BowlLowJoin:   100,
+		BowlLowDir:    73,
+		BowlPlainJoin: 84, BowlPlainDir: 60,
+		BowlJoinW:   19,
 		BowlDepth:   36,
 		BowlStemTop: 464,
-		BowlTop:     -12, BowlBottom: -16,
+		BowlTop:     42, BowlBottom: 32, BowlBottomDir: -1,
 
 		QWidth: 461,
 

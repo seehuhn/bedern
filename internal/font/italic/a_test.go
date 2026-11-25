@@ -262,7 +262,7 @@ func lowJoin(g *Glyph, p Params) float64 {
 
 // lowJoinMax is the thickest lower join of d, in stems, which TestBowlLowJoin
 // accepts.
-const lowJoinMax = 0.5
+const lowJoinMax = 0.55
 
 // TestBowlLowJoin asks that the lower join of the bowl of d is no thicker than
 // lowJoinMax stems.

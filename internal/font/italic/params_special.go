@@ -86,7 +86,7 @@ func defaultSpecial() Special {
 		AeTopJoin: 350,
 		AeTopDir:  235,
 		AeLowJoin: 128,
-		AeLowDir:  57,
+		AeLowDir:  73,
 		AeBarRun:  0.58,
 
 		LigPitch:     245,
