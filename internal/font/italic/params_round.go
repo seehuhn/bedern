@@ -28,7 +28,9 @@ type RoundParams struct {
 	BowlLowJoin                 float64 // the height at which the bowl runs back into the stem
 	BowlLowDir                  float64 // the direction in which it runs into the stem, upright, in degrees
 	BowlPlainJoin, BowlPlainDir float64 // the same on a plain stem without exit, of q and g
-	BowlJoinW                   float64 // the thickness of the bowl where it leaves and meets the stem
+	BowlJoinW                   float64 // the thickness of the bowl where it meets the stem at the bottom
+	BowlTopRise                 float64 // the rate at which that thickness grows towards the top, as a fraction of the chord from the join to the top; zero: by the rule of the pen
+	BowlTopW                    float64 // the thickness of the bowl where it leaves the stem at the top, from where it grows evenly to the thickness at the top
 	BowlDepth                   float64 // how far inside the stem the ends of the bowl lie
 	BowlStemTop                 float64 // the height of the flat cut at the top of the stem of a, g and q, a multiple of SlantDen
 	BowlBottomDir               float64 // the turn of the bowl from the horizontal at its bottom node, upright; the extreme of its outer edge lies a whole piece away from it
@@ -62,7 +64,7 @@ type RoundParams struct {
 
 	TailWider  float64 // how much further left than TailLow the lowest node of a tail lies; set by the letter
 	GTailWider float64 // that of the tail of g, which reaches under its bowl
-	GTailTurn  float64 // TailTurn of the tail of g, which turns early under its bowl
+	GTailTurn  float64 // TailTurn of the tail of g, which bends from the baseline under its bowl
 }
 
 // defaultRound returns the starting values of the round letters.
@@ -89,6 +91,8 @@ func defaultRound() RoundParams {
 		BowlLowDir:    73,
 		BowlPlainJoin: 84, BowlPlainDir: 60,
 		BowlJoinW:   19,
+		BowlTopRise: 0.5,
+		BowlTopW:    22,
 		BowlDepth:   36,
 		BowlStemTop: 464,
 		BowlTop:     42, BowlBottom: 32, BowlBottomDir: -1,
@@ -118,8 +122,8 @@ func defaultRound() RoundParams {
 		EBarRun:    0.55,
 		ETurn:      2,
 
-		GTailWider: 100,
-		GTailTurn:  40,
+		GTailWider: 110,
+		GTailTurn:  0,
 	}
 }
 

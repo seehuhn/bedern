@@ -17,7 +17,8 @@ import (
 // BowlLowDir.  Both ends lie BowlDepth inside the stem, so that the union
 // with the stem makes the corners where the bowl meets it.  The extremes of
 // the centre line are the nodes, with the thickness of the pen not changing
-// there, as on o.
+// there, as on o, except at the top, where the thickness is still growing
+// from BowlTopW at the join.
 func (p Params) bowl(edge float64) stroke.Stroke {
 	left := edge - p.BowlReach
 	cx := (left + edge) / 2
@@ -31,11 +32,20 @@ func (p Params) bowl(edge float64) stroke.Stroke {
 		d := dir * math.Pi / 180
 		return pt(edge+depth*math.Cos(d), y+depth*math.Sin(d))
 	}
+	enter := stroke.Node{P: inside(p.XHeight-p.BowlTopJoin, p.BowlTopDir, -p.BowlDepth), Dir: p.BowlTopDir, K: auto, W: p.BowlTopW, DW: auto}
+	// The top stroke grows from BowlTopW to the thickness of the pen at the
+	// top at an even rate, the fraction BowlTopRise of that of the chord, so that it
+	// arrives still growing and goes on into the left side without a plateau.  With
+	// BowlTopRise zero the pen's rule gives the rate.
+	crown := node(cx+p.BowlTop, top-wh/2, 180)
+	if p.BowlTopRise != 0 {
+		crown.DW = p.BowlTopRise * (wh - enter.W) / math.Hypot(crown.P.X-enter.P.X, crown.P.Y-enter.P.Y)
+	}
 	return stroke.Stroke{
 		Nib: p.nib(),
 		Nodes: []stroke.Node{
-			{P: inside(p.XHeight-p.BowlTopJoin, p.BowlTopDir, -p.BowlDepth), Dir: p.BowlTopDir, K: auto, W: p.BowlJoinW, DW: auto},
-			node(cx+p.BowlTop, top-wh/2, 180),
+			enter,
+			crown,
 			node(left+wv/2+oSide[0], cy, 270),
 			node(cx+p.BowlBottom, bottom+wh/2, 360+p.BowlBottomDir),
 			{P: inside(p.BowlLowJoin, p.BowlLowDir, p.BowlDepth), Dir: p.BowlLowDir, K: auto, W: p.BowlJoinW, DW: auto},

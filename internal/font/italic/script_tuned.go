@@ -30,6 +30,8 @@ func (q *Params) tuneLatin1() {
 	q.BowlTop = 42
 	q.BowlTopDir = 160
 	q.BowlTopJoin = 31
+	q.BowlTopRise = 0
+	q.BowlTopW = 19
 	q.EBar = 243
 	q.EBarIn = 26
 	q.EBarRise = 14
@@ -46,6 +48,8 @@ func (q *Params) tuneLatin1() {
 	q.ExitTurn = 130
 	q.ExitVert = 98
 	q.GBowl = 0.96
+	q.GTailTurn = 40
+	q.GTailWider = 100
 	q.KLegCounter = 139.44
 	q.RCounter = 97.5
 	q.RStalkW = 25
@@ -110,6 +114,8 @@ func (q *Params) tuneLatin2() {
 	q.BowlTop = 42
 	q.BowlTopDir = 155
 	q.BowlTopJoin = 31
+	q.BowlTopRise = 0
+	q.BowlTopW = 19
 	q.CBowlWidth = 415
 	q.EBar = 240
 	q.EBarRise = 8
@@ -132,6 +138,8 @@ func (q *Params) tuneLatin2() {
 	q.ExitTurn = 144
 	q.ExitVert = 96
 	q.GBowl = 1.1
+	q.GTailTurn = 40
+	q.GTailWider = 100
 	q.KArmEndW = 0.8
 	q.KLegCounter = 148.9
 	q.KLegStartW = 46

@@ -9,6 +9,7 @@ import (
 
 	"seehuhn.de/go/bedern/internal/fair"
 	"seehuhn.de/go/bedern/internal/outline"
+	"seehuhn.de/go/bedern/internal/stroke"
 )
 
 // bowlLetters are the letters with the bowl of a (that of g a little
@@ -272,4 +273,52 @@ func TestBowlLowJoin(t *testing.T) {
 	if w := lowJoin(g, p); !(w <= lowJoinMax) {
 		t.Errorf("d: the lower join of the bowl is %.2f stems thick, want at most %.2f", w, lowJoinMax)
 	}
+}
+
+// TestBowlTopFlows asks that the top stroke of the bowl, from the join with
+// the stem to the top of the bowl, grows evenly in thickness: no place is
+// thinner than the one before it by more than half a unit, and none swells
+// beyond the pen's thickness at the top.  The thickness is the least
+// distance of the left edge from the right one.
+func TestBowlTopFlows(t *testing.T) {
+	p := Default()
+	s := p.bowl(p.bowlStemEdge())
+	r, err := s.Build()
+	if err != nil {
+		t.Fatal(err)
+	}
+	sample := func(c stroke.Chain) []Point {
+		var out []Point
+		for _, pc := range c {
+			for i := 0; i <= 20; i++ {
+				out = append(out, pc.C.At(float64(i)/20))
+			}
+		}
+		return out
+	}
+	left, right := sample(r.Left), sample(r.Right)
+	top := p.nibWidth(0)
+	prev := 0.0
+	for _, q := range left {
+		if q.X < s.Nodes[1].P.X {
+			break
+		}
+		d := math.Inf(1)
+		for j := 0; j+1 < len(right); j++ {
+			d = math.Min(d, segDistance(q, right[j], right[j+1]))
+		}
+		if d < prev-0.5 || d > top+1.5 {
+			t.Errorf("the top stroke of the bowl is %.1f thick at %.0f,%.0f after %.1f, the pen gives %.1f at the top", d, q.X, q.Y, prev, top)
+		}
+		prev = math.Max(prev, d)
+	}
+}
+
+func segDistance(q, a, b Point) float64 {
+	dx, dy := b.X-a.X, b.Y-a.Y
+	t := 0.0
+	if l := dx*dx + dy*dy; l > 0 {
+		t = math.Max(0, math.Min(1, ((q.X-a.X)*dx+(q.Y-a.Y)*dy)/l))
+	}
+	return math.Hypot(q.X-a.X-t*dx, q.Y-a.Y-t*dy)
 }
