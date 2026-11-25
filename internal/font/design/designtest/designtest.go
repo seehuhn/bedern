@@ -7,6 +7,7 @@ package designtest
 
 import (
 	"math"
+	"os"
 	"slices"
 	"sync"
 
@@ -34,15 +35,38 @@ var routineOrder = []string{
 	"stem70", "stem95", "xheight430", "xheight480", "counter150", "counter230", "serif40", "serif90",
 }
 
-// Sets returns the perturbed sets: all of them, or if routine is set the first
-// n of them in the order of routineOrder.  A negative n means all.
+// fullOrder lists the perturbed sets which Sets returns when routine is not
+// set, spread over the design space: the heaviest and the lightest stem with
+// the tightest and the widest counters, and the tall and the low x-height with
+// the longest and the shortest serifs.
+var fullOrder = []string{
+	"stem95-counter150", "stem70-counter230", "xheight430-serif90", "xheight480-serif40",
+}
+
+// AllSetsVariable is the environment variable which, when set to 1, makes Sets
+// return every perturbed set where it would return fullOrder.
+const AllSetsVariable = "BEDERN_ALL_SETS"
+
+// Sets returns the perturbed sets: if routine is set the first n of them in the
+// order of routineOrder, otherwise those of fullOrder, or all of them if the
+// environment variable BEDERN_ALL_SETS is 1.  A negative n means the same as
+// routine not set.
 func Sets(routine bool, n int) []Set {
 	all := Perturbed()
 	if !routine || n < 0 {
-		return all
+		if os.Getenv(AllSetsVariable) == "1" {
+			return all
+		}
+		return named(all, fullOrder, len(fullOrder))
 	}
+	return named(all, routineOrder, n)
+}
+
+// named returns the first n of the sets of all with the given names, in the
+// order of the names.
+func named(all []Set, names []string, n int) []Set {
 	var out []Set
-	for _, name := range routineOrder {
+	for _, name := range names {
 		if len(out) == n {
 			break
 		}

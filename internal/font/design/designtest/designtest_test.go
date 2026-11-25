@@ -13,7 +13,6 @@ import (
 // TestRoutineOrderNamesEverySet checks that routineOrder names every perturbed
 // set exactly once and that Sets returns the first n of them in that order.
 func TestRoutineOrderNamesEverySet(t *testing.T) {
-	t.Parallel()
 	var names []string
 	for _, s := range Perturbed() {
 		names = append(names, s.Name)
@@ -27,8 +26,13 @@ func TestRoutineOrderNamesEverySet(t *testing.T) {
 	if got := Sets(true, 3); len(got) != 3 || got[0].Name != routineOrder[0] || got[2].Name != routineOrder[2] {
 		t.Errorf("Sets(true, 3) = %d sets, want the first three of routineOrder", len(got))
 	}
+	t.Setenv(AllSetsVariable, "")
+	if got := Sets(false, 3); len(got) != len(fullOrder) {
+		t.Errorf("Sets(false, 3) has %d sets, want %d", len(got), len(fullOrder))
+	}
+	t.Setenv(AllSetsVariable, "1")
 	if got := Sets(false, 3); len(got) != len(names) {
-		t.Errorf("Sets(false, 3) has %d sets, want all %d", len(got), len(names))
+		t.Errorf("Sets(false, 3) with %s has %d sets, want all %d", AllSetsVariable, len(got), len(names))
 	}
 }
 
