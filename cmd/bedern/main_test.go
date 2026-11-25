@@ -22,6 +22,7 @@ import (
 	"seehuhn.de/go/bedern/internal/build"
 	bedern "seehuhn.de/go/bedern/internal/font"
 	"seehuhn.de/go/bedern/internal/font/glyphs/glyphstest"
+	"seehuhn.de/go/bedern/internal/font/mathfont"
 	"seehuhn.de/go/bedern/internal/outline"
 	"seehuhn.de/go/bedern/internal/tex"
 	"seehuhn.de/go/bedern/internal/tfm"
@@ -69,7 +70,17 @@ func ran(t *testing.T) runResult {
 		if runOut.fonts, runFailed = renderAll(now, true, true); runFailed != nil {
 			return
 		}
-		if runFailed = write(dir, tree, runOut.fonts, now); runFailed != nil {
+		// The routine tier leaves out Bedern Math, which costs about 15
+		// seconds of processor time.
+		var math map[string][]byte
+		if !testing.Short() {
+			var err error
+			if math, err = renderMath(now, true); err != nil {
+				runFailed = err
+				return
+			}
+		}
+		if runFailed = write(dir, tree, runOut.fonts, math, now); runFailed != nil {
 			return
 		}
 		entries, err := os.ReadDir(dir)
@@ -202,9 +213,12 @@ func TestRun(t *testing.T) {
 	t.Parallel()
 	r := ran(t)
 	want := []string{bedern.LicenseFile}
-	for _, f := range fonts {
-		want = append(want, f.file)
+	files := fontFiles()
+	if !testing.Short() {
+		want = append(want, mathfont.File, mathfont.RangesFile)
+		files = append(files, mathfont.File)
 	}
+	want = append(want, fontFiles()...)
 	slices.Sort(want)
 	if !slices.Equal(r.names, want) {
 		t.Errorf("files %v, want %v", r.names, want)
@@ -212,9 +226,49 @@ func TestRun(t *testing.T) {
 	if string(r.files[bedern.LicenseFile]) != bedern.OFL {
 		t.Error("OFL.txt differs from the embedded licence")
 	}
+	for _, file := range files {
+		if !bytes.HasPrefix(r.files[file], []byte("OTTO")) {
+			t.Errorf("%s does not start with the tag of a CFF font", file)
+		}
+	}
+	if testing.Short() {
+		return
+	}
+	ranges := string(r.files[mathfont.RangesFile])
+	for _, want := range []string{`\def\BedernMathRanges{`, `\setBedernMath{`, mathfont.File} {
+		if !strings.Contains(ranges, want) {
+			t.Errorf("%s lacks %s", mathfont.RangesFile, want)
+		}
+	}
+}
+
+// fontFiles returns the names of the text font files.
+func fontFiles() []string {
+	var out []string
 	for _, f := range fonts {
-		if !bytes.HasPrefix(r.files[f.file], []byte("OTTO")) {
-			t.Errorf("%s does not start with the tag of a CFF font", f.file)
+		out = append(out, f.file)
+	}
+	return out
+}
+
+// TestMathFont checks the names and the tables of the file of the
+// mathematics font.
+func TestMathFont(t *testing.T) {
+	t.Parallel()
+	if testing.Short() {
+		t.Skip("the full tier builds Bedern Math")
+	}
+	data := ran(t).files[mathfont.File]
+	tables := readTables(t, mathfont.File, data)
+	for _, tag := range []string{"MATH", "GSUB", "CFF ", "cmap"} {
+		if len(tables[tag]) == 0 {
+			t.Errorf("%s has no table %s", mathfont.File, tag)
+		}
+	}
+	got := readFamilyFields(t, mathfont.File, data)
+	for key, tab := range got.names {
+		if tab.Family != mathfont.Family || tab.Subfamily != "Regular" {
+			t.Errorf("%s, %s: family %q %q, want %q Regular", mathfont.File, key, tab.Family, tab.Subfamily, mathfont.Family)
 		}
 	}
 }

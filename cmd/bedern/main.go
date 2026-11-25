@@ -8,9 +8,13 @@
 //	bedern [-o DIR] [-tex TREE]
 //	bedern -private-use
 //
-// The command writes the font files Bedern-Regular.otf and Bedern-Bold.otf and
-// the licence OFL.txt into the directory DIR, which is the current directory
-// by default.  If the environment variable SOURCE_DATE_EPOCH holds a time in
+// The command writes the font files Bedern-Regular.otf, Bedern-Bold.otf and
+// BedernMath-Regular.otf, the file bedern-math-ranges.tex and the licence
+// OFL.txt into the directory DIR, which is the current directory by default.
+// BedernMath-Regular.otf is the mathematics font for unicode-math, and
+// bedern-math-ranges.tex defines the list of its code points for the option
+// range of \setmathfont and the command \setBedernMath, which loads the font
+// with that list.  If the environment variable SOURCE_DATE_EPOCH holds a time in
 // seconds since 1970, the fonts carry that time instead of the time of the
 // run, and the unique identifier of each font ends in the date of that time;
 // otherwise the unique identifier is the full name and the version.
@@ -35,6 +39,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"maps"
 	"os"
 	"path/filepath"
 	"sync"
@@ -44,6 +49,7 @@ import (
 	bedern "seehuhn.de/go/bedern/internal/font"
 	"seehuhn.de/go/bedern/internal/font/design"
 	"seehuhn.de/go/bedern/internal/font/glyphs"
+	"seehuhn.de/go/bedern/internal/font/mathfont"
 	"seehuhn.de/go/bedern/internal/kern"
 	"seehuhn.de/go/bedern/internal/tex"
 )
@@ -101,11 +107,25 @@ func main() {
 // empty, the files for TeX below tree.  If dated is false, the unique
 // identifiers carry no date.
 func run(dir, tree string, now time.Time, dated bool) error {
+	var (
+		math    map[string][]byte
+		mathErr error
+		wg      sync.WaitGroup
+	)
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		math, mathErr = renderMath(now, dated)
+	}()
 	out, err := renderAll(now, dated, tree != "")
+	wg.Wait()
 	if err != nil {
 		return err
 	}
-	return write(dir, tree, out, now)
+	if mathErr != nil {
+		return mathErr
+	}
+	return write(dir, tree, out, math, now)
 }
 
 // renderAll builds the fonts side by side, with the PFB files if withPFB is
@@ -130,10 +150,11 @@ func renderAll(now time.Time, dated, withPFB bool) ([]*rendered, error) {
 	return out, nil
 }
 
-// write writes the font files and the licence into dir and, if tree is not
-// empty, the files for TeX below tree.
-func write(dir, tree string, out []*rendered, now time.Time) error {
+// write writes the font files, the files of the mathematics font and the
+// licence into dir and, if tree is not empty, the files for TeX below tree.
+func write(dir, tree string, out []*rendered, math map[string][]byte, now time.Time) error {
 	files := map[string][]byte{bedern.LicenseFile: []byte(bedern.OFL)}
+	maps.Copy(files, math)
 	for i, f := range fonts {
 		files[f.file] = out[i].otf
 	}
@@ -188,6 +209,40 @@ func texFiles(out []*rendered, now time.Time) (map[string][]byte, []tex.Report, 
 	}
 	files[tex.DirDoc+"/"+bedern.LicenseFile] = []byte(bedern.OFL)
 	return files, reports, nil
+}
+
+// mathGlyphs returns the glyphs of Bedern Math.  Tests replace it by a
+// function which shares the builds.
+var mathGlyphs = mathfont.Glyphs
+
+// renderMath builds Bedern Math and returns the font file and the file of the
+// ranges of its code points, by name.  If dated is false, the unique
+// identifier carries no date.
+func renderMath(now time.Time, dated bool) (map[string][]byte, error) {
+	p := design.Regular()
+	gs, err := mathGlyphs(p)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", mathfont.File, err)
+	}
+	font, err := mathfont.Font(p, gs, now)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", mathfont.File, err)
+	}
+	var buf bytes.Buffer
+	if _, err := build.Write(&buf, font); err != nil {
+		return nil, fmt.Errorf("%s: %w", mathfont.File, err)
+	}
+	otf := buf.Bytes()
+	if !dated {
+		if otf, err = build.Undated(otf); err != nil {
+			return nil, fmt.Errorf("%s: %w", mathfont.File, err)
+		}
+	}
+	var ranges bytes.Buffer
+	if err := mathfont.WriteRanges(&ranges, gs); err != nil {
+		return nil, fmt.Errorf("%s: %w", mathfont.RangesFile, err)
+	}
+	return map[string][]byte{mathfont.File: otf, mathfont.RangesFile: ranges.Bytes()}, nil
 }
 
 // glyphSet returns the glyphs of a parameter set.  Tests replace it by a
