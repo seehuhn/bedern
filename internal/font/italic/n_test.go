@@ -139,7 +139,7 @@ func TestUTurn(t *testing.T) {
 }
 
 // TestIDot asks that the dot of i is a circle of the diameter Dot whose centre
-// lies on the centre line of the sheared stem.
+// lies DotOffset right of the vertical through the centre of the stem at the x-height.
 func TestIDot(t *testing.T) {
 	p := Default()
 	g := glyph(t, "i")
@@ -151,8 +151,8 @@ func TestIDot(t *testing.T) {
 		t.Errorf("the dot of i is %.0f by %.0f, want %v", x1-x0, y1-y0, p.Dot)
 	}
 	c := p.SideStemLeft + p.Stem/2
-	if want := italicX(p, c, (y0+y1)/2); math.Abs((x0+x1)/2-want) > 1 {
-		t.Errorf("the dot of i stands at %.1f, want %.1f on the centre line of the stem", (x0+x1)/2, want)
+	if want := italicX(p, c, p.XHeight) + p.DotOffset; math.Abs((x0+x1)/2-want) > 1 {
+		t.Errorf("the dot of i stands at %.1f, want %.1f left of the centre of the stem at the x-height", (x0+x1)/2, want)
 	}
 }
 

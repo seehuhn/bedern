@@ -16,8 +16,7 @@ func init() {
 }
 
 // j draws the j: one stroke from the entry of i down the stem through the
-// baseline into the tail with its ball (tail), and the dot of i on the
-// extended centre line of the stem.
+// baseline into the tail with its ball (tail), and the dot of i (dotCentre).
 func j(p Params) letter {
 	e := p.JSideLeft
 	s := stroke.Stroke{Nodes: p.entry(e, p.XHeight), Start: round}
@@ -25,7 +24,7 @@ func j(p Params) letter {
 	s.Nodes, s.End = append(s.Nodes, nodes...), end
 	return letter{
 		strokes: []stroke.Stroke{s},
-		dots:    []dot{{C: pt(e+p.Stem/2, p.DotCentre), D: p.Dot}},
+		dots:    []dot{{C: p.dotCentre(e), D: p.Dot}},
 		advance: p.JWidth,
 	}
 }

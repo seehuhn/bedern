@@ -87,6 +87,7 @@ type Params struct {
 
 	Dot       float64 // the diameter of the dot of i
 	DotCentre float64 // the height of the centre of the dot
+	DotOffset float64 // the distance of the centre of the dot right of the vertical through the centre of the stem at the x-height, that of the roman (design.DotOffset)
 
 	HLeftLess float64 // how much less the left side of h is than that of n
 
@@ -177,6 +178,7 @@ func Default() Params {
 
 		Dot:       100,
 		DotCentre: 612,
+		DotOffset: design.DotOffset(r),
 
 		HLeftLess: 13,
 
