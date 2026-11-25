@@ -28,6 +28,10 @@ var Auto = math.NaN()
 
 func isAuto(x float64) bool { return math.IsNaN(x) }
 
+// HairpinReach is the distance from a node marked Hairpin within which the
+// edges may have short pieces which cannot be merged.
+const HairpinReach = 60.0
+
 // MinPiece is the shortest piece of an edge, in font units: the limit of the
 // smoothness gate.
 const MinPiece = 15.0
@@ -47,6 +51,15 @@ type Node struct {
 	// opposite each other.  It is meant for nodes on straight parts, where
 	// the directions and curvatures of the edges do not change with it.
 	Skew float64
+
+	// Hairpin marks a node on a turn of the centre line through 180 degrees
+	// whose radius is only a little over half the thickness of the pen, as at
+	// the end of a long, low loop with a narrow eye: the edges near it, within
+	// HairpinReach, may have pieces shorter than MinPiece which cannot be
+	// merged, and the callers may take findings of the smoothness check there
+	// as the form.  Nothing else changes: the fold check still applies, so
+	// the thickness at the node and its neighbours must be lowered to fit.
+	Hairpin bool
 
 	// Edge, if set, gives the curvatures of the two edges at the node instead
 	// of K and DDW, which are then solved from them.
@@ -253,6 +266,8 @@ type Result struct {
 	Contours    []Chain
 	Warnings    []string
 	WarnAt      []Point // the place of each warning about the shape of an edge, or NaN
+
+	hairpins []Point // the nodes marked Hairpin
 }
 
 // edgeData is an edge at a node: its point, unit direction and curvature.
@@ -566,6 +581,11 @@ func (s Stroke) Build() (*Result, error) {
 		return nil, err
 	}
 	r := &Result{}
+	for _, nd := range s.Nodes {
+		if nd.Hairpin {
+			r.hairpins = append(r.hairpins, nd.P)
+		}
+	}
 	var chains [2]Chain
 	for i := range sides {
 		chains[i], err = r.edgeChain(sides[i], s.Closed)
@@ -956,6 +976,16 @@ func (r *Result) warnAt(q Point, format string, args ...any) {
 	r.WarnAt = append(r.WarnAt, q)
 }
 
+// nearHairpin reports whether q lies within HairpinReach of a node marked Hairpin.
+func (r *Result) nearHairpin(q Point) bool {
+	for _, h := range r.hairpins {
+		if dist(q, h) <= HairpinReach {
+			return true
+		}
+	}
+	return false
+}
+
 // merge replaces each edge piece shorter than MinPiece, together with an edge
 // neighbour at a smooth join, by one curve with the points, directions and
 // curvatures of the two at their outer ends.  Of the two neighbours the one is
@@ -1013,6 +1043,10 @@ func (r *Result) merge(ch Chain, cornerStart, cornerEnd bool) Chain {
 			}
 		}
 		if bestA < 0 {
+			if r.nearHairpin(ch[j].C[0]) {
+				stuck[ch[j].C[0]] = true
+				continue
+			}
 			r.warnAt(ch[j].C[0], "a piece of %.1f units at %.1f,%.1f cannot be merged", ch[j].C.Length(), ch[j].C[0].X, ch[j].C[0].Y)
 			stuck[ch[j].C[0]] = true
 			continue

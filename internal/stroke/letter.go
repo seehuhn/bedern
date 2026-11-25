@@ -71,6 +71,9 @@ func (l Letter) Build() (*LetterResult, error) {
 			continue
 		}
 		var r Result
+		for _, sr := range res.Strokes {
+			r.hairpins = append(r.hairpins, sr.hairpins...)
+		}
 		c = r.mergeClosed(c)
 		res.Warnings = append(res.Warnings, r.Warnings...)
 		for i, pc := range c {

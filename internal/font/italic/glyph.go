@@ -152,7 +152,7 @@ func buildLetter(p Params, name string, r rune, l letter) (*Glyph, error) {
 	g.Warnings = res.Warnings
 	hooks := p.entryHooks(l, 1)
 	for _, f := range fair.Analyse(name, g.Path, fair.Italic).Findings {
-		if intendedFinding(name, f) == "" && !hookSpike(hooks, f) {
+		if intendedFinding(name, f) == "" && !hookSpike(hooks, f) && !atHairpin(g.Strokes, f) {
 			g.Findings = append(g.Findings, f)
 		}
 	}
@@ -201,6 +201,20 @@ func hookSpike(hooks []Point, f fair.Finding) bool {
 	for _, h := range hooks {
 		if math.Hypot(f.X-h.X, f.Y-h.Y) <= fair.MatchDist {
 			return true
+		}
+	}
+	return false
+}
+
+// atHairpin reports whether the finding lies within stroke.HairpinReach of a
+// node marked Hairpin: the white end of a narrow eye is a tight turn, and
+// the edges near it are the form.
+func atHairpin(ss []stroke.Stroke, f fair.Finding) bool {
+	for _, s := range ss {
+		for _, nd := range s.Nodes {
+			if nd.Hairpin && math.Hypot(f.X-nd.P.X, f.Y-nd.P.Y) <= stroke.HairpinReach {
+				return true
+			}
 		}
 	}
 	return false
