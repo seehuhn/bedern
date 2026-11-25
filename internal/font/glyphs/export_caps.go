@@ -35,7 +35,14 @@ func CapStemOutline(p design.Params, left, top, footLeft, footRight, headLeft, h
 // edge, as on the arms of E (zero for none); the contour is closed along the
 // line x = edge.
 func CapArmOutline(p design.Params, edge, end, lower, upper, drop, rise float64) outline.Path {
-	a := capArm{Edge: edge, End: end, Lower: lower, Upper: upper, Drop: drop, Rise: rise, SerifThick: p.Caps.ArmSerifThick}
+	return CapArmOutlineTurn(p, edge, end, lower, upper, drop, rise, 0)
+}
+
+// CapArmOutlineTurn is CapArmOutline with the least height minTurn of the
+// curve by which the inner edge of a serif turns into the bar (zero for no
+// least height).
+func CapArmOutlineTurn(p design.Params, edge, end, lower, upper, drop, rise, minTurn float64) outline.Path {
+	a := capArm{Edge: edge, End: end, Lower: lower, Upper: upper, Drop: drop, Rise: rise, SerifThick: p.Caps.ArmSerifThick, MinTurn: minTurn}
 	lo, up := outline.Point{X: edge, Y: lower}, outline.Point{X: edge, Y: upper}
 	var c chain
 	switch {

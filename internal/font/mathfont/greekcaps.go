@@ -39,9 +39,12 @@ const (
 	// thetaBarHeight its middle over the cap height.
 	thetaBar       = 0.657
 	thetaBarHeight = 0.511
+	// serifTurn: the least height of the curve of the inside of a serif of a
+	// bar, below which the curve leaves a kink.
+	serifTurn = 15.0
 	// thetaReach: the serifs of the bar of Θ beyond its edges, over the
 	// middle serif of E.
-	thetaReach = 1.0
+	thetaReach = 0.8
 	// xiInk: Ξ over H; xiMiddle: its middle bar over its ink width.
 	xiInk    = 0.797
 	xiMiddle = 0.578
@@ -65,6 +68,8 @@ const (
 	omegaRound = 0.913
 	omegaFoot  = 0.380
 	omegaGap   = 0.175
+	// omegaLegWeight: the weight of each leg at its foot over the thin of O.
+	omegaLegWeight = 1.3
 	// psiInk: Ψ over H; psiCup: the lowest ink of the arms a third of the
 	// ink from the middle, over the cap height.
 	psiInk = 1.006
@@ -225,7 +230,7 @@ func merged(c outline.Contour) outline.Contour {
 // its mirror image.
 func barOutline(p design.Params, x0, x1, lower, upper, drop, rise float64) outline.Contour {
 	mid := (x0 + x1) / 2
-	r := startAt(glyphs.CapArmOutline(p, mid, x1, lower, upper, drop, rise)[0], pt(mid, lower))
+	r := startAt(glyphs.CapArmOutlineTurn(p, mid, x1, lower, upper, drop, rise, serifTurn)[0], pt(mid, lower))
 	l := startAt(mirroredX(outline.Path{r}, mid)[0], pt(mid, lower))
 	n := len(r.Segs)
 	c := outline.Contour{Start: r.Start, Segs: append(append([]outline.Segment(nil), r.Segs[:n-1]...), l.Segs[1:]...)}
@@ -494,14 +499,14 @@ func capOmega(r *roman) (outline.Path, float64) {
 	gap := omegaGap * w
 	thin := c.RoundThin
 	top := cap + p.OvershootUpper
-	mid := 0.56 * cap
+	mid := 0.6 * cap
 	legX := gap/2 + thin/2
 	stroke := glyphs.Stroke([]glyphs.Station{
-		{X: cx - legX, Y: t / 2, Dir: 100, W: thin},
+		{X: cx - legX, Y: t / 2, Dir: 100, W: omegaLegWeight * thin},
 		{X: cx - round/2 + c.Round/2, Y: mid, Dir: 90, W: c.Round},
 		{X: cx, Y: top - thin/2, Dir: 0, W: thin},
 		{X: cx + round/2 - c.Round/2, Y: mid, Dir: -90, W: c.Round},
-		{X: cx + legX, Y: t / 2, Dir: -100, W: thin},
+		{X: cx + legX, Y: t / 2, Dir: -100, W: omegaLegWeight * thin},
 	})
 	right := glyphs.CapArmOutline(p, math.Min(w-foot, cx+legX-thin), w, 0, t, 0, c.BottomRise)
 	left := mirroredX(right, cx)
