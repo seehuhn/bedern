@@ -5,7 +5,7 @@
 //
 // Usage:
 //
-//	bedern [-o DIR] [-tex TREE]
+//	bedern [-o DIR] [-tex TREE] [-font NAME] [-nokern]
 //	bedern -private-use
 //
 // The command writes the font files Bedern-Regular.otf, Bedern-Bold.otf,
@@ -19,6 +19,12 @@
 // seconds since 1970, the fonts carry that time instead of the time of the
 // run, and the unique identifier of each font ends in the date of that time;
 // otherwise the unique identifier is the full name and the version.
+//
+// With -font the command builds only the font NAME, which is regular, bold,
+// italic or math, and writes only its file (with math, also
+// bedern-math-ranges.tex); the default is all, which builds everything.
+// With -nokern the text fonts are built without the feature kern.  -font and
+// -nokern do not go with -tex.
 //
 // With -tex the command also writes the files with which pdfTeX uses the
 // fonts, below the directory TREE in the layout of the TeX Directory
@@ -78,13 +84,15 @@ var fonts = []fontSpec{
 }
 
 func usage() {
-	fmt.Fprintf(flag.CommandLine.Output(), "usage: bedern [-o DIR] [-tex TREE]\n       bedern -private-use\n")
+	fmt.Fprintf(flag.CommandLine.Output(), "usage: bedern [-o DIR] [-tex TREE] [-font NAME] [-nokern]\n       bedern -private-use\n")
 	flag.PrintDefaults()
 }
 
 func main() {
 	dir := flag.String("o", ".", "write the font files into `DIR`")
 	tree := flag.String("tex", "", "write the files for TeX below `TREE`")
+	only := flag.String("font", "all", "build only the font `NAME`: regular, bold, italic or math; all builds every font")
+	nokern := flag.Bool("nokern", false, "build the text fonts without the feature kern")
 	table := flag.Bool("private-use", false, "print the table of the glyphs in the Private Use Area and write no files")
 	flag.Usage = usage
 	flag.Parse()
@@ -106,7 +114,15 @@ func main() {
 		log.Print(err)
 		os.Exit(2)
 	}
-	if err := run(*dir, *tree, now, epoch != ""); err != nil {
+	if *only != "all" && *only != "math" && *only != "regular" && *only != "bold" && *only != "italic" {
+		log.Printf("unknown font %q", *only)
+		os.Exit(2)
+	}
+	if *tree != "" && (*only != "all" || *nokern) {
+		log.Print("-tex does not go with -font or -nokern")
+		os.Exit(2)
+	}
+	if err := run(*dir, *tree, *only, *nokern, now, epoch != ""); err != nil {
 		log.Fatal(err)
 	}
 }
@@ -114,7 +130,18 @@ func main() {
 // run writes the font files and the licence into dir and, if tree is not
 // empty, the files for TeX below tree.  If dated is false, the unique
 // identifiers carry no date.
-func run(dir, tree string, now time.Time, dated bool) error {
+func run(dir, tree, only string, noKern bool, now time.Time, dated bool) error {
+	if only != "all" {
+		return runOne(dir, only, noKern, now, dated)
+	}
+	if noKern {
+		for _, name := range []string{"regular", "bold", "italic", "math"} {
+			if err := runOne(dir, name, true, now, dated); err != nil {
+				return err
+			}
+		}
+		return writeFiles(dir, map[string][]byte{bedern.LicenseFile: []byte(bedern.OFL)})
+	}
 	var (
 		math    map[string][]byte
 		mathErr error
@@ -136,6 +163,30 @@ func run(dir, tree string, now time.Time, dated bool) error {
 	return write(dir, tree, out, math, now)
 }
 
+// runOne writes the file of the single font named only, and for math also
+// the file of its ranges, into dir.
+func runOne(dir, only string, noKern bool, now time.Time, dated bool) error {
+	if only == "math" {
+		math, err := renderMath(now, dated)
+		if err != nil {
+			return err
+		}
+		return writeFiles(dir, math)
+	}
+	names := map[string]string{"regular": "Bedern-Regular.otf", "bold": "Bedern-Bold.otf", "italic": assembly.File}
+	for _, f := range fonts {
+		if f.file != names[only] {
+			continue
+		}
+		r, err := render(f, now, dated, false, noKern)
+		if err != nil {
+			return fmt.Errorf("%s: %w", f.file, err)
+		}
+		return writeFiles(dir, map[string][]byte{f.file: r.otf})
+	}
+	return fmt.Errorf("no font %q", only)
+}
+
 // renderAll builds the fonts side by side, with the PFB files if withPFB is
 // set.
 func renderAll(now time.Time, dated, withPFB bool) ([]*rendered, error) {
@@ -146,7 +197,7 @@ func renderAll(now time.Time, dated, withPFB bool) ([]*rendered, error) {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			out[i], errs[i] = render(f, now, dated, withPFB)
+			out[i], errs[i] = render(f, now, dated, withPFB, false)
 		}()
 	}
 	wg.Wait()
@@ -276,8 +327,9 @@ type rendered struct {
 }
 
 // render builds the font f, with the PFB file if withPFB is set.  If dated
-// is false, the unique identifier carries no date.
-func render(f fontSpec, now time.Time, dated, withPFB bool) (*rendered, error) {
+// is false, the unique identifier carries no date.  If noKern is set, the
+// font has no kerning.
+func render(f fontSpec, now time.Time, dated, withPFB, noKern bool) (*rendered, error) {
 	p := f.params()
 	r := &rendered{params: p}
 	var (
@@ -289,14 +341,18 @@ func render(f fontSpec, now time.Time, dated, withPFB bool) (*rendered, error) {
 		if r.glyphs, err = assembly.Table(ip); err != nil {
 			return nil, err
 		}
-		r.kern = assembly.KernTable(r.glyphs)
+		if !noKern {
+			r.kern = assembly.KernTable(r.glyphs)
+		}
 		if font, err = assembly.FontOf(ip, r.glyphs, r.kern, now); err != nil {
 			return nil, err
 		}
 	} else {
 		r.glyphs = glyphSet(p)
-		r.kern = kern.Compute(p, r.glyphs)
-		if font, err = build.FontWith(p, f.style(), r.glyphs, now, build.Options{Kern: r.kern}); err != nil {
+		if !noKern {
+			r.kern = kern.Compute(p, r.glyphs)
+		}
+		if font, err = build.FontWith(p, f.style(), r.glyphs, now, build.Options{Kern: r.kern, NoKern: noKern}); err != nil {
 			return nil, err
 		}
 	}
@@ -322,7 +378,7 @@ func render(f fontSpec, now time.Time, dated, withPFB bool) (*rendered, error) {
 // renderFont builds the font f and writes its bytes to w.  If dated is
 // false, the unique identifier carries no date.
 func renderFont(w io.Writer, f fontSpec, now time.Time, dated bool) error {
-	r, err := render(f, now, dated, false)
+	r, err := render(f, now, dated, false, false)
 	if err != nil {
 		return err
 	}

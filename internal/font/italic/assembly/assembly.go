@@ -240,14 +240,15 @@ func Font(p Params, now time.Time) (f *sfnt.Font, err error) {
 }
 
 // FontOf is Font for the glyphs gs and their kerns kt, as Table and
-// KernTable compute them for p, for a caller which has these already.
+// KernTable compute them for p, for a caller which has these already.  If kt
+// is nil, the font has no kerning.
 func FontOf(p Params, gs []glyphs.Glyph, kt *kern.Table, now time.Time) (f *sfnt.Font, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			err = fmt.Errorf("assembly: %v", r)
 		}
 	}()
-	f, err = build.FontWith(Kerning(), Style(), gs, now, build.Options{Kern: kt})
+	f, err = build.FontWith(Kerning(), Style(), gs, now, build.Options{Kern: kt, NoKern: kt == nil})
 	if err != nil {
 		return nil, err
 	}
