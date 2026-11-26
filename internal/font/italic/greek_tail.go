@@ -124,21 +124,9 @@ func (p Params) zetaXi(xi bool) letter {
 	}
 	wh, wv := p.nibWidth(0), p.nibWidth(90)
 	d := wh + g.ZetaEye // the distance of the strands of a loop
-	r := d/2 - g.ZetaTurnIn
-	w := func(i int) float64 { return wh * (g.ZetaLoopW + float64(i-2)*g.ZetaLoopTaper) }
-	// loop returns the nodes of a loop whose centre lines cross at (xc, yc):
-	// the node of the lower strand moved by in along it from the crossing,
-	// the three nodes of the turn at the right end, and the node of the
-	// upper strand moved by out back along it from the crossing.
 	loop := func(xc, yc, length, in, out float64) []stroke.Node {
-		xr := xc + length
-		return []stroke.Node{
-			node(xc+in, yc-in*math.Tan(g.ZetaCrossIn*math.Pi/180), -g.ZetaCrossIn, w(0), false),
-			node(xr-r, yc-r, g.ZetaTurnDir, w(1), true),
-			node(xr, yc, 90, w(2), true),
-			node(xr-r, yc+r, 180-g.ZetaTurnDir, w(3), true),
-			node(xc-out, yc-out*math.Tan(g.ZetaCrossOut*math.Pi/180), 180+g.ZetaCrossOut, w(4), false),
-		}
+		return p.loopNodes(pt(xc, yc), 0, length, g.ZetaEye, g.ZetaTurnIn, wh, g.ZetaLoopW, g.ZetaLoopTaper,
+			g.ZetaTurnDir, g.ZetaCrossIn, g.ZetaCrossOut, in, out)
 	}
 	sx := l + wv/2 + oSide[0]
 	xc := sx + k*g.ZetaSide*p.XHeight + g.ZetaCross
