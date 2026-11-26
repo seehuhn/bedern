@@ -170,10 +170,13 @@ func refine(a, b Cubic, ta, tb float64) (float64, float64) {
 }
 
 // keep reports whether the ink lies on the left of the curve and none on its
-// right, judged a quarter of a unit to either side of its middle.
+// right, judged a quarter of a unit to either side of its middle, or a
+// twentieth of its length if that is less: a short piece between a crossing
+// and a nearby node must not be judged on the far side of the edge which
+// crosses it.
 func keep(c Cubic, polys [][]Point) bool {
 	m, t := c.At(0.5), c.Tangent(0.5)
-	n := mul(rot90(t), 0.25)
+	n := mul(rot90(t), math.Min(0.25, c.Length()/20))
 	return winding(polys, add(m, n)) > 0 && winding(polys, sub(m, n)) <= 0
 }
 
