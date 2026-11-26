@@ -5,6 +5,7 @@ package italic
 
 import (
 	"math"
+	"slices"
 
 	"seehuhn.de/go/bedern/internal/fair"
 	"seehuhn.de/go/bedern/internal/stroke"
@@ -214,28 +215,96 @@ func beta(p Params) letter {
 	return letter{strokes: []stroke.Stroke{upper, lower}, advance: lr + p.SideRoundRight}
 }
 
-// gamma draws γ: one stroke of the pen which begins with the entry at the
-// x-height, runs down to the right across the baseline into the loop, round
-// the loop to the left and up, and up to the right as a straight stroke
-// through the crossing to the x-height, where it ends in a cut.
+// gamma draws γ: one stroke of the pen which starts in a flat cut at the
+// x-height at the thickness of a stem, runs down nearly straight, leaning a
+// little to the right, bends a little to the left into a narrow loop which
+// points straight down, crosses itself above the baseline and rises to the
+// right, nearly straight and then turning up; at the top it turns over to the
+// left and down in a small loop which crosses the rise and ends in a short leg
+// turning up on the right.  The thickness follows one profile along the
+// stroke.  The places below are given after the shear.
 func gamma(p Params) letter {
+	g := p.Gk
 	e := p.SideStemLeft
-	m := e + p.Gk.GammaCross
 	wh := p.nibWidth(0)
+	m := g.GammaWeight
+	stem := m * p.across(p.Stem)
+	k := p.slant()
 	node := func(x, y, dir float64) stroke.Node {
-		return stroke.Node{P: pt(x, y), Dir: dir, K: auto, W: auto, DW: 0}
+		d := math.Atan2(sind(dir), cosd(dir)-k*sind(dir)) * 180 / math.Pi
+		return stroke.Node{P: pt(x-k*y, y), Dir: d, K: auto, W: auto, DW: auto}
 	}
-	s := stroke.Stroke{Nib: p.nib(), Nodes: p.entry(e, p.XHeight)[:2], Start: round, End: round}
-	loop := -p.TailDepth
-	s.Nodes = append(s.Nodes,
-		stroke.Node{P: pt(m-p.Gk.GammaArm, p.Gk.GammaArmY), Dir: p.Gk.GammaArmDir, K: auto, W: auto, DW: 0},
-		node(m+p.Gk.GammaLoopR, p.Gk.GammaLoopSide*loop, -90),
-		node(m, loop+wh/2, 180),
-		node(m-p.Gk.GammaLoopL, p.Gk.GammaLoopSide*loop, 90),
-		stroke.Node{P: pt(m+p.Gk.GammaRise, p.Gk.GammaRiseY), Dir: p.Gk.GammaRiseDir, K: 0, W: p.Gk.GammaRiseW * p.Stem, DW: 0},
-		stroke.Node{P: pt(e+p.Gk.GammaWidth, p.XHeight-p.ExitEndW/2), Dir: p.Gk.GammaRiseDir, K: auto, W: p.ExitEndW, DW: 0},
+	x0 := e + stem/2 + k*p.XHeight
+	lean := math.Tan(g.GammaLean * math.Pi / 180)
+	down := func(y float64) float64 { return x0 + (p.XHeight-y)*lean }
+
+	// The down stroke is an arc whose chord leans by GammaLean and which
+	// turns by GammaBow to the right on the way down.  The loop, made for
+	// travel down its left strand, is reversed: the down stroke enters it
+	// GammaDownShift before the crossing, the rise leaves it GammaCrossShift
+	// beyond.
+	wl := m * wh * g.GammaLoopW
+	xc, yc := down(g.GammaCrossY), g.GammaCrossY
+	axis := -90 - g.GammaLoopTurn
+	length := (yc + p.TailDepth - wl/2) / -sind(axis)
+	downDir := -90 + g.GammaLean - g.GammaBow/2
+	lp := p.loopNodes(pt(xc, yc), axis, length, g.GammaEye, g.GammaTurnIn, wl, 1, 0,
+		g.GammaTurnDir, 180+axis-g.GammaRiseDir, downDir-axis, -g.GammaCrossShift, g.GammaDownShift)
+	slices.Reverse(lp)
+	for i := range lp {
+		lp[i].Dir += 180
+	}
+
+	// The rise turns from GammaRiseDir at the crossing to straight up at the
+	// right side of the flourish; its chord has the direction GammaRiseChord.
+	wf := m * wh * g.GammaFlW
+	top := p.XHeight - wf/2 + g.GammaFlTop
+	fr := (wf + g.GammaFlEye) / 2
+	y4 := top - wf - g.GammaFlH
+	y1 := (top + y4) / 2
+	xr, yr := xc+g.GammaCrossShift*cosd(g.GammaRiseDir), yc+g.GammaCrossShift*sind(g.GammaRiseDir)
+	x1 := xr + (y1-yr)/math.Tan(g.GammaRiseChord*math.Pi/180)
+	x4 := x1 - fr + g.GammaFlBottom
+	xe, ye := x4+g.GammaLegX, y4+g.GammaLegY
+	nodes := append([]stroke.Node{node(x0, p.XHeight, -90+g.GammaLean+g.GammaBow/2)}, lp...)
+	nodes = append(nodes,
+		node(x1, y1, 90),
+		node(x1-fr, top, 180),
+		node(x1-2*fr, y1, -90),
+		node(x4, y4, 0),
+		node(x4+g.GammaLeg, y4+g.GammaLegUp, g.GammaLegDir),
+		node(xe, ye, g.GammaEndDir),
 	)
-	return letter{strokes: []stroke.Stroke{s}, advance: e + p.Gk.GammaWidth + p.Gk.GammaSide}
+
+	// The thickness falls from the stem to the loop, fastest at GammaFall of
+	// the down stroke and evenly from the crossing on, rises a little into
+	// the rise and falls a little into the flourish and on to the end.
+	s := centreLengths(nodes)
+	frac := func(i int) float64 { return s[i] / s[len(s)-1] }
+	tDown, tOut, tCross, tTop := frac(1), frac(4), frac(5), frac(6)
+	wr, we := m*wh*g.GammaRiseW, m*wh*g.GammaEndW
+	parts := []widthFunc{
+		easeWidth(stem, wl, 0, tDown, g.GammaFall*tDown),
+		easeWidth(0, wr-wl, tOut, tCross, (tOut+tCross)/2),
+		easeWidth(0, wf-wr, (tCross+tTop)/2, tTop, (tCross+3*tTop)/4),
+		easeWidth(0, we-wf, tTop, 1, (tTop+1)/2),
+	}
+	profile := func(t float64) (w, dw float64) {
+		for _, f := range parts {
+			a, b := f(t)
+			w, dw = w+a, dw+b
+		}
+		return w, dw
+	}
+	nodes = subdivide(nodes, g.GammaSpan)
+	widthAlong(nodes, profile)
+	st := stroke.Stroke{
+		Nib:   p.nib(),
+		Nodes: nodes,
+		Start: flatTop,
+		End:   stroke.End{Kind: stroke.Round},
+	}
+	return letter{strokes: []stroke.Stroke{st}, advance: xe - k*ye + we/2 + g.GammaSide}
 }
 
 // The proportions of δ, ε, φ, ω, β and γ, in the upright description.

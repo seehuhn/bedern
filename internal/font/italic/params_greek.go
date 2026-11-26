@@ -112,19 +112,35 @@ type GreekParams struct {
 	BetaLowSide      float64 // the height of the right extreme of the lower bowl, over the waist
 	BetaClose        float64 // the height of the end of the lower bowl inside the stem
 	BetaCloseDir     float64 // its direction
-	GammaCross       float64 // the loop of γ right of the left edge of the stem under its entry
-	GammaArm         float64 // the left arm at greekGammaArmY left of the middle of the loop
-	GammaArmY        float64 // the height of that node
-	GammaArmDir      float64 // the direction of the left arm there
-	GammaLoopR       float64 // the right extreme of the loop right of its middle
-	GammaLoopL       float64 // the left extreme left of its middle
-	GammaLoopSide    float64 // the height of the extremes of the loop, over the depth of the tails
-	GammaRise        float64 // the rise at greekGammaRiseY right of the middle of the loop
-	GammaRiseY       float64 // the height of that node
-	GammaRiseDir     float64 // the direction of the rise
-	GammaRiseW       float64 // the thickness of the rise, in stems
-	GammaWidth       float64 // the end of the rise right of the left edge of the stem
-	GammaSide        float64 // the side space right of the end
+	GammaLean        float64 // the turn of the down stroke of γ to the right from the vertical, in degrees after the shear
+	GammaBow         float64 // the turn of its direction to the right from the top to the crossing, in degrees
+	GammaWeight      float64 // the factor of all thicknesses of γ
+	GammaFall        float64 // the place of the fastest thinning, as a fraction of the down stroke
+	GammaDownShift   float64 // the last node of the down stroke before the crossing
+	GammaCrossShift  float64 // the first node of the rise beyond the crossing
+	GammaCrossY      float64 // the height of the crossing of the loop
+	GammaLoopW       float64 // the thickness of the loop, over that of the pen across a horizontal stroke
+	GammaLoopTurn    float64 // the turn of the loop to the right from pointing straight down, in degrees
+	GammaEye         float64 // the white between the strands of the loop
+	GammaTurnIn      float64 // the radius of the turn less half the distance of the strands
+	GammaTurnDir     float64 // the direction of the strands at the start and the end of the turn
+	GammaRiseDir     float64 // the direction of the rise at the crossing
+	GammaRiseChord   float64 // the direction from the start of the rise to the right side of the flourish
+	GammaRiseW       float64 // its thickness, over that of the pen across a horizontal stroke
+	GammaFlW         float64 // the thickness of the flourish at the top, over that of the pen across a horizontal stroke
+	GammaFlTop       float64 // the top of its outer edge above the x-height
+	GammaFlH         float64 // the height of the eye of its loop
+	GammaFlEye       float64 // the width of the eye of its loop
+	GammaFlBottom    float64 // the bottom of the loop right of its middle
+	GammaLeg         float64 // the node of the leg right of the bottom of the loop
+	GammaLegUp       float64 // its height above that bottom
+	GammaLegDir      float64 // its direction
+	GammaLegX        float64 // the end right of the bottom of the loop
+	GammaLegY        float64 // its height above that bottom
+	GammaEndDir      float64 // the direction at the end
+	GammaEndW        float64 // the thickness at the end, over that of the pen across a horizontal stroke
+	GammaSpan        float64 // the longest span between two nodes along the centre line
+	GammaSide        float64 // the side space right of the leg
 	SigmaBar         float64
 	SigmaClose       float64
 	SigmaDip         float64
@@ -329,18 +345,34 @@ func defaultGreek() GreekParams {
 		BetaLowSide:      0.5,
 		BetaClose:        50.0,
 		BetaCloseDir:     135.0,
-		GammaCross:       230.0,
-		GammaArm:         28.0,
-		GammaArmY:        166.0,
-		GammaArmDir:      -57.0,
-		GammaLoopR:       57.0,
-		GammaLoopL:       62.0,
-		GammaLoopSide:    0.51,
-		GammaRise:        45.0,
-		GammaRiseY:       47.0,
-		GammaRiseDir:     71.0,
-		GammaRiseW:       0.47,
-		GammaWidth:       414.0,
+		GammaLean:        7.0,
+		GammaBow:         12.0,
+		GammaWeight:      1.1,
+		GammaFall:        0.75,
+		GammaDownShift:   13.0,
+		GammaCrossShift:  30.0,
+		GammaCrossY:      46.0,
+		GammaLoopW:       0.88,
+		GammaLoopTurn:    10.0,
+		GammaEye:         24.0,
+		GammaTurnIn:      0.0,
+		GammaTurnDir:     10.0,
+		GammaRiseDir:     58.0,
+		GammaRiseChord:   70.0,
+		GammaRiseW:       0.94,
+		GammaFlW:         0.85,
+		GammaFlTop:       0.0,
+		GammaFlH:         41.0,
+		GammaFlEye:       23.0,
+		GammaFlBottom:    5.0,
+		GammaLeg:         49.0,
+		GammaLegUp:       13.0,
+		GammaLegDir:      38.0,
+		GammaLegX:        85.0,
+		GammaLegY:        68.0,
+		GammaEndDir:      73.0,
+		GammaEndW:        0.77,
+		GammaSpan:        150.0,
 		GammaSide:        30.0,
 		SigmaBar:         480.0,
 		SigmaClose:       90.0,
@@ -454,8 +486,6 @@ func (g GreekParams) withStem(d float64) GreekParams {
 	g.PiOver += d / 2
 	// γ: the loop and the end of the rise, given from the left edge of the
 	// stem under the entry, which WithStem moves by half the change.
-	g.GammaCross -= d / 2
-	g.GammaWidth -= d / 2
 	return g
 }
 
@@ -475,7 +505,7 @@ func (g GreekParams) withXHeight(x0, x, asc, den float64) GreekParams {
 	lat := func(v *float64) { *v = math.Round(*v/den) * den }
 	for _, v := range []*float64{
 		&g.AlphaCross, &g.LambdaLegY, &g.ChiCross, &g.KappaVarBowY,
-		&g.BetaWaist, &g.GammaArmY, &g.GammaRiseY, &g.ThetaVarLowSide, &g.ThetaVarSide, &g.ThetaVarEndY, &g.EpsBallLow,
+		&g.BetaWaist, &g.GammaCrossY, &g.ThetaVarLowSide, &g.ThetaVarSide, &g.ThetaVarEndY, &g.EpsBallLow,
 	} {
 		in(v)
 	}
@@ -511,7 +541,7 @@ func (g GreekParams) widen(f, stem0, stem float64) GreekParams {
 	for _, v := range []*float64{
 		&g.ThetaWidth, &g.PhiWidth, &g.RhoWidth, &g.AlphaBowl, &g.AlphaTip, &g.AlphaFoot,
 		&g.NuWidth, &g.PsiWidth, &g.DeltaWidth, &g.EpsUpper, &g.EpsLower, &g.EpsTip,
-		&g.PhiLoopWidth, &g.OmegaWidth, &g.BetaUpper, &g.BetaLower, &g.GammaCross, &g.GammaWidth,
+		&g.PhiLoopWidth, &g.OmegaWidth, &g.BetaUpper, &g.BetaLower,
 		&g.SigmaBar, &g.TauWidth, &g.TauStem, &g.UpsilonWidth, &g.LunateWidth, &g.LunateTip,
 		&g.LunateBarEnd, &g.ZetaWidth, &g.ThetaVarWidth,
 		&g.ThetaVarLoop, &g.LambdaOut,
@@ -523,7 +553,7 @@ func (g GreekParams) widen(f, stem0, stem float64) GreekParams {
 		r := *a * math.Pi / 180
 		*a = math.Atan2(math.Sin(r), f*math.Cos(r)) * 180 / math.Pi
 	}
-	for _, a := range []*float64{&g.AlphaDown, &g.LambdaDir, &g.LambdaLegDir, &g.ChiDir, &g.ChiThinDir, &g.GammaArmDir, &g.GammaRiseDir, &g.NuRiseDir} {
+	for _, a := range []*float64{&g.AlphaDown, &g.LambdaDir, &g.LambdaLegDir, &g.ChiDir, &g.ChiThinDir, &g.GammaRiseDir, &g.NuRiseDir} {
 		turn(a)
 	}
 	return g

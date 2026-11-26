@@ -198,10 +198,6 @@ func (s Script) Params(p Params) Params {
 	// of the heavier stem.
 	q.Gk.ChiHigh = lat(q.Gk.ChiHigh - 2*d)
 	q.Gk.ChiRun += math.Round(2 * d / 3)
-	// The loop of γ grows on both sides by half the growth of the stem, so
-	// that its counter keeps its size.
-	q.Gk.GammaLoopR += math.Round(d / 2)
-	q.Gk.GammaLoopL += math.Round(d / 2)
 	return q
 }
 
