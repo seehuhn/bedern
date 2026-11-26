@@ -48,7 +48,8 @@ func (r *Result) endCap(right, left Chain, e End, nd Node, er, el edgeData) (Cha
 	case Round:
 		t := dirOf(nd.Dir)
 		a0 := math.Atan2(t.Y, t.X) - math.Pi/2 // the right edge: the direction minus a quarter turn
-		return right, left, circleArc(nd.P, nd.W/2, a0, a0+math.Pi, EndPiece), nil
+		right, left, ch := absorbArcEnds(right, left, circleArc(nd.P, nd.W/2, a0, a0+math.Pi, EndPiece))
+		return right, left, ch, nil
 	case Wedge:
 		t := dirOf(nd.Dir)
 		tip := add(add(nd.P, mul(t, e.Length)), mul(rot90(t), e.Offset))
@@ -81,6 +82,66 @@ func (r *Result) endCap(right, left Chain, e End, nd Node, er, el edgeData) (Cha
 		return right, left, cp, err
 	}
 	return nil, nil, nil, fmt.Errorf("stroke: unknown end %d", e.Kind)
+}
+
+// absorbArcEnds returns the edges and the arc of a round end with a piece of
+// the arc shorter than MinPiece next to an edge drawn into that edge, where
+// the edge turns the same way as the arc: the end of the edge and the short
+// piece are replaced by one curve with the point, the direction and the
+// curvature of the edge at its start and of the arc at its end, the next
+// node of the arc.
+func absorbArcEnds(right, left, arc Chain) (Chain, Chain, Chain) {
+	if len(arc) >= 2 && arc[0].C.Length() < MinPiece {
+		if e, ok := absorbArc(right, arc[0].C); ok {
+			right, arc = e, arc[1:]
+		}
+	}
+	if n := len(arc); n >= 2 && arc[n-1].C.Length() < MinPiece {
+		if e, ok := absorbArc(left, arc[n-1].C.Reversed()); ok {
+			left, arc = e, arc[:n-1]
+		}
+	}
+	return right, left, arc
+}
+
+// absorbArc returns the edge continued by the short arc a, which starts at
+// its end, as absorbArcEnds draws it.
+func absorbArc(edge Chain, a Cubic) (Chain, bool) {
+	n := len(edge)
+	if n == 0 || edge[n-1].Kind != EdgePiece || edge[n-1].Fixed || edge[n-1].C.IsStraight() {
+		return nil, false
+	}
+	// The curve takes the last MinPiece of the edge, or twice that, or the
+	// whole last piece, whichever first gives a curve with both curvatures.
+	whole := edge[n-1].C
+	for _, l := range []float64{MinPiece, 2 * MinPiece, math.Inf(1)} {
+		c, head := whole, []Piece(nil)
+		if whole.Length() > l+MinPiece {
+			lo, hi := 0.0, 1.0
+			for range 50 {
+				m := (lo + hi) / 2
+				if whole.Sub(m, 1).Length() > l {
+					lo = m
+				} else {
+					hi = m
+				}
+			}
+			var h Cubic
+			h, c = whole.Split(lo)
+			head = []Piece{{C: h, Kind: EdgePiece}}
+		}
+		if c.Curvature(0)*a.Curvature(1) <= 0 || c.Curvature(1)*a.Curvature(1) <= 0 {
+			return nil, false
+		}
+		m, ok := hermite(c[0], c.Tangent(0), c.Curvature(0), a[3], a.Tangent(1), a.Curvature(1))
+		if !ok {
+			continue
+		}
+		out := append(Chain(nil), edge[:n-1]...)
+		out = append(out, head...)
+		return append(out, Piece{C: m, Kind: EdgePiece}), true
+	}
+	return nil, false
 }
 
 // chainXRange returns the least and the greatest abscissa of the chain.
