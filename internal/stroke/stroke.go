@@ -534,6 +534,11 @@ func checkFold(ns []Node, closed bool) error {
 	return nil
 }
 
+// CentreLine returns the cubic from the node a to the node b with their
+// directions and the handles of a circular arc (arcHandles), from which the
+// rules take the curvature of a node.
+func CentreLine(a, b Node) Cubic { return arcHandles(a, b) }
+
 // arcHandles returns the cubic from the node a to the node b with their
 // directions and the handles of a circular arc with the same turn, a third of
 // the chord where the directions are parallel.
