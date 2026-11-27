@@ -50,6 +50,7 @@ import (
 	"maps"
 	"os"
 	"path/filepath"
+	"slices"
 	"sync"
 	"time"
 
@@ -57,6 +58,7 @@ import (
 	bedern "seehuhn.de/go/bedern/internal/font"
 	"seehuhn.de/go/bedern/internal/font/design"
 	"seehuhn.de/go/bedern/internal/font/glyphs"
+	"seehuhn.de/go/bedern/internal/font/greek"
 	"seehuhn.de/go/bedern/internal/font/italic/assembly"
 	"seehuhn.de/go/bedern/internal/font/mathfont"
 	"seehuhn.de/go/bedern/internal/kern"
@@ -67,20 +69,22 @@ import (
 // A fontSpec is one font of the family: the name of its file, its parameters,
 // its style and its series in LaTeX.  The glyphs of the font with italic set
 // are those of the italic (assembly), with their own kerning; the parameters
-// are then those of that kerning.
+// are then those of that kerning.  A font with greek carries the upright Greek
+// lowercase.
 type fontSpec struct {
 	file   string
 	params func() design.Params
 	style  func() design.Style
 	series string
 	italic bool
+	greek  bool
 }
 
 // fonts lists the fonts which the command writes.
 var fonts = []fontSpec{
-	{"Bedern-Regular.otf", design.Regular, design.RegularStyle, "m", false},
-	{"Bedern-Bold.otf", design.Bold, design.BoldStyle, "b", false},
-	{assembly.File, assembly.Kerning, design.ItalicStyle, "m", true},
+	{"Bedern-Regular.otf", design.Regular, design.RegularStyle, "m", false, true},
+	{"Bedern-Bold.otf", design.Bold, design.BoldStyle, "b", false, false},
+	{assembly.File, assembly.Kerning, design.ItalicStyle, "m", true, false},
 }
 
 func usage() {
@@ -349,6 +353,13 @@ func render(f fontSpec, now time.Time, dated, withPFB, noKern bool) (*rendered, 
 		}
 	} else {
 		r.glyphs = glyphSet(p)
+		if f.greek {
+			gg, err := greek.Glyphs(p)
+			if err != nil {
+				return nil, err
+			}
+			r.glyphs = append(slices.Clone(r.glyphs), gg...)
+		}
 		if !noKern {
 			r.kern = kern.Compute(p, r.glyphs)
 		}
