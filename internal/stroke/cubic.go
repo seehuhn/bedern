@@ -163,6 +163,26 @@ func (c Cubic) Extrema() []float64 {
 	return g.Extrema()
 }
 
+// doublesBack reports whether the curve from p0 in the direction t0 with the
+// handle a to p3 = p0 + d in the direction t3 with the handle b runs back
+// along the chord although both ends run forward along it.  With nearly
+// straight ends the curvatures of the edge of a stem are tiny and allow
+// handles which overlap along the chord: the curve then runs down, back up
+// and down again on nearly one line, invisible, but a fold of the edge.
+func doublesBack(t0, t3, d Point, a, b float64) bool {
+	l := norm(d)
+	u := mul(d, 1/l)
+	c0, c3 := dot(t0, u), dot(t3, u)
+	if c0 <= 0 || c3 <= 0 {
+		return false
+	}
+	// The derivative of the projection onto the chord is a quadratic with
+	// the Bernstein coefficients d0, d1, d2 (times 3).
+	p1, p2 := a*c0, l-b*c3
+	d0, d1, d2 := p1, p2-p1, l-p2
+	return d1 < 0 && d1*d1 > d0*d2
+}
+
 // hermite returns the curve from p0 in the direction t0 with the curvature k0
 // to p3 in the direction t3 with the curvature k3 (both unit directions,
 // curvatures signed, positive to the left), and whether it has these
@@ -171,8 +191,9 @@ func (c Cubic) Extrema() []float64 {
 //	3/2 k0 a^2 = cross(t0, d) - b cross(t0, t3)
 //	3/2 k3 b^2 = cross(d, t3) - a cross(t0, t3)
 //
-// with d = p3 - p0.  Of the positive solutions, the one nearest to the handles
-// of a circular arc with the same end directions is taken.  Where there is
+// with d = p3 - p0.  Of the positive solutions whose curve does not run back
+// along the chord (see doublesBack), the one nearest to the handles of a
+// circular arc with the same end directions is taken.  Where there is
 // none, the curve has those handles of the arc, is only tangent-continuous at
 // its ends, and ok is false.
 func hermite(p0, t0 Point, k0 float64, p3, t3 Point, k3 float64) (Cubic, bool) {
@@ -210,6 +231,9 @@ func hermite(p0, t0 Point, k0 float64, p3, t3 Point, k3 float64) (Cubic, bool) {
 		case math.Abs(k3) <= 1e-12 && math.Abs(B) < 1e-9*l:
 			okB = true
 		}
+		if doublesBack(t0, t3, d, a, b) {
+			return mk(h0, h0), false
+		}
 		return mk(a, b), okA && okB
 	}
 	bOf := func(a float64) float64 { return (A - 1.5*k0*a*a) / c }
@@ -233,7 +257,7 @@ func hermite(p0, t0 Point, k0 float64, p3, t3 Point, k3 float64) (Cubic, bool) {
 				}
 			}
 			r := (lo + up) / 2
-			if b := bOf(r); r > 1e-6 && b > 1e-6 && b < hi {
+			if b := bOf(r); r > 1e-6 && b > 1e-6 && b < hi && !doublesBack(t0, t3, d, r, b) {
 				if e := math.Abs(r-h0) + math.Abs(b-h0); e < best {
 					best, bestA, bestB = e, r, b
 				}
@@ -253,7 +277,7 @@ func hermite(p0, t0 Point, k0 float64, p3, t3 Point, k3 float64) (Cubic, bool) {
 					}
 				}
 				r := (lo + up) / 2
-				if b := bOf(r); math.Abs(f(r)) < 1e-6*l && r > 1e-6 && b > 1e-6 && b < hi {
+				if b := bOf(r); math.Abs(f(r)) < 1e-6*l && r > 1e-6 && b > 1e-6 && b < hi && !doublesBack(t0, t3, d, r, b) {
 					if e := math.Abs(r-h0) + math.Abs(b-h0); e < best {
 						best, bestA, bestB = e, r, b
 					}
@@ -280,7 +304,7 @@ func hermite(p0, t0 Point, k0 float64, p3, t3 Point, k3 float64) (Cubic, bool) {
 		}
 		f1 := 1.5*k0*a*a - A + b*c
 		f2 := 1.5*k3*b*b - B + a*c
-		if math.Abs(f1) < 1e-7*l && math.Abs(f2) < 1e-7*l && a > 1e-6 && b > 1e-6 && a < hi && b < hi {
+		if math.Abs(f1) < 1e-7*l && math.Abs(f2) < 1e-7*l && a > 1e-6 && b > 1e-6 && a < hi && b < hi && !doublesBack(t0, t3, d, a, b) {
 			if e := math.Abs(a-h0) + math.Abs(b-h0); e < best {
 				best, bestA, bestB = e, a, b
 			}
